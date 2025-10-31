@@ -1,0 +1,23 @@
+# Dit dient voor alle nodige pakketten te installeren (Flask, database, blabla)
+# Zorg dat je eerst je virtuele environment activeert met:
+#   .\venv\Scripts\activate   (op Windows)
+#   source venv/bin/activate  (op Mac/Linux)
+#
+# Krijg je errors bij het activeren van de environment?
+# Controleer dan of 'virtualenv' geïnstalleerd is.
+# Zo niet, installeer het met: pip install virtualenv
+#
+# Daarna voer je dit uit in je terminal om alle pakketten te installeren:
+#   pip install -r requirements.txt
+# -----------------------------------------------------------
+# Zodra alle pakketten geïnstalleerd zijn, kun je de Flask-app starten:
+#   python run.py
+#
+# Je krijgt dan een melding zoals:
+#   * Running on http://127.0.0.1:5000/
+#
+# Open dat adres in je browser om de webapp te bekijken.
+
+flask
+flask-sqlalchemy
+psycopg2-binary
