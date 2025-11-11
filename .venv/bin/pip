@@ -1,4 +1,4 @@
-#!/Users/elinetielliu/Documents/GitHub/web-application-2025-group-23/.venv/bin/python
+#!/Users/elinetielliu/Documents/GitHub/web-application-2025-group-23/.venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
