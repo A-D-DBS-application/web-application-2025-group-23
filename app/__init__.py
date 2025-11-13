@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from config import Config
+from app.config import Config
 
 # Databaseobject aanmaken (nog niet gekoppeld aan app)
 db = SQLAlchemy()
