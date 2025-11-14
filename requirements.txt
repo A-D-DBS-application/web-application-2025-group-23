@@ -18,6 +18,6 @@
 #
 # Open dat adres in je browser om de webapp te bekijken.
 
-flask
-flask-sqlalchemy
-psycopg2-binary
+#   pip3 install flask
+#   pip3 install flask flask-sqlalchemy
+#   pip 3 install psycopg2-binary
