@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Profile</title>
+</head>
+<body>
+    <h1>Edit Profile</h1>
+    <form method="post">
+        <label>Username: <input name="username" value="{{ user.username or '' }}" readonly></label><br>
+        <label>Email: <input name="email" value="{{ user.email or '' }}"></label><br>
+        <label>Role: <input name="role" value="{{ user.role or '' }}"></label><br>
+        <label>Location: <input name="location" value="{{ user.location or '' }}"></label><br>
+        <label>Job description: <input name="job_description" value="{{ user.job_description or '' }}"></label><br>
+        <label>Company name: <input name="company_name" value="{{ user.company_name or '' }}"></label><br>
+        <label>Verified: <input type="checkbox" name="verified" {% if user.verified %}checked{% endif %}></label><br>
+        <!-- 'created_at' en 'updated_at' worden meestal niet aangepast in de UI -->
+        <button type="submit">Save changes</button>
+    </form>
+    <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
+</body>
+</html>
