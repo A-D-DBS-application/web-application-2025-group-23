@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+</head>
+<body>
+    <h1>Register</h1>
+    <form method="post">
+        <label>Username: <input name="username" required></label><br>
+        <button type="submit">Register</button>
+    </form>
+    <a href="{{ url_for('main.login') }}">Already have an account? Login here</a><br>
+    <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
+</body>
+</html>
