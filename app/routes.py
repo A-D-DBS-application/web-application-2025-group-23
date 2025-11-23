@@ -1,5 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session
-from .models import db, user  # Gebruik het nieuwe user model
+from .models import db, user, Company, Service, BarterDeal, Contract, Review  # Gebruik het nieuwe user model
 
 main = Blueprint('main', __name__)
 
@@ -25,7 +25,10 @@ def register():
             )
             db.session.add(new_user)
             db.session.commit()
-            session['user_id'] = new_user.user_id
+
+            # UUID als string in session
+            session['user_id'] = str(new_user.user_id)
+
             return redirect(url_for('main.index'))
         return 'Username already registered'
     return render_template('register.html')
@@ -36,7 +39,10 @@ def login():
         username = request.form['username']
         usr = user.query.filter_by(username=username).first()
         if usr:
-            session['user_id'] = usr.user_id
+
+            # UUID als string in session
+            session['user_id'] = str(usr.user_id)
+
             return redirect(url_for('main.index'))
         return 'User not found'
     return render_template('login.html')
@@ -59,7 +65,6 @@ def profile_settings():
         usr.location = request.form.get('location', usr.location)
         usr.job_description = request.form.get('job_description', usr.job_description)
         usr.company_name = request.form.get('company_name', usr.company_name)
-        # verified, created_at, updated_at worden meestal niet via formulier aangepast
         db.session.commit()
         return redirect(url_for('main.profile_settings'))
 
