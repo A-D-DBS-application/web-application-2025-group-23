@@ -4,3 +4,4 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     #de %21 is voor het ! teken in de wachtwoord
+    #code supabase = Barter.com123!
