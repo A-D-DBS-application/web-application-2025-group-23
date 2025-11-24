@@ -1,7 +1,7 @@
 #Belangrijk, skip deze uitleg pls ff niet: 
 # Migration zorgt ervoor dat als je de database wil aanpassen, dit via hier in models.py kan in plaats van in supabase
 # Dit is handiger want anders kunnen er verschillen zijn tussen de code en supabase en dan runt hij niet en blabla.
-# Na elke wijziging in dit bestand (models.py), voer je volgende commando's uit in terminal (zorg dat je in de venv zit):
+# Na elke wijziging in dit bestand (models.py) (EERST SAVEN), voer je volgende commando's uit in terminal (zorg dat je in de venv zit):
 #   python -m flask --app run.py db migrate -m "{wat je deed} - {je naam}"    (#die "" is gewooon een uitleg voor de documentatie die wordt opgeslagen)
 #   python -m flask --app run.py db upgrade
 # Alleen uitvoeren bij echte DB-wijzigingen (nieuwe kolom, tabel, typewijziging).
@@ -97,7 +97,7 @@ class CompanyMember(db.Model):
     member_role = db.Column(db.Text)  # bv. 'founder', 'employee'
     created_at = db.Column(DateTime(timezone=True))
     job_description = db.Column(db.Text) #bv consultant developer
-    
+
     # Relaties
     company = db.relationship("Company", back_populates="members")
     user_obj = db.relationship(
