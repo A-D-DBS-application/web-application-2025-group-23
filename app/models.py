@@ -29,9 +29,7 @@ class user(db.Model):
     username = db.Column(db.Text, nullable=False, unique=True)
     email = db.Column(db.Text)
 
-    platform_role = db.Column(db.Text)       # bv. 'founder', 'accelerator_manager'
     location = db.Column(db.Text)
-    job_description = db.Column(db.Text)
 
     verified = db.Column(db.Boolean)         # mag NULL zijn in Supabase
 
@@ -39,7 +37,6 @@ class user(db.Model):
     updated_at = db.Column(DateTime(timezone=True))
 
     role = db.Column(db.Text)                
-    company_name = db.Column(db.Text)        # vrije tekst, los van 'company' tabel
 
     def __repr__(self) -> str:
         return f"<user {self.username}>"
@@ -99,7 +96,8 @@ class CompanyMember(db.Model):
 
     member_role = db.Column(db.Text)  # bv. 'founder', 'employee'
     created_at = db.Column(DateTime(timezone=True))
-
+    job_description = db.Column(db.Text) #bv consultant developer
+    
     # Relaties
     company = db.relationship("Company", back_populates="members")
     user_obj = db.relationship(
