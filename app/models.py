@@ -18,11 +18,11 @@ db = SQLAlchemy()
 # ==========================
 # USER
 # ==========================
+from sqlalchemy.sql import func  # helemaal bovenaan bij je imports
+
+# ...
+
 class user(db.Model):
-    """
-    Profielgegevens van een gebruiker.
-    Komt overeen met de 'user' tabel in Supabase.
-    """
     __tablename__ = "user"
 
     user_id = db.Column(UUID(as_uuid=True), primary_key=True)
@@ -31,15 +31,19 @@ class user(db.Model):
 
     location = db.Column(db.Text)
 
-    verified = db.Column(db.Boolean)         # mag NULL zijn in Supabase
+    verified = db.Column(db.Boolean)
+
+    job_description = db.Column(db.Text)
+    company_name = db.Column(db.Text)
+    role = db.Column(db.Text)
+    platform_role = db.Column(db.Text)
 
     created_at = db.Column(DateTime(timezone=True))
-    updated_at = db.Column(DateTime(timezone=True))
-
-    role = db.Column(db.Text)                
-
-    def __repr__(self) -> str:
-        return f"<user {self.username}>"
+    updated_at = db.Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
 
 
 # ==========================
