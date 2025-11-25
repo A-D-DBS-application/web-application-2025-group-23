@@ -12,6 +12,13 @@
 </head>
 <body>
   <form class="card" method="post">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category,msg in messages %}
+          <div style="margin-bottom:1em;padding:0.6em;border-radius:6px;background:{% if category=='success' %}#d4f7dc{% elif category=='warning' %}#fff4cc{% else %}#ffdede{% endif %};">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <h2>Join bedrijf via code</h2>
     {% if message %}
       <div style="color: #b03; margin-bottom:1em">{{ message }}</div>

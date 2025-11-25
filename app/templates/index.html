@@ -26,6 +26,13 @@
 </head>
 <body>
   <div class="dashboard">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category,msg in messages %}
+          <div style="margin-bottom:1em;padding:0.6em;border-radius:6px;background:{% if category=='success' %}#d4f7dc{% elif category=='warning' %}#fff4cc{% else %}#ffdede{% endif %};">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     {% if username %}
       <h1>Welkom, {{ username }}!</h1>
       <a href="{{ url_for('main.profile_settings') }}">Naar Profiel</a>

@@ -14,6 +14,13 @@
 </head>
 <body>
   <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div style="margin-bottom:1em; padding:0.6em; border-radius:6px; background: {% if category=='success' %}#d4f7dc{% elif category=='warning' %}#fff4cc{% else %}#ffdede{% endif %};">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <h2>Manage {{ company.name }}</h2>
 
     <h3>Join code</h3>
@@ -49,9 +56,12 @@
           <div>{{ m.user_obj.username if m.user_obj else m.user_id }}</div>
           <div style="display:flex; gap:8px; align-items:center;">
             <div>{{ 'Admin' if m.is_admin else 'Member' }}</div>
-            {% if not (m.user_id == (session['user_id'] | string)) %}
+            {% if (not m.is_admin) and not (m.user_id == (session['user_id'] | string)) %}
               <form method="post" action="{{ url_for('main.remove_member', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Verwijder deze member?');">
                 <button type="submit" style="background:#c44;">Verwijder member</button>
+              </form>
+              <form method="post" style="display:inline" action="{{ url_for('main.transfer_admin', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Weet je zeker dat je admin wilt overdragen aan deze gebruiker? Je bent daarna geen admin meer.');">
+                <button type="submit" style="background:#2a7; margin-left:6px;">Promoveer tot admin</button>
               </form>
             {% endif %}
           </div>
