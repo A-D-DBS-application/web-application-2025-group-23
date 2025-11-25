@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ company.name }} | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">www.barter.com</div>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.my_companies') }}">My Companies</a>
+            {% if is_admin %}
+            <a href="{{ url_for('main.manage_company', company_id=company.company_id) }}" class="btn-primary small">Manage</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <section class="content-container">
+        <div class="content-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category,msg in messages %}
+                  <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            <h1>{{ company.name }}</h1>
+            <div class="info-section">
+                <h3>Join Code</h3>
+                <div class="code-display">{{ company.join_code or 'No code' }}</div>
+            </div>
+            <div class="company-section">
+                <h3>Members</h3>
+                {% for m in members %}
+                  <div class="member-item">
+                      <div>
+                        <div class="member-name">{{ m.user_obj.username if m.user_obj else m.user_id }}</div>
+                        <div class="member-role">{{ 'Admin' if m.is_admin else 'Member' }}</div>
+                      </div>
+                  </div>
+                {% endfor %}
+            </div>
+            <div class="form-links">
+                <a href="{{ url_for('main.my_companies') }}">Back to My Companies</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">© 2025 Barter.com. Building partnerships through service exchange.</footer>
+</body>
+</html>

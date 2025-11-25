@@ -162,11 +162,29 @@ def manage_company(company_id):
     # check if caller is admin
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
     if not membership:
+        # non-admin members get redirected to the member view of the company
+        member_check = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
+        if member_check:
+            flash('Je hebt geen admin rechten voor dit bedrijf', 'warning')
+            return redirect(url_for('main.view_company', company_id=company_id))
         return 'Forbidden', 403
     company = Company.query.get(company_id)
     members = CompanyMember.query.filter_by(company_id=company_id).all()
     pending = CompanyJoinRequest.query.filter_by(company_id=company_id).all()
     return render_template('manage_company.html', company=company, members=members, pending=pending)
+
+@main.route('/company/<uuid:company_id>')
+def view_company(company_id):
+    """Member-facing read-only company view (no management actions)."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    uid = uuid.UUID(session['user_id'])
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
+    if not membership:
+        return 'Forbidden', 403
+    company = Company.query.get(company_id)
+    members = CompanyMember.query.filter_by(company_id=company_id).all()
+    return render_template('company_view.html', company=company, members=members, is_admin=membership.is_admin)
 
 
 @main.route('/company/<uuid:company_id>/accept/<uuid:request_id>', methods=['POST'])
@@ -215,8 +233,9 @@ def transfer_admin(company_id, member_id):
     target.is_admin = True
     current_admin.is_admin = False
     db.session.commit()
-    flash('Admin-rechten overgedragen', 'success')
-    return redirect(url_for('main.manage_company', company_id=company_id))
+    flash('Admin-rechten overgedragen. Je bent nu gewone member.', 'success')
+    # Redirect to overall companies overview so user sees updated member/admin sections
+    return redirect(url_for('main.my_companies'))
 
 
 @main.route('/company/<uuid:company_id>/remove/<uuid:member_id>', methods=['POST'])
