@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Maak Bedrijf</title>
+  <style>
+    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
+    .card { max-width: 420px; margin: 3em auto; background: #fff8e7; padding: 2em; border-radius: 12px; box-shadow: 0 2px 16px #ead492; }
+    input { width:100%; padding:0.6em; margin-bottom:1em; border-radius:6px; border:1px solid #eed0a0; }
+    button { background: #E6992D; color: white; padding:0.6em 1.2em; border-radius:8px; border:none; cursor:pointer; font-weight:bold }
+  </style>
+</head>
+<body>
+  <form class="card" method="post">
+    <h2>Nieuw bedrijf aanmaken</h2>
+    <label>Bedrijfsnaam
+      <input name="name" placeholder="Bijv. Mijn Co" required>
+    </label>
+    <button type="submit">Maak bedrijf</button>
+    <div style="margin-top:1em; text-align:center;"><a href="{{ url_for('main.index') }}">Terug</a></div>
+  </form>
+</body>
+</html>

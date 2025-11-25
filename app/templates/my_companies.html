@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Mijn bedrijven</title>
+  <style>
+    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
+    .container { max-width: 700px; margin: 3em auto; background: #fff8e7; padding: 2em; border-radius: 12px; box-shadow: 0 2px 16px #ead492; }
+    .group { margin-bottom:1.4em }
+    .company { padding:0.8em; border-radius:8px; background:#fff; margin-bottom:0.6em; display:flex; justify-content:space-between; align-items:center }
+    a.btn { background:#E6992D; color:white; padding:0.5em 0.8em; border-radius:6px; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Mijn bedrijven</h2>
+    <div class="group">
+      <h3>Als admin</h3>
+      {% if admin_companies %}
+        {% for c in admin_companies %}
+          <div class="company">
+            <div>{{ c.name }}</div>
+            <div style="display:flex; gap:8px;">
+              <a class="btn" href="{{ url_for('main.manage_company', company_id=c.company_id) }}">Manage mijn bedrijf</a>
+              <form method="post" action="{{ url_for('main.delete_company', company_id=c.company_id) }}" onsubmit="return confirm('Weet je zeker dat je dit bedrijf wilt verwijderen?');">
+                <button class="btn" type="submit" style="background:#b33; border:none; padding:.4em .6em">Verwijder</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div>Je bent geen admin van een bedrijf</div>
+      {% endif %}
+    </div>
+
+    <div class="group">
+      <h3>Als member</h3>
+      {% if member_companies %}
+        {% for c in member_companies %}
+          <div class="company">
+            <div>{{ c.name }}</div>
+            <div>
+              <form method="post" action="{{ url_for('main.leave_company', company_id=c.company_id) }}" onsubmit="return confirm('Weet je zeker dat je dit bedrijf wilt verlaten?');">
+                <button class="btn" type="submit" style="background:#b33; border:none; padding:.4em .6em">Verlaat</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div>Je bent nog lid van geen bedrijf</div>
+      {% endif %}
+    </div>
+
+    <div style="text-align:center;"><a href="{{ url_for('main.index') }}">Terug</a></div>
+  </div>
+</body>
+</html>

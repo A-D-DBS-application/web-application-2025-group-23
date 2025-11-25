@@ -1,5 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session
-from .models import db, user, Company, CompanyMember, Service, BarterDeal, Contract, Review
+from .models import db, user, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review
 import uuid
 import datetime
 
@@ -16,7 +16,6 @@ def index():
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
-        is_admin = request.form.get('is_admin', 'no') == 'yes'
         if username is None:
             return 'Missing required fields', 400
         if user.query.filter_by(username=username).first() is None:
@@ -25,20 +24,6 @@ def register():
                 username=username
             )
             db.session.add(new_user)
-            db.session.flush()
-
-            example_company_id = "00000000-0000-0000-0000-000000000001"  # Placeholder
-            new_member = CompanyMember(
-                member_id=uuid.uuid4(),
-                company_id=example_company_id,
-                user_id=new_user.user_id,
-                member_role='member',
-                is_admin=is_admin,
-                created_at=datetime.datetime.now(),
-                # job_description belongs on `user` (if you want it saved there) —
-                # don't pass unknown columns here.
-            )
-            db.session.add(new_member)
             db.session.commit()
 
             session['user_id'] = str(new_user.user_id)
@@ -79,10 +64,180 @@ def profile_settings():
         usr.location = request.form.get('location', usr.location)
         usr.job_description = request.form.get('jobdescription', usr.job_description)
         # `company_name` is not a column on the `user` model — keep only supported fields
-        admin_val = request.form.get('is_admin', 'no') == 'yes'
-        company_member = CompanyMember.query.filter_by(user_id=usr.user_id).first()
-        if company_member:
-            company_member.is_admin = admin_val
+        # Do not modify CompanyMember.is_admin from the profile page; admin status
+        # is controlled when creating companies and via manage pages.
         db.session.commit()
         return redirect(url_for('main.profile_settings'))
     return render_template('profile.html', user=usr)
+
+
+@main.route('/company/create', methods=['GET', 'POST'])
+def create_company():
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    if request.method == 'POST':
+        name = request.form.get('name')
+        if not name:
+            return 'Name required', 400
+        company = Company(
+            company_id=uuid.uuid4(),
+            name=name,
+            created_at=datetime.datetime.now(),
+            join_code=uuid.uuid4().hex[:8]
+        )
+        db.session.add(company)
+        db.session.flush()
+
+        # Make creator an admin
+        member = CompanyMember(
+            member_id=uuid.uuid4(),
+            company_id=company.company_id,
+            user_id=uuid.UUID(session['user_id']),
+            member_role='founder',
+            is_admin=True,
+            created_at=datetime.datetime.now(),
+        )
+        db.session.add(member)
+        db.session.commit()
+        return redirect(url_for('main.my_companies'))
+    return render_template('create_company.html')
+
+
+@main.route('/company/join', methods=['GET', 'POST'])
+def join_company():
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    msg = None
+    if request.method == 'POST':
+        code = request.form.get('code')
+        if not code:
+            msg = 'Enter a code'
+        else:
+            company = Company.query.filter_by(join_code=code).first()
+            if not company:
+                msg = 'Invalid code'
+            else:
+                # check if already member
+                existing = CompanyMember.query.filter_by(company_id=company.company_id, user_id=uuid.UUID(session['user_id'])).first()
+                if existing:
+                    msg = 'Already a member'
+                else:
+                    # create a join request
+                    req = CompanyJoinRequest(
+                        request_id=uuid.uuid4(),
+                        company_id=company.company_id,
+                        user_id=uuid.UUID(session['user_id']),
+                        created_at=datetime.datetime.now(),
+                    )
+                    db.session.add(req)
+                    db.session.commit()
+                    msg = 'Request submitted — wait for admin approval'
+    return render_template('join_company.html', message=msg)
+
+
+@main.route('/companies/my')
+def my_companies():
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    uid = uuid.UUID(session['user_id'])
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    admin_companies = [m.company for m in memberships if m.is_admin]
+    member_companies = [m.company for m in memberships if not m.is_admin]
+    return render_template('my_companies.html', admin_companies=admin_companies, member_companies=member_companies)
+
+
+@main.route('/company/<uuid:company_id>/manage')
+def manage_company(company_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    uid = uuid.UUID(session['user_id'])
+    # check if caller is admin
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
+    if not membership:
+        return 'Forbidden', 403
+    company = Company.query.get(company_id)
+    members = CompanyMember.query.filter_by(company_id=company_id).all()
+    pending = CompanyJoinRequest.query.filter_by(company_id=company_id).all()
+    return render_template('manage_company.html', company=company, members=members, pending=pending)
+
+
+@main.route('/company/<uuid:company_id>/accept/<uuid:request_id>', methods=['POST'])
+def accept_join_request(company_id, request_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    uid = uuid.UUID(session['user_id'])
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
+    if not membership:
+        return 'Forbidden', 403
+    req = CompanyJoinRequest.query.get(request_id)
+    if not req or req.company_id != company_id:
+        return 'Not found', 404
+    # create member
+    new_member = CompanyMember(
+        member_id=uuid.uuid4(),
+        company_id=company_id,
+        user_id=req.user_id,
+        member_role='member',
+        is_admin=False,
+        created_at=datetime.datetime.now(),
+    )
+    db.session.add(new_member)
+    db.session.delete(req)
+    db.session.commit()
+    return redirect(url_for('main.manage_company', company_id=company_id))
+
+
+@main.route('/company/<uuid:company_id>/remove/<uuid:member_id>', methods=['POST'])
+def remove_member(company_id, member_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    uid = uuid.UUID(session['user_id'])
+    # only admin can remove members
+    admin_membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
+    if not admin_membership:
+        return 'Forbidden', 403
+    member = CompanyMember.query.get(member_id)
+    if not member or member.company_id != company_id:
+        return 'Not found', 404
+    # prevent removing the last admin if they are the only admin
+    if member.is_admin:
+        other_admin = CompanyMember.query.filter(CompanyMember.company_id==company_id, CompanyMember.is_admin==True, CompanyMember.member_id!=member_id).first()
+        if not other_admin:
+            return 'Cannot remove the last admin', 400
+    db.session.delete(member)
+    db.session.commit()
+    return redirect(url_for('main.manage_company', company_id=company_id))
+
+
+@main.route('/company/<uuid:company_id>/leave', methods=['POST'])
+def leave_company(company_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    uid = uuid.UUID(session['user_id'])
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
+    if not membership:
+        return 'Not a member', 400
+    # If user is admin, prevent leaving unless they are not the last admin
+    if membership.is_admin:
+        other_admin = CompanyMember.query.filter(CompanyMember.company_id==company_id, CompanyMember.is_admin==True, CompanyMember.user_id!=uid).first()
+        if not other_admin:
+            return 'Cannot leave: you are the only admin. Assign another admin or delete the company.', 400
+    db.session.delete(membership)
+    db.session.commit()
+    return redirect(url_for('main.my_companies'))
+
+
+@main.route('/company/<uuid:company_id>/delete', methods=['POST'])
+def delete_company(company_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    uid = uuid.UUID(session['user_id'])
+    admin_membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
+    if not admin_membership:
+        return 'Forbidden', 403
+    # delete members, join requests, and company
+    CompanyMember.query.filter_by(company_id=company_id).delete()
+    CompanyJoinRequest.query.filter_by(company_id=company_id).delete()
+    Company.query.filter_by(company_id=company_id).delete()
+    db.session.commit()
+    return redirect(url_for('main.my_companies'))

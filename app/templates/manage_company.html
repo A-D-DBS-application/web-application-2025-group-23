@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage {{ company.name }}</title>
+  <style>
+    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
+    .container { max-width: 700px; margin: 3em auto; background: #fff8e7; padding: 2em; border-radius: 12px; box-shadow: 0 2px 16px #ead492; }
+    .list { margin-bottom: 1em }
+    .row { display:flex; justify-content:space-between; align-items:center; padding:0.6em; border-radius:6px; background:#fff; margin-bottom:0.6em }
+    form.inline { display:inline }
+    button { background:#E6992D; color:white; padding:0.4em .6em; border-radius:6px; border:none; cursor:pointer }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Manage {{ company.name }}</h2>
+
+    <h3>Join code</h3>
+    <div style="background:#fff;padding:0.8em;border-radius:8px;margin-bottom:1em">{{ company.join_code or 'Geen code' }}</div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3>Pending requests</h3>
+      <form method="post" action="{{ url_for('main.delete_company', company_id=company.company_id) }}" onsubmit="return confirm('Weet je zeker dat je dit bedrijf wilt verwijderen? Dit verwijdert ook alle members en aanvragen.');">
+        <button type="submit" style="background:#b33;">Verwijder bedrijf</button>
+      </form>
+    </div>
+    <div class="list">
+      {% if pending %}
+        {% for r in pending %}
+          <div class="row">
+            <div>{{ r.user.username if r.user else r.user_id }}</div>
+            <div>
+              <form class="inline" method="post" action="{{ url_for('main.accept_join_request', company_id=company.company_id, request_id=r.request_id) }}">
+                <button type="submit">Accepteer</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div>Geen openstaande aanvragen</div>
+      {% endif %}
+    </div>
+
+    <h3>Members</h3>
+    <div class="list">
+      {% for m in members %}
+        <div class="row">
+          <div>{{ m.user_obj.username if m.user_obj else m.user_id }}</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div>{{ 'Admin' if m.is_admin else 'Member' }}</div>
+            {% if not (m.user_id == (session['user_id'] | string)) %}
+              <form method="post" action="{{ url_for('main.remove_member', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Verwijder deze member?');">
+                <button type="submit" style="background:#c44;">Verwijder member</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div style="text-align:center;"><a href="{{ url_for('main.my_companies') }}">Terug</a></div>
+  </div>
+</body>
+</html>

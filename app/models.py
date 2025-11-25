@@ -65,6 +65,8 @@ class Company(db.Model):
     company_id = db.Column(UUID(as_uuid=True), primary_key=True)
     name = db.Column(db.Text)  # in Supabase nullable = allowed
     created_at = db.Column(DateTime(timezone=True))
+    # Code users can submit to request joining the company
+    join_code = db.Column(db.Text, nullable=True, unique=True)
 
     # Relaties:
     # - members: lijst van CompanyMember records
@@ -82,6 +84,26 @@ class Company(db.Model):
 
     def __repr__(self) -> str:
         return f"<Company {self.name}>"
+
+
+class CompanyJoinRequest(db.Model):
+    """
+    Represents a user's request to join a company. Admins can accept or reject.
+    """
+    __tablename__ = "company_join_request"
+
+    request_id = db.Column(UUID(as_uuid=True), primary_key=True)
+    company_id = db.Column(
+        UUID(as_uuid=True), db.ForeignKey("company.company_id"), nullable=False
+    )
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("user.user_id"), nullable=False)
+    created_at = db.Column(DateTime(timezone=True))
+
+    company = db.relationship("Company", backref=db.backref("join_requests", lazy="dynamic"))
+    user = db.relationship("user", backref=db.backref("join_requests", lazy="dynamic"))
+
+    def __repr__(self) -> str:
+        return f"<CompanyJoinRequest {self.request_id} company={self.company_id} user={self.user_id}>"
 
 
 # ==========================

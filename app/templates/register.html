@@ -53,11 +53,7 @@
     <h2>Word lid van barter.com</h2>
     <label>Username</label>
     <input name="username" required>
-    <label>Ben je company admin?</label>
-    <select name="is_admin">
-      <option value="no">Nee</option>
-      <option value="yes">Ja</option>
-    </select>
+    <!-- Registratie vraagt niet meer of iemand admin is. Admins ontstaan alleen bij het creëren van een bedrijf. -->
     <button type="submit">Register</button>
     <div style="text-align:center;">
       <a href="{{ url_for('main.login') }}">Al een account? Login</a>

@@ -64,16 +64,7 @@
       <input name="location" value="{{ user.location or '' }}">
     </label>
     <label>Job description
-      <input name="jobdescription" value="{{ user.jobdescription or '' }}">
-    </label>
-    <label>Company name
-      <input name="companyname" value="{{ user.companyname or '' }}">
-    </label>
-    <label>Company admin
-      <select name="is_admin">
-        <option value="no" {% if not user.is_admin %}selected{% endif %}>Nee</option>
-        <option value="yes" {% if user.is_admin %}selected{% endif %}>Ja</option>
-      </select>
+      <input name="jobdescription" value="{{ user.job_description or '' }}">
     </label>
     <button type="submit">Save changes</button>
     <div style="text-align:center;">

@@ -26,6 +26,23 @@ deactivate () {
 
     unset VIRTUAL_ENV
     unset VIRTUAL_ENV_PROMPT
+    # restore FLASK_APP/FLASK_ENV when leaving the venv
+    if [ -n "${_OLD_VIRTUAL_FLASK_APP:-}" ] ; then
+        FLASK_APP="${_OLD_VIRTUAL_FLASK_APP:-}"
+        export FLASK_APP
+        unset _OLD_VIRTUAL_FLASK_APP
+    else
+        unset FLASK_APP 2> /dev/null || true
+    fi
+    if [ -n "${_OLD_VIRTUAL_FLASK_ENV:-}" ] ; then
+        FLASK_ENV="${_OLD_VIRTUAL_FLASK_ENV:-}"
+        export FLASK_ENV
+        unset _OLD_VIRTUAL_FLASK_ENV
+    else
+        unset FLASK_ENV 2> /dev/null || true
+    fi
+    # unset helper functions
+    unset -f flaskdb_migrate flaskdb_upgrade flask_app_run 2> /dev/null || true
     if [ ! "${1:-}" = "nondestructive" ] ; then
     # Self destruct!
         unset -f deactivate
@@ -67,4 +84,37 @@ fi
 
 # Call hash to forget past commands. Without forgetting
 # past commands the $PATH changes we made may not be respected
+hash -r 2> /dev/null
+
+# ---- project convenience: ensure FLASK_APP points at our 'run' module inside venv ----
+# Save any previous values so we can restore them on deactivate
+if [ -n "${FLASK_APP:-}" ] ; then
+    _OLD_VIRTUAL_FLASK_APP="${FLASK_APP:-}"
+fi
+export FLASK_APP="run"
+
+if [ -n "${FLASK_ENV:-}" ] ; then
+    _OLD_VIRTUAL_FLASK_ENV="${FLASK_ENV:-}"
+fi
+# Default to development environment locally
+export FLASK_ENV="development"
+
+# Convenience helpers so you can run migrations without typing long commands
+flaskdb_migrate() {
+    if [ "$#" -eq 0 ] ; then
+        echo "Usage: flaskdb_migrate 'message'" >&2
+        return 2
+    fi
+    python -m flask db migrate -m "$*"
+}
+
+flaskdb_upgrade() {
+    python -m flask db upgrade
+}
+
+# Small shortcut to run the dev server with the venv python
+flask_app_run() {
+    python -m flask run
+}
+
 hash -r 2> /dev/null
