@@ -1,7 +1,7 @@
 # Dit dient voor alle nodige pakketten te installeren (Flask, database, blabla)
 # Zorg dat je eerst je virtuele environment activeert met:
 #   venv\Scripts\Activate.ps1   (op Windows)
-#   source .venv/bin/activate  (op Mac/Linux)
+#   source venv/bin/activate  (op Mac/Linux)
 #
 # Krijg je errors bij het activeren van de environment?
 # Controleer dan of 'virtualenv' geïnstalleerd is.
@@ -18,7 +18,7 @@
 #
 # Open dat adres in je browser om de webapp te bekijken.
 
-Flask
-Flask-SQLAlchemy
-psycopg2-binary
-Flask-Migrate
+pip3 install flask
+pip3 install flask flask-sqlalchemy
+pip3 install flask Flask-Migrate
+pip3 install psycopg2-binary
