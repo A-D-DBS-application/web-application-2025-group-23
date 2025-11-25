@@ -150,7 +150,8 @@ def my_companies():
     uid = uuid.UUID(session['user_id'])
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
     admin_companies = [m.company for m in memberships if m.is_admin]
-    member_companies = [m.company for m in memberships if not m.is_admin]
+    # Show all companies (including admin ones) in member section
+    member_companies = [m.company for m in memberships]
     return render_template('my_companies.html', admin_companies=admin_companies, member_companies=member_companies)
 
 
