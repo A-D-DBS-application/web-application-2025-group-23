@@ -44,10 +44,7 @@
       margin-bottom: 1em;
       font-size: 1em;
     }
-    a {
-      color: #995b13;
-      text-decoration: none;
-    }
+    a { color: #995b13; text-decoration: none; }
     a:hover { text-decoration: underline; }
   </style>
 </head>
@@ -77,9 +74,6 @@
         <option value="no" {% if not user.is_admin %}selected{% endif %}>Nee</option>
         <option value="yes" {% if user.is_admin %}selected{% endif %}>Ja</option>
       </select>
-    </label>
-    <label>Verified
-      <input type="checkbox" name="verified" {% if user.verified %}checked{% endif %}>
     </label>
     <button type="submit">Save changes</button>
     <div style="text-align:center;">
