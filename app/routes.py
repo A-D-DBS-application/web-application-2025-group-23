@@ -20,16 +20,15 @@ def register():
         if user.query.filter_by(username=username).first() is None:
             new_user = user(
                 user_id=str(uuid.uuid4()),
-                username=username,
-                verified=False
+                username=username
             )
             db.session.add(new_user)
-            db.session.flush()  # Zorgt dat new_user een id heeft
+            db.session.flush()
 
-            # Voeg tevens het CompanyMember object toe
+            example_company_id = "00000000-0000-0000-0000-000000000001"  # Placeholder
             new_member = CompanyMember(
                 member_id=str(uuid.uuid4()),
-                company_id="jouw_company_id_naar_keuze",  # <-- aanpassen!
+                company_id=example_company_id,
                 user_id=new_user.user_id,
                 member_role='member',
                 is_admin=is_admin,
@@ -76,8 +75,7 @@ def profile_settings():
         usr.role = request.form.get('role', usr.role)
         usr.location = request.form.get('location', usr.location)
         usr.job_description = request.form.get('jobdescription', usr.job_description)
-        usr.company_name = request.form.get('companyname', usr.company_name)
-        # Adminstatus updaten bij de juiste CompanyMember record
+        usr.company_name = request.form.get('companyname', getattr(usr, "company_name", ""))
         admin_val = request.form.get('is_admin', 'no') == 'yes'
         company_member = CompanyMember.query.filter_by(user_id=usr.user_id).first()
         if company_member:
