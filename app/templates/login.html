@@ -1,13 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
+  <meta charset="UTF-8">
+  <title>Login | barter.com</title>
+  <style>
+    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
+    .login-form {
+      max-width: 340px;
+      margin: 5em auto;
+      background: #fff8e7;
+      padding: 2em;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px #f2c166;
+    }
+    h1 { color: #E6992D; text-align: center; margin-bottom: 1.2em; }
+    label { font-weight: 500; display: block; margin-bottom: .3em; color: #805300; }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: .6em .5em; border-radius: 5px; border: 1px solid #eed0a0; background: #fef9f2; margin-bottom: 1.2em;
+    }
+    button {
+      background: #E6992D; color: white; font-weight: bold; padding: 0.7em 2em; border: none; border-radius: 7px; cursor: pointer; width: 100%; margin-bottom: 1em; font-size: 1em;
+    }
+    a { color: #995b13; display: inline-block; margin-right: 1em; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .notice { text-align: center; color: #ba6e00; margin-bottom: .7em; }
+  </style>
 </head>
 <body>
-    <h1>Login</h1>
-    <form method="post">
-        Username: <input type="text" name="username" required>
-        <input type="submit" value="Login">
-    </form>
+  <form class="login-form" method="post">
+    <h1>Login bij barter.com</h1>
+    <label>Username</label>
+    <input type="text" name="username" required>
+    <button type="submit">Login</button>
+    <div style="text-align:center;">
+      <a href="{{ url_for('main.register') }}">Account aanmaken</a>
+      <a href="{{ url_for('main.index') }}">Terug naar Dashboard</a>
+    </div>
+  </form>
 </body>
 </html>

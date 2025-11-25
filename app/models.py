@@ -93,10 +93,10 @@ class CompanyMember(db.Model):
         db.ForeignKey("user.user_id"),
         nullable=False,
     )
-
     member_role = db.Column(db.Text)  # bv. 'founder', 'employee'
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)  # <-- voeg deze toe
     created_at = db.Column(DateTime(timezone=True))
-    job_description = db.Column(db.Text) #bv consultant developer
+    job_description = db.Column(db.Text)  # bv consultant developer
 
     # Relaties
     company = db.relationship("Company", back_populates="members")
@@ -106,7 +106,9 @@ class CompanyMember(db.Model):
     )
 
     def __repr__(self) -> str:
-        return f"<CompanyMember user={self.user_id} company={self.company_id}>"
+        return (
+            f"<CompanyMember user_id={self.user_id} company_id={self.company_id} is_admin={self.is_admin}>"
+        )
 
 
 # ==========================

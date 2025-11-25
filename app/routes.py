@@ -14,24 +14,36 @@ def index():
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
+        is_admin = request.form.get('is_admin', 'no') == 'yes'
         if username is None:
             return 'Missing required fields', 400
         if user.query.filter_by(username=username).first() is None:
-            import uuid
             new_user = user(
                 user_id=str(uuid.uuid4()),
                 username=username,
                 verified=False
             )
             db.session.add(new_user)
+            db.session.flush()  # Zorgt dat new_user een id heeft
+
+            # Voeg tevens het CompanyMember object toe
+            new_member = CompanyMember(
+                member_id=str(uuid.uuid4()),
+                company_id="jouw_company_id_naar_keuze",  # <-- aanpassen!
+                user_id=new_user.user_id,
+                member_role='member',
+                is_admin=is_admin,
+                created_at=datetime.datetime.now(),
+                job_description=""
+            )
+            db.session.add(new_member)
             db.session.commit()
 
-            # UUID als string in session
             session['user_id'] = str(new_user.user_id)
-
             return redirect(url_for('main.index'))
         return 'Username already registered'
     return render_template('register.html')
+
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
@@ -52,23 +64,24 @@ def logout():
     session.pop('user_id', None)
     return redirect(url_for('main.index'))
 
+
+
 @main.route('/profile', methods=['GET', 'POST'])
 def profile_settings():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
-
     usr = user.query.get(session['user_id'])
-
     if request.method == 'POST':
         usr.email = request.form.get('email', usr.email)
         usr.role = request.form.get('role', usr.role)
         usr.location = request.form.get('location', usr.location)
-        usr.job_description = request.form.get('job_description', usr.job_description)
-        usr.company_name = request.form.get('company_name', usr.company_name)
+        usr.job_description = request.form.get('jobdescription', usr.job_description)
+        usr.company_name = request.form.get('companyname', usr.company_name)
+        # Adminstatus updaten bij de juiste CompanyMember record
+        admin_val = request.form.get('is_admin', 'no') == 'yes'
+        company_member = CompanyMember.query.filter_by(user_id=usr.user_id).first()
+        if company_member:
+            company_member.is_admin = admin_val
         db.session.commit()
         return redirect(url_for('main.profile_settings'))
-
-    return render_template(
-        'profile.html',
-        user=usr
-    )
+    return render_template('profile.html', user=usr)

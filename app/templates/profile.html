@@ -1,22 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Your Profile</title>
+  <meta charset="UTF-8">
+  <title>Your Profile | barter.com</title>
+  <style>
+    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
+    .profile-form {
+      max-width: 420px;
+      margin: 3em auto;
+      background: #fff8e7;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px #ead492;
+    }
+    .profile-form h2 {
+      color: #E6992D;
+      text-align: center;
+      margin-bottom: 1.2em;
+    }
+    label {
+      font-weight: 500;
+      margin-bottom: .25em;
+      display: block;
+      color: #805300;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.6em .5em;
+      margin-bottom: 1.3em;
+      border-radius: 5px;
+      border: 1px solid #eed0a0;
+      background: #fef9f2;
+    }
+    button {
+      background: #E6992D;
+      color: white;
+      font-weight: bold;
+      padding: 0.7em 2em;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 1em;
+      font-size: 1em;
+    }
+    a {
+      color: #995b13;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
-    <h1>Edit Profile</h1>
-    <form method="post">
-        <label>Username: <input name="username" value="{{ user.username or '' }}" readonly></label><br>
-        <label>Email: <input name="email" value="{{ user.email or '' }}"></label><br>
-        <label>Role: <input name="role" value="{{ user.role or '' }}"></label><br>
-        <label>Location: <input name="location" value="{{ user.location or '' }}"></label><br>
-        <label>Job description: <input name="job_description" value="{{ user.job_description or '' }}"></label><br>
-        <label>Company name: <input name="company_name" value="{{ user.company_name or '' }}"></label><br>
-        <label>Verified: <input type="checkbox" name="verified" {% if user.verified %}checked{% endif %}></label><br>
-        <!-- 'created_at' en 'updated_at' worden meestal niet aangepast in de UI -->
-        <button type="submit">Save changes</button>
-    </form>
-    <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
+  <form class="profile-form" method="post">
+    <h2>Profiel – barter.com</h2>
+    <label>Username
+      <input name="username" value="{{ user.username or '' }}" readonly>
+    </label>
+    <label>Email
+      <input name="email" value="{{ user.email or '' }}">
+    </label>
+    <label>Role
+      <input name="role" value="{{ user.role or '' }}">
+    </label>
+    <label>Location
+      <input name="location" value="{{ user.location or '' }}">
+    </label>
+    <label>Job description
+      <input name="jobdescription" value="{{ user.jobdescription or '' }}">
+    </label>
+    <label>Company name
+      <input name="companyname" value="{{ user.companyname or '' }}">
+    </label>
+    <label>Company admin
+      <select name="is_admin">
+        <option value="no" {% if not user.is_admin %}selected{% endif %}>Nee</option>
+        <option value="yes" {% if user.is_admin %}selected{% endif %}>Ja</option>
+      </select>
+    </label>
+    <label>Verified
+      <input type="checkbox" name="verified" {% if user.verified %}checked{% endif %}>
+    </label>
+    <button type="submit">Save changes</button>
+    <div style="text-align:center;">
+      <a href="{{ url_for('main.index') }}">Terug naar Dashboard</a>
+    </div>
+  </form>
 </body>
 </html>

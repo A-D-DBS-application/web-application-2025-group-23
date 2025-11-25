@@ -1,16 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Register</title>
+  <meta charset="UTF-8">
+  <title>Register | barter.com</title>
+  <style>
+    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
+    .register-form {
+      max-width: 350px;
+      margin: 3em auto;
+      background: #fff8e7;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px #f2c166;
+    }
+    .register-form h2 {
+      color: #E6992D;
+      text-align: center;
+      margin-bottom: 1.2em;
+    }
+    label {
+      font-weight: 500;
+      margin-bottom: .2em;
+      display: block;
+      color: #805300;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.6em .5em;
+      margin-bottom: 1.3em;
+      border-radius: 5px;
+      border: 1px solid #eed0a0;
+      background: #fef9f2;
+    }
+    button {
+      background: #E6992D;
+      color: white;
+      font-weight: bold;
+      padding: 0.7em 2em;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 1em;
+      font-size: 1em;
+    }
+    a {
+      color: #995b13;
+      margin-right: 1em;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-    <h1>Register</h1>
-    <form method="post">
-        <label>Username: <input name="username" required></label><br>
-        <button type="submit">Register</button>
-    </form>
-    <a href="{{ url_for('main.login') }}">Already have an account? Login here</a><br>
-    <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
+  <form class="register-form" method="post">
+    <h2>Word lid van barter.com</h2>
+    <label>Username</label>
+    <input name="username" required>
+    <label>Ben je company admin?</label>
+    <select name="is_admin">
+      <option value="no">Nee</option>
+      <option value="yes">Ja</option>
+    </select>
+    <button type="submit">Register</button>
+    <div style="text-align:center;">
+      <a href="{{ url_for('main.login') }}">Al een account? Login</a>
+      <a href="{{ url_for('main.index') }}">Terug naar Dashboard</a>
+    </div>
+  </form>
 </body>
 </html>

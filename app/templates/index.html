@@ -1,20 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
+  <meta charset="UTF-8">
+  <title>Dashboard | barter.com</title>
+  <style>
+    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
+    .dashboard { max-width: 390px; margin: 4em auto; background: #fff8e7; padding: 2em; border-radius: 12px; box-shadow: 0 2px 14px #f2c166; text-align: center; }
+    h1 { color: #E6992D; margin-bottom: 1.2em; }
+    a, button {
+      display: inline-block;
+      margin: .45em .3em;
+      padding: .5em 1.4em;
+      background: #E6992D;
+      color: white;
+      border-radius: 8px;
+      border: none;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    a:hover, button:hover { background: #b37918; }
+  </style>
 </head>
 <body>
+  <div class="dashboard">
     {% if username %}
-        <h1>Welcome, {{ username }}!</h1>
-        <a href="{{ url_for('main.profile_settings') }}">Go to Profile</a>
-        <form action="{{ url_for('main.logout') }}" method="post">
-            <button type="submit">Logout</button>
-        </form>
+      <h1>Welkom, {{ username }}!</h1>
+      <a href="{{ url_for('main.profile_settings') }}">Naar Profiel</a>
+      <form action="{{ url_for('main.logout') }}" method="post" style="display:inline;">
+        <button type="submit">Uitloggen</button>
+      </form>
     {% else %}
-        <h1>You are not logged in</h1>
-        <a href="{{ url_for('main.login') }}">Login</a>
-        <a href="{{ url_for('main.register') }}">Register</a>
+      <h1>Je bent niet ingelogd</h1>
+      <a href="{{ url_for('main.login') }}">Login</a>
+      <a href="{{ url_for('main.register') }}">Registreren</a>
     {% endif %}
+  </div>
 </body>
 </html>
