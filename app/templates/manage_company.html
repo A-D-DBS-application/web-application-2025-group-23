@@ -1,75 +1,91 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Manage {{ company.name }}</title>
-  <style>
-    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
-    .container { max-width: 700px; margin: 3em auto; background: #fff8e7; padding: 2em; border-radius: 12px; box-shadow: 0 2px 16px #ead492; }
-    .list { margin-bottom: 1em }
-    .row { display:flex; justify-content:space-between; align-items:center; padding:0.6em; border-radius:6px; background:#fff; margin-bottom:0.6em }
-    form.inline { display:inline }
-    button { background:#E6992D; color:white; padding:0.4em .6em; border-radius:6px; border:none; cursor:pointer }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage {{ company.name }} | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, msg in messages %}
-          <div style="margin-bottom:1em; padding:0.6em; border-radius:6px; background: {% if category=='success' %}#d4f7dc{% elif category=='warning' %}#fff4cc{% else %}#ffdede{% endif %};">{{ msg }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    <h2>Manage {{ company.name }}</h2>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">www.barter.com</div>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.my_companies') }}">My Companies</a>
+        </nav>
+    </header>
 
-    <h3>Join code</h3>
-    <div style="background:#fff;padding:0.8em;border-radius:8px;margin-bottom:1em">{{ company.join_code or 'Geen code' }}</div>
+    <section class="content-container">
+        <div class="content-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, msg in messages %}
+                  <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            <h1>Manage {{ company.name }}</h1>
 
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3>Pending requests</h3>
-      <form method="post" action="{{ url_for('main.delete_company', company_id=company.company_id) }}" onsubmit="return confirm('Weet je zeker dat je dit bedrijf wilt verwijderen? Dit verwijdert ook alle members en aanvragen.');">
-        <button type="submit" style="background:#b33;">Verwijder bedrijf</button>
-      </form>
-    </div>
-    <div class="list">
-      {% if pending %}
-        {% for r in pending %}
-          <div class="row">
-            <div>{{ r.user.username if r.user else r.user_id }}</div>
-            <div>
-              <form class="inline" method="post" action="{{ url_for('main.accept_join_request', company_id=company.company_id, request_id=r.request_id) }}">
-                <button type="submit">Accepteer</button>
-              </form>
+            <div class="info-section">
+                <h3>Company Join Code</h3>
+                <div class="code-display">{{ company.join_code or 'No code' }}</div>
             </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <div>Geen openstaande aanvragen</div>
-      {% endif %}
-    </div>
 
-    <h3>Members</h3>
-    <div class="list">
-      {% for m in members %}
-        <div class="row">
-          <div>{{ m.user_obj.username if m.user_obj else m.user_id }}</div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <div>{{ 'Admin' if m.is_admin else 'Member' }}</div>
-            {% if (not m.is_admin) and not (m.user_id == (session['user_id'] | string)) %}
-              <form method="post" action="{{ url_for('main.remove_member', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Verwijder deze member?');">
-                <button type="submit" style="background:#c44;">Verwijder member</button>
-              </form>
-              <form method="post" style="display:inline" action="{{ url_for('main.transfer_admin', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Weet je zeker dat je admin wilt overdragen aan deze gebruiker? Je bent daarna geen admin meer.');">
-                <button type="submit" style="background:#2a7; margin-left:6px;">Promoveer tot admin</button>
-              </form>
-            {% endif %}
-          </div>
+            <div class="company-section">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Pending Join Requests</h3>
+                    <form method="post" action="{{ url_for('main.delete_company', company_id=company.company_id) }}" onsubmit="return confirm('Are you sure you want to delete this company? This will remove all members and pending requests.');" style="display:inline;">
+                        <button type="submit" class="btn-danger small">Delete Company</button>
+                    </form>
+                </div>
+                {% if pending %}
+                    {% for r in pending %}
+                        <div class="member-item">
+                            <div class="member-name">{{ r.user.username if r.user else r.user_id }}</div>
+                            <form method="post" action="{{ url_for('main.accept_join_request', company_id=company.company_id, request_id=r.request_id) }}" style="display:inline;">
+                                <button type="submit" class="btn-primary small">Accept</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-state">No pending requests</p>
+                {% endif %}
+            </div>
+
+            <div class="company-section">
+                <h3>Company Members</h3>
+                {% for m in members %}
+                    <div class="member-item">
+                        <div>
+                            <div class="member-name">{{ m.user_obj.username if m.user_obj else m.user_id }}</div>
+                            <div class="member-role">{{ 'Admin' if m.is_admin else 'Member' }}</div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            {% if (not m.is_admin) and not (m.user_id == (session['user_id'] | string)) %}
+                                <form method="post" action="{{ url_for('main.remove_member', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Remove this member?');" style="display:inline;">
+                                    <button type="submit" class="btn-danger small">Remove</button>
+                                </form>
+                                <form method="post" action="{{ url_for('main.transfer_admin', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Are you sure you want to transfer admin rights to this user? You will no longer be admin.');" style="display:inline;">
+                                    <button type="submit" class="btn-success small">Promote to Admin</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-links">
+                <a href="{{ url_for('main.my_companies') }}">Back to My Companies</a>
+            </div>
         </div>
-      {% endfor %}
-    </div>
+    </section>
 
-    <div style="text-align:center;"><a href="{{ url_for('main.my_companies') }}">Terug</a></div>
-  </div>
+    <footer class="footer">
+        © 2025 Barter.com. Building partnerships through service exchange.
+    </footer>
 </body>
 </html>

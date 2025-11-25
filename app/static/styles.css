@@ -116,3 +116,225 @@ button:disabled {
 
 /* FOOTER */
 .footer { padding: 28px 16px; text-align:center; font-size:14px; color:var(--gray) }
+
+/* FORM PAGES */
+.form-container {
+    max-width: 480px;
+    margin: 48px auto;
+    padding: 16px;
+}
+.form-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.form-card h1 {
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 24px;
+    color: var(--blue);
+}
+.form-card label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 14px;
+}
+.form-card input, .form-card select, .form-card textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    font-size: 14px;
+    font-family: inherit;
+}
+.form-card input:focus, .form-card select:focus, .form-card textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: white;
+}
+.form-card input[readonly] {
+    background: #f5f5f5;
+    color: #666;
+}
+.form-links {
+    text-align: center;
+    margin-top: 20px;
+}
+.form-links a {
+    color: var(--blue);
+    text-decoration: none;
+    font-size: 14px;
+}
+.form-links a:hover {
+    text-decoration: underline;
+}
+
+/* ALERTS */
+.alert {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+.alert-success {
+    background: #d4f7dc;
+    color: #0a5a1f;
+    border: 1px solid #9ae6ac;
+}
+.alert-warning {
+    background: #fff4cc;
+    color: #8a6300;
+    border: 1px solid #ffe380;
+}
+.alert-error, .alert-danger {
+    background: #ffdede;
+    color: #8a0000;
+    border: 1px solid #ffb3b3;
+}
+
+/* CONTENT PAGES */
+.content-container {
+    max-width: 900px;
+    margin: 48px auto;
+    padding: 16px;
+}
+.content-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.content-card h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--blue);
+}
+.content-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 24px;
+    color: #333;
+}
+
+/* COMPANY SECTIONS */
+.company-section {
+    margin-bottom: 32px;
+}
+.company-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+.company-name {
+    font-weight: 500;
+    font-size: 16px;
+}
+.empty-state {
+    color: var(--gray);
+    font-style: italic;
+    padding: 16px;
+    text-align: center;
+}
+
+/* MEMBER ITEMS */
+.member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+.member-name {
+    font-weight: 500;
+    font-size: 15px;
+}
+.member-role {
+    font-size: 13px;
+    color: var(--gray);
+    margin-top: 2px;
+}
+
+/* INFO SECTIONS */
+.info-section {
+    margin-bottom: 24px;
+}
+.code-display {
+    background: #f0f7ff;
+    border: 1px solid var(--blue);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--blue);
+    text-align: center;
+}
+
+/* BUTTON VARIANTS */
+.btn-danger {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-block;
+}
+.btn-danger.small {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+.btn-success {
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-block;
+}
+.btn-success.small {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+/* DASHBOARD */
+.dashboard {
+    max-width: 900px;
+    margin: 48px auto;
+    padding: 32px 16px;
+    text-align: center;
+}
+.dashboard h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--blue);
+}
+.dash-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}

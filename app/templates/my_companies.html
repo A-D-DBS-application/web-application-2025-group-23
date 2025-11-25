@@ -1,61 +1,73 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mijn bedrijven</title>
-  <style>
-    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
-    .container { max-width: 700px; margin: 3em auto; background: #fff8e7; padding: 2em; border-radius: 12px; box-shadow: 0 2px 16px #ead492; }
-    .group { margin-bottom:1.4em }
-    .company { padding:0.8em; border-radius:8px; background:#fff; margin-bottom:0.6em; display:flex; justify-content:space-between; align-items:center }
-    a.btn { background:#E6992D; color:white; padding:0.5em 0.8em; border-radius:6px; text-decoration:none; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Companies | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category,msg in messages %}
-          <div style="margin-bottom:1em;padding:0.6em;border-radius:6px;background:{% if category=='success' %}#d4f7dc{% elif category=='warning' %}#fff4cc{% else %}#ffdede{% endif %};">{{ msg }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    <h2>Mijn bedrijven</h2>
-    <div class="group">
-      <h3>Als admin</h3>
-      {% if admin_companies %}
-        {% for c in admin_companies %}
-          <div class="company">
-            <div>{{ c.name }}</div>
-            <div style="display:flex; gap:8px;">
-              <a class="btn" href="{{ url_for('main.manage_company', company_id=c.company_id) }}">Manage mijn bedrijf</a>
-            </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <div>Je bent geen admin van een bedrijf</div>
-      {% endif %}
-    </div>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">www.barter.com</div>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.profile_settings') }}">Profile</a>
+        </nav>
+    </header>
 
-    <div class="group">
-      <h3>Als member</h3>
-      {% if member_companies %}
-        {% for c in member_companies %}
-          <div class="company">
-            <div>{{ c.name }}</div>
-            <div>
-              <form method="post" action="{{ url_for('main.leave_company', company_id=c.company_id) }}" onsubmit="return confirm('Weet je zeker dat je dit bedrijf wilt verlaten?');">
-                <button class="btn" type="submit" style="background:#b33; border:none; padding:.4em .6em">Verlaat</button>
-              </form>
+    <section class="content-container">
+        <div class="content-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category,msg in messages %}
+                  <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            <h1>My Companies</h1>
+            
+            <div class="company-section">
+                <h3>Companies I Manage (Admin)</h3>
+                {% if admin_companies %}
+                    {% for c in admin_companies %}
+                        <div class="company-item">
+                            <div class="company-name">{{ c.name }}</div>
+                            <a class="btn-primary small" href="{{ url_for('main.manage_company', company_id=c.company_id) }}">Manage</a>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-state">You are not an admin of any company</p>
+                {% endif %}
             </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <div>Je bent nog lid van geen bedrijf</div>
-      {% endif %}
-    </div>
 
-    <div style="text-align:center;"><a href="{{ url_for('main.index') }}">Terug</a></div>
-  </div>
+            <div class="company-section">
+                <h3>Companies I'm Member Of</h3>
+                {% if member_companies %}
+                    {% for c in member_companies %}
+                        <div class="company-item">
+                            <div class="company-name">{{ c.name }}</div>
+                            <form method="post" action="{{ url_for('main.leave_company', company_id=c.company_id) }}" onsubmit="return confirm('Are you sure you want to leave this company?');" style="display:inline;">
+                                <button type="submit" class="btn-danger small">Leave</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-state">You are not a member of any company</p>
+                {% endif %}
+            </div>
+
+            <div class="form-links">
+                <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2025 Barter.com. Building partnerships through service exchange.
+    </footer>
 </body>
 </html>

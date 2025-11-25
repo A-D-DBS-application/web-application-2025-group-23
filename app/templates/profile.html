@@ -1,82 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Your Profile | barter.com</title>
-  <style>
-    body { background: #f9e7d1; font-family: 'Segoe UI', Arial, sans-serif; }
-    .profile-form {
-      max-width: 420px;
-      margin: 3em auto;
-      background: #fff8e7;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 2px 16px #ead492;
-    }
-    .profile-form h2 {
-      color: #E6992D;
-      text-align: center;
-      margin-bottom: 1.2em;
-    }
-    label {
-      font-weight: 500;
-      margin-bottom: .25em;
-      display: block;
-      color: #805300;
-    }
-    input, select {
-      width: 100%;
-      padding: 0.6em .5em;
-      margin-bottom: 1.3em;
-      border-radius: 5px;
-      border: 1px solid #eed0a0;
-      background: #fef9f2;
-    }
-    button {
-      background: #E6992D;
-      color: white;
-      font-weight: bold;
-      padding: 0.7em 2em;
-      border: none;
-      border-radius: 7px;
-      cursor: pointer;
-      width: 100%;
-      margin-bottom: 1em;
-      font-size: 1em;
-    }
-    a { color: #995b13; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <form class="profile-form" method="post">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category,msg in messages %}
-          <div style="margin-bottom:1em;padding:0.6em;border-radius:6px;background:{% if category=='success' %}#d4f7dc{% elif category=='warning' %}#fff4cc{% else %}#ffdede{% endif %};">{{ msg }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    <h2>Profiel – barter.com</h2>
-    <label>Username
-      <input name="username" value="{{ user.username or '' }}" readonly>
-    </label>
-    <label>Email
-      <input name="email" value="{{ user.email or '' }}">
-    </label>
-    <label>Role
-      <input name="role" value="{{ user.role or '' }}">
-    </label>
-    <label>Location
-      <input name="location" value="{{ user.location or '' }}">
-    </label>
-    <label>Job description
-      <input name="jobdescription" value="{{ user.job_description or '' }}">
-    </label>
-    <button type="submit">Save changes</button>
-    <div style="text-align:center;">
-      <a href="{{ url_for('main.index') }}">Terug naar Dashboard</a>
-    </div>
-  </form>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">www.barter.com</div>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.my_companies') }}">My Companies</a>
+        </nav>
+    </header>
+
+    <section class="form-container">
+        <div class="form-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category,msg in messages %}
+                  <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            <h1>My Profile</h1>
+            <form method="post">
+                <label>Username</label>
+                <input name="username" value="{{ user.username or '' }}" readonly>
+                <label>Email</label>
+                <input name="email" value="{{ user.email or '' }}">
+                <label>Role</label>
+                <input name="role" value="{{ user.role or '' }}">
+                <label>Location</label>
+                <input name="location" value="{{ user.location or '' }}">
+                <label>Job Description</label>
+                <input name="jobdescription" value="{{ user.job_description or '' }}">
+                <button type="submit" class="btn-primary large">Save Changes</button>
+            </form>
+            <div class="form-links">
+                <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2025 Barter.com. Building partnerships through service exchange.
+    </footer>
 </body>
 </html>
