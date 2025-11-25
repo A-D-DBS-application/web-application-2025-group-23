@@ -96,7 +96,6 @@ class CompanyMember(db.Model):
     member_role = db.Column(db.Text)  # bv. 'founder', 'employee'
     is_admin = db.Column(db.Boolean, nullable=False, default=False)  # <-- voeg deze toe
     created_at = db.Column(DateTime(timezone=True))
-    job_description = db.Column(db.Text)  # bv consultant developer
 
     # Relaties
     company = db.relationship("Company", back_populates="members")
