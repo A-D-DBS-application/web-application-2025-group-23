@@ -1,5 +1,7 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session
-from .models import db, user, Company, Service, BarterDeal, Contract, Review  # Gebruik het nieuwe user model
+from .models import db, user, Company, CompanyMember, Service, BarterDeal, Contract, Review
+import uuid
+import datetime
 
 main = Blueprint('main', __name__)
 
@@ -19,7 +21,7 @@ def register():
             return 'Missing required fields', 400
         if user.query.filter_by(username=username).first() is None:
             new_user = user(
-                user_id=str(uuid.uuid4()),
+                user_id=uuid.uuid4(),
                 username=username
             )
             db.session.add(new_user)
@@ -27,13 +29,14 @@ def register():
 
             example_company_id = "00000000-0000-0000-0000-000000000001"  # Placeholder
             new_member = CompanyMember(
-                member_id=str(uuid.uuid4()),
+                member_id=uuid.uuid4(),
                 company_id=example_company_id,
                 user_id=new_user.user_id,
                 member_role='member',
                 is_admin=is_admin,
                 created_at=datetime.datetime.now(),
-                job_description=""
+                # job_description belongs on `user` (if you want it saved there) —
+                # don't pass unknown columns here.
             )
             db.session.add(new_member)
             db.session.commit()
@@ -75,7 +78,7 @@ def profile_settings():
         usr.role = request.form.get('role', usr.role)
         usr.location = request.form.get('location', usr.location)
         usr.job_description = request.form.get('jobdescription', usr.job_description)
-        usr.company_name = request.form.get('companyname', getattr(usr, "company_name", ""))
+        # `company_name` is not a column on the `user` model — keep only supported fields
         admin_val = request.form.get('is_admin', 'no') == 'yes'
         company_member = CompanyMember.query.filter_by(user_id=usr.user_id).first()
         if company_member:

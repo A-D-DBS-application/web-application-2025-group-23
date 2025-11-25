@@ -2,8 +2,16 @@
 # Migration zorgt ervoor dat als je de database wil aanpassen, dit via hier in models.py kan in plaats van in supabase
 # Dit is handiger want anders kunnen er verschillen zijn tussen de code en supabase en dan runt hij niet en blabla.
 # Na elke wijziging in dit bestand (models.py) (EERST SAVEN), voer je volgende commando's uit in terminal (zorg dat je in de venv zit):
-#   python -m flask --app run.py db migrate -m "{wat je deed} - {je naam}"    (#die "" is gewooon een uitleg voor de documentatie die wordt opgeslagen)
-#   python -m flask --app run.py db upgrade
+#   source .venv/bin/activate
+#   # gebruik de venv python ("python") — vermijd twijfel met system python3
+#   python -m flask --app run db migrate -m "{wat je deed} - {je naam}"
+#   python -m flask --app run db upgrade
+#
+# Gebruik expliciet de venv python of activeer de venv; vermijd system python3 verwarring
+# Voorbeeld:
+#   source .venv/bin/activate
+#   python -m flask --app run db migrate -m "{wat je deed} - {je naam}"
+#   python -m flask --app run db upgrade
 # Alleen uitvoeren bij echte DB-wijzigingen (nieuwe kolom, tabel, typewijziging).
 # Doe GEEN aanpassingen in Supabase zelf vanaf nu, dit gebeurt automatisch via de migrations nadat je die 2 commando's hebt uitgevoerd.
 # Migrations zijn zoals Git voor de database → altijd in volgorde houden.
@@ -28,6 +36,9 @@ class user(db.Model):
     user_id = db.Column(UUID(as_uuid=True), primary_key=True)
     username = db.Column(db.Text, nullable=False, unique=True)
     email = db.Column(db.Text)
+
+    # Korte beschrijving/omschrijving van iemands job / functie
+    job_description = db.Column(db.Text)
 
     location = db.Column(db.Text)
 
