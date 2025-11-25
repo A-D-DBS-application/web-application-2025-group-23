@@ -1,5 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session
-from .models import db, user, Company, Service, BarterDeal, Contract, Review, CompanyMember  # Gebruik het nieuwe user model
+from .models import db, user, Company, Service, BarterDeal, Contract, Review  # Gebruik het nieuwe user model
 
 main = Blueprint('main', __name__)
 
