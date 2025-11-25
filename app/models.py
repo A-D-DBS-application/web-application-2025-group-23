@@ -6,7 +6,11 @@
 #   # gebruik de venv python ("python") — vermijd twijfel met system python3
 #   python -m flask --app run db migrate -m "{wat je deed} - {je naam}"
 #   python -m flask --app run db upgrade
-#
+#   
+#   voor mac:
+#   python3 -m flask --app run db migrate -m "{wat je deed} - {je naam}"
+#   python3 -m flask --app run db upgrade#
+
 # Gebruik expliciet de venv python of activeer de venv; vermijd system python3 verwarring
 # Voorbeeld:
 #   source .venv/bin/activate

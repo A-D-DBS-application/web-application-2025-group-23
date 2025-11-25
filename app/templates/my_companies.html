@@ -13,6 +13,13 @@
 </head>
 <body>
   <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category,msg in messages %}
+          <div style="margin-bottom:1em;padding:0.6em;border-radius:6px;background:{% if category=='success' %}#d4f7dc{% elif category=='warning' %}#fff4cc{% else %}#ffdede{% endif %};">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <h2>Mijn bedrijven</h2>
     <div class="group">
       <h3>Als admin</h3>
@@ -22,9 +29,6 @@
             <div>{{ c.name }}</div>
             <div style="display:flex; gap:8px;">
               <a class="btn" href="{{ url_for('main.manage_company', company_id=c.company_id) }}">Manage mijn bedrijf</a>
-              <form method="post" action="{{ url_for('main.delete_company', company_id=c.company_id) }}" onsubmit="return confirm('Weet je zeker dat je dit bedrijf wilt verwijderen?');">
-                <button class="btn" type="submit" style="background:#b33; border:none; padding:.4em .6em">Verwijder</button>
-              </form>
             </div>
           </div>
         {% endfor %}

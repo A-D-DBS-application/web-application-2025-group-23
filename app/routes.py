@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect, url_for, render_template, session
+from flask import Blueprint, request, redirect, url_for, render_template, session, flash
 from .models import db, user, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review
 import uuid
 import datetime
@@ -99,6 +99,7 @@ def create_company():
         )
         db.session.add(member)
         db.session.commit()
+        flash('Bedrijf aangemaakt — je bent admin en member', 'success')
         return redirect(url_for('main.my_companies'))
     return render_template('create_company.html')
 
@@ -120,7 +121,8 @@ def join_company():
                 # check if already member
                 existing = CompanyMember.query.filter_by(company_id=company.company_id, user_id=uuid.UUID(session['user_id'])).first()
                 if existing:
-                    msg = 'Already a member'
+                    flash('Je bent al lid van dit bedrijf', 'warning')
+                    return redirect(url_for('main.join_company'))
                 else:
                     # create a join request
                     req = CompanyJoinRequest(
@@ -131,8 +133,9 @@ def join_company():
                     )
                     db.session.add(req)
                     db.session.commit()
-                    msg = 'Request submitted — wait for admin approval'
-    return render_template('join_company.html', message=msg)
+                    flash('Aanvraag verstuurd — wacht op goedkeuring', 'success')
+                    return redirect(url_for('main.join_company'))
+    return render_template('join_company.html')
 
 
 @main.route('/companies/my')
@@ -184,6 +187,30 @@ def accept_join_request(company_id, request_id):
     db.session.add(new_member)
     db.session.delete(req)
     db.session.commit()
+    flash('De gebruiker is toegevoegd aan het bedrijf', 'success')
+    return redirect(url_for('main.manage_company', company_id=company_id))
+
+
+@main.route('/company/<uuid:company_id>/transfer/<uuid:member_id>', methods=['POST'])
+def transfer_admin(company_id, member_id):
+    """Transfer admin role to a non-admin member. Only the current admin can do this."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    # find the current admin for the company and ensure caller is that admin
+    current_admin = CompanyMember.query.filter_by(company_id=company_id, is_admin=True).first()
+    if not current_admin or str(current_admin.user_id) != session.get('user_id'):
+        return 'Forbidden', 403
+    target = CompanyMember.query.get(member_id)
+    if not target or target.company_id != company_id:
+        return 'Not found', 404
+    if target.is_admin:
+        flash('Deze gebruiker is al admin', 'warning')
+        return redirect(url_for('main.manage_company', company_id=company_id))
+    # Perform transfer: target becomes admin, current_admin loses admin
+    target.is_admin = True
+    current_admin.is_admin = False
+    db.session.commit()
+    flash('Admin-rechten overgedragen', 'success')
     return redirect(url_for('main.manage_company', company_id=company_id))
 
 
@@ -199,13 +226,15 @@ def remove_member(company_id, member_id):
     member = CompanyMember.query.get(member_id)
     if not member or member.company_id != company_id:
         return 'Not found', 404
-    # prevent removing the last admin if they are the only admin
+    # disallow removing admins completely (we only support 1 admin per company)
     if member.is_admin:
-        other_admin = CompanyMember.query.filter(CompanyMember.company_id==company_id, CompanyMember.is_admin==True, CompanyMember.member_id!=member_id).first()
-        if not other_admin:
-            return 'Cannot remove the last admin', 400
+        return 'Cannot remove admin users', 400
+    # do not allow removing yourself (admins can't remove themselves)
+    if str(member.user_id) == session.get('user_id'):
+        return "Can't remove yourself", 400
     db.session.delete(member)
     db.session.commit()
+    flash('Member verwijderd', 'success')
     return redirect(url_for('main.manage_company', company_id=company_id))
 
 
@@ -217,13 +246,12 @@ def leave_company(company_id):
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
     if not membership:
         return 'Not a member', 400
-    # If user is admin, prevent leaving unless they are not the last admin
+    # Admins are not allowed to leave a company — they must delete the company instead.
     if membership.is_admin:
-        other_admin = CompanyMember.query.filter(CompanyMember.company_id==company_id, CompanyMember.is_admin==True, CompanyMember.user_id!=uid).first()
-        if not other_admin:
-            return 'Cannot leave: you are the only admin. Assign another admin or delete the company.', 400
+        return 'Admins cannot leave the company. Delete the company instead.', 400
     db.session.delete(membership)
     db.session.commit()
+    flash('Je bent uit het bedrijf gestapt', 'success')
     return redirect(url_for('main.my_companies'))
 
 
@@ -240,4 +268,5 @@ def delete_company(company_id):
     CompanyJoinRequest.query.filter_by(company_id=company_id).delete()
     Company.query.filter_by(company_id=company_id).delete()
     db.session.commit()
+    flash('Bedrijf en alle data verwijderd', 'success')
     return redirect(url_for('main.my_companies'))

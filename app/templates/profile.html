@@ -50,6 +50,13 @@
 </head>
 <body>
   <form class="profile-form" method="post">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category,msg in messages %}
+          <div style="margin-bottom:1em;padding:0.6em;border-radius:6px;background:{% if category=='success' %}#d4f7dc{% elif category=='warning' %}#fff4cc{% else %}#ffdede{% endif %};">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <h2>Profiel – barter.com</h2>
     <label>Username
       <input name="username" value="{{ user.username or '' }}" readonly>
