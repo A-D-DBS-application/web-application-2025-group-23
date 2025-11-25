@@ -7,10 +7,15 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
+    """
+    Serve the public start page for anonymous users, and the old home/dashboard
+    (index.html) for logged-in users.
+    """
     if 'user_id' in session:
         usr = user.query.get(session['user_id'])
         return render_template('index.html', username=usr.username if usr else None)
-    return render_template('index.html', username=None)
+    # anonymous users see the new start/landing page
+    return render_template('start.html')
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
