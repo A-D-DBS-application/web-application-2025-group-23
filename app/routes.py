@@ -197,7 +197,8 @@ def manage_company(company_id):
                 ).first()
                 
                 if mutual:
-                    # Check if there's already an accepted or pending proposal
+                    # Check if there's already a pending proposal or an active deal (not completed)
+                    # Completed deals don't block new proposals
                     existing_proposal = DealProposal.query.filter(
                         db.or_(
                             db.and_(
@@ -205,24 +206,45 @@ def manage_company(company_id):
                                 DealProposal.to_company_id == other_company_id,
                                 DealProposal.from_service_id == my_service.service_id,
                                 DealProposal.to_service_id == other_service.service_id,
-                                DealProposal.status.in_(['pending', 'accepted'])
+                                DealProposal.status == 'pending'
                             ),
                             db.and_(
                                 DealProposal.from_company_id == other_company_id,
                                 DealProposal.to_company_id == company_id,
                                 DealProposal.from_service_id == other_service.service_id,
                                 DealProposal.to_service_id == my_service.service_id,
-                                DealProposal.status.in_(['pending', 'accepted'])
+                                DealProposal.status == 'pending'
                             )
                         )
                     ).first()
                     
+                    # Also check if there's an active deal in progress (not completed)
                     if not existing_proposal:
-                        mutual_interests.append({
-                            'my_service': my_service,
-                            'other_service': other_service,
-                            'other_company': Company.query.get(other_company_id)
-                        })
+                        active_deal_check = db.session.query(ActiveDeal).join(DealProposal).filter(
+                            db.or_(
+                                db.and_(
+                                    DealProposal.from_company_id == company_id,
+                                    DealProposal.to_company_id == other_company_id,
+                                    DealProposal.from_service_id == my_service.service_id,
+                                    DealProposal.to_service_id == other_service.service_id,
+                                    ActiveDeal.status == 'in_progress'
+                                ),
+                                db.and_(
+                                    DealProposal.from_company_id == other_company_id,
+                                    DealProposal.to_company_id == company_id,
+                                    DealProposal.from_service_id == other_service.service_id,
+                                    DealProposal.to_service_id == my_service.service_id,
+                                    ActiveDeal.status == 'in_progress'
+                                )
+                            )
+                        ).first()
+                        
+                        if not active_deal_check:
+                            mutual_interests.append({
+                                'my_service': my_service,
+                                'other_service': other_service,
+                                'other_company': Company.query.get(other_company_id)
+                            })
     
     # Get incoming proposals
     incoming_proposals = DealProposal.query.filter_by(
@@ -544,9 +566,31 @@ def service_detail(service_id):
         avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1)
     
     # Get interested companies (for service owner to see)
+    # Only show interests that don't have a completed deal
     interests = []
     if is_own_company:
-        interests = ServiceInterest.query.filter_by(service_id=service_id).all()
+        all_interests = ServiceInterest.query.filter_by(service_id=service_id).all()
+        
+        for interest in all_interests:
+            # Check if there's a completed deal with this interest
+            completed_deal = db.session.query(ActiveDeal).join(DealProposal).filter(
+                db.or_(
+                    db.and_(
+                        DealProposal.from_company_id == interest.company_id,
+                        DealProposal.from_service_id == service_id,
+                        ActiveDeal.status == 'completed'
+                    ),
+                    db.and_(
+                        DealProposal.to_company_id == interest.company_id,
+                        DealProposal.to_service_id == service_id,
+                        ActiveDeal.status == 'completed'
+                    )
+                )
+            ).first()
+            
+            # Only add interest if there's no completed deal
+            if not completed_deal:
+                interests.append(interest)
     
     return render_template('service_detail.html',
                          service=service,
@@ -587,15 +631,36 @@ def express_interest(service_id):
         flash('You cannot express interest in your own service', 'error')
         return redirect(url_for('main.service_detail', service_id=service_id))
     
-    # Check if interest already exists
+    # Check if interest already exists AND there's an active deal
     existing = ServiceInterest.query.filter_by(
         service_id=service_id,
         company_id=company_id
     ).first()
     
     if existing:
-        flash('You have already expressed interest in this service', 'info')
-        return redirect(url_for('main.service_detail', service_id=service_id))
+        # Check if there's an active (in_progress) deal involving this interest
+        active_deal_exists = db.session.query(ActiveDeal).join(DealProposal).filter(
+            db.or_(
+                db.and_(
+                    DealProposal.from_company_id == company_id,
+                    DealProposal.from_service_id == service_id,
+                    ActiveDeal.status == 'in_progress'
+                ),
+                db.and_(
+                    DealProposal.to_company_id == company_id,
+                    DealProposal.to_service_id == service_id,
+                    ActiveDeal.status == 'in_progress'
+                )
+            )
+        ).first()
+        
+        # Only block if there's an active deal
+        if active_deal_exists:
+            flash('You have already expressed interest in this service', 'info')
+            return redirect(url_for('main.service_detail', service_id=service_id))
+        else:
+            # Interest exists but no active deal, delete old interest and allow new one
+            db.session.delete(existing)
     
     # Create interest
     interest = ServiceInterest(
@@ -833,6 +898,19 @@ def complete_deal(deal_id):
     if active_deal.from_company_completed and active_deal.to_company_completed:
         active_deal.status = 'completed'
         active_deal.completed_at = datetime.datetime.now(datetime.timezone.utc)
+        
+        # Reset interests for both services to allow future deals
+        # Delete interests from both companies in these services
+        ServiceInterest.query.filter_by(
+            service_id=proposal.from_service_id,
+            company_id=proposal.to_company_id
+        ).delete()
+        
+        ServiceInterest.query.filter_by(
+            service_id=proposal.to_service_id,
+            company_id=proposal.from_company_id
+        ).delete()
+        
         flash('Deal completed! Both parties can now leave a review.', 'success')
     else:
         flash('Deal marked as completed on your side.', 'success')
