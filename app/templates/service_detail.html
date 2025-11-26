@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ service.title }} | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        .service-header {
+            background: linear-gradient(135deg, var(--blue) 0%, #0066cc 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        .company-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .detail-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .category-tag {
+            background: #e3f2fd;
+            color: var(--blue);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: inline-block;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .rating {
+            color: #ffa500;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .review-card {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .interest-form {
+            background: #f0f7ff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid var(--blue);
+        }
+        .company-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--gray);
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 12px 0;
+        }
+        .interested-companies {
+            background: #e8f5e9;
+            padding: 16px;
+            border-radius: 6px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">www.barter.com</div>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.browse_deals') }}">Browse Deals</a>
+        </nav>
+    </header>
+
+    <section class="content-container">
+        <div class="content-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category,msg in messages %}
+                  <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <!-- SERVICE HEADER -->
+            <div class="service-header">
+                <h1 style="margin: 0 0 8px 0;">{{ service.title }}</h1>
+                <p style="margin: 0; opacity: 0.9; font-size: 16px;">Service Offering</p>
+            </div>
+
+            <!-- COMPANY INFO -->
+            <div class="company-info">
+                <h3 style="margin-top: 0; color: var(--blue);">{{ company.name }}</h3>
+                {% if avg_rating %}
+                    <div class="rating">★ {{ avg_rating }} / 5 ({{ total_reviews }} reviews)</div>
+                {% else %}
+                    <p style="color: var(--gray);">No reviews yet</p>
+                {% endif %}
+            </div>
+
+            <!-- SERVICE DETAILS -->
+            <div class="detail-section">
+                <h3 style="margin-top: 0;">Service Description</h3>
+                <p style="line-height: 1.6; color: var(--gray);">{{ service.description }}</p>
+            </div>
+
+            <div class="detail-section">
+                <h3 style="margin-top: 0;">Details</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div>
+                        <strong>Duration:</strong> {{ service.duration_hours }} hours
+                    </div>
+                    <div>
+                        <strong>Status:</strong> {% if service.is_active %}Active{% else %}Inactive{% endif %}
+                    </div>
+                </div>
+                
+                {% if service.categories %}
+                    <div style="margin-top: 16px;">
+                        <strong>Categories:</strong><br>
+                        {% for cat in service.categories.split(',') %}
+                            <span class="category-tag">{{ cat }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- EXPRESS INTEREST (for non-members of this company) -->
+            {% if not is_own_company and user_companies %}
+                <div class="interest-form">
+                    <h3 style="margin-top: 0;">Express Interest</h3>
+                    <p style="color: var(--gray); margin-bottom: 12px;">
+                        Interested in this service? Let them know which of your companies is interested!
+                    </p>
+                    
+                    <form method="post" action="{{ url_for('main.express_interest', service_id=service.service_id) }}">
+                        <label for="company_id"><strong>Select your company:</strong></label>
+                        <select name="company_id" id="company_id" class="company-select" required>
+                            <option value="">-- Choose a company --</option>
+                            {% for membership in user_companies %}
+                                <option value="{{ membership.company_id }}"
+                                        {% if membership.company_id in existing_interests %}disabled{% endif %}>
+                                    {{ membership.company.name }}
+                                    {% if membership.company_id in existing_interests %}(Already interested){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        
+                        <button type="submit" class="btn-primary">Express Interest</button>
+                    </form>
+                </div>
+            {% elif is_own_company %}
+                <div class="interested-companies">
+                    <h3 style="margin-top: 0;">Companies Interested in This Service</h3>
+                    {% if interests %}
+                        <ul style="margin: 0; padding-left: 20px;">
+                            {% for interest in interests %}
+                                <li style="margin-bottom: 8px;">
+                                    <strong>{{ interest.company.name }}</strong> 
+                                    <span style="color: var(--gray);">
+                                        (interested since {{ interest.created_at.strftime('%Y-%m-%d') }})
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p style="color: var(--gray); margin: 0;">No companies have expressed interest yet.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- REVIEWS -->
+            {% if reviews %}
+                <div class="detail-section" style="margin-top: 24px;">
+                    <h3 style="margin-top: 0;">Company Reviews</h3>
+                    {% for review in reviews[:5] %}
+                        <div class="review-card">
+                            <div class="rating">★ {{ review.rating }} / 5</div>
+                            <p style="margin: 8px 0 0 0; color: var(--gray);">{{ review.comment }}</p>
+                        </div>
+                    {% endfor %}
+                    {% if reviews|length > 5 %}
+                        <p style="color: var(--gray); margin-top: 12px;">Showing 5 of {{ reviews|length }} reviews</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="form-links" style="margin-top: 24px;">
+                <a href="{{ url_for('main.browse_deals') }}">Back to Browse</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2025 Barter.com. Building partnerships through service exchange.
+    </footer>
+</body>
+</html>

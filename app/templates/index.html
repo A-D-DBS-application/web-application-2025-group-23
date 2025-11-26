@@ -22,12 +22,17 @@
 
     <!-- LOGGED-IN DASHBOARD (index.html is now used exclusively for logged-in users) -->
     <section class="dashboard" aria-label="User dashboard">
-        <h1>Welkom, {{ username }}!</h1>
+        <h1>Welcome, {{ username }}!</h1>
         <div class="dash-actions">
-            <a class="btn-outline" href="{{ url_for('main.profile_settings') }}">Mijn profiel</a>
-            <a class="btn-outline" href="{{ url_for('main.my_companies') }}">Mijn bedrijven</a>
-            <a class="btn-outline" href="{{ url_for('main.create_company') }}">Maak bedrijf</a>
-            <a class="btn-outline" href="{{ url_for('main.join_company') }}">Link bedrijf</a>
+            <a class="btn-outline" href="{{ url_for('main.profile_settings') }}">My Profile</a>
+            <a class="btn-outline" href="{{ url_for('main.my_companies') }}">My Companies</a>
+            <a class="btn-outline" href="{{ url_for('main.create_company') }}">Create Company</a>
+            <a class="btn-outline" href="{{ url_for('main.join_company') }}">Link Company</a>
+        </div>
+        <div style="margin-top: 16px;">
+            <a class="btn-primary" style="display:inline-block; padding: 12px 20px; font-size: 16px;" href="{{ url_for('main.browse_deals') }}">Browse Deals</a>
+        </div>
+        <div style="margin-top: 16px;">
             <form method="post" action="{{ url_for('main.logout') }}" style="display:inline-block">
                 <button class="btn-primary small" type="submit">Logout</button>
             </form>

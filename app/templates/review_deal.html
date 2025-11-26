@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Deal | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        .rating-input {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        .rating-input input[type="radio"] {
+            display: none;
+        }
+        .rating-input label {
+            font-size: 40px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .rating-input input[type="radio"]:checked ~ label,
+        .rating-input label:hover,
+        .rating-input label:hover ~ label {
+            color: #ffa500;
+        }
+        .deal-summary {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">www.barter.com</div>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.my_companies') }}">My Companies</a>
+        </nav>
+    </header>
+
+    <section class="content-container">
+        <div class="form-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category,msg in messages %}
+                  <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            
+            <h1>Review Deal</h1>
+            <p style="color: var(--gray); margin-bottom: 24px;">Rate your experience with {{ reviewed_company.name }}</p>
+
+            <div class="deal-summary">
+                <h3 style="margin-top: 0;">Deal Details</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <strong>Your service:</strong><br>
+                        {% if proposal.from_company_id == reviewed_company.company_id %}
+                            {{ proposal.to_service.title }}
+                        {% else %}
+                            {{ proposal.from_service.title }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <strong>Their service:</strong><br>
+                        {% if proposal.from_company_id == reviewed_company.company_id %}
+                            {{ proposal.from_service.title }}
+                        {% else %}
+                            {{ proposal.to_service.title }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <form method="post">
+                <div class="form-group">
+                    <label>Rating *</label>
+                    <div class="rating-input">
+                        <input type="radio" id="star5" name="rating" value="5" required>
+                        <label for="star5">★</label>
+                        <input type="radio" id="star4" name="rating" value="4">
+                        <label for="star4">★</label>
+                        <input type="radio" id="star3" name="rating" value="3">
+                        <label for="star3">★</label>
+                        <input type="radio" id="star2" name="rating" value="2">
+                        <label for="star2">★</label>
+                        <input type="radio" id="star1" name="rating" value="1">
+                        <label for="star1">★</label>
+                    </div>
+                    <p style="color: var(--gray); font-size: 13px; margin-top: 8px;">
+                        Click the stars to leave your rating (1 = poor, 5 = excellent)
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">Comment (optional)</label>
+                    <textarea id="comment" name="comment" rows="6" placeholder="Share your experience about this collaboration..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">Submit Review</button>
+            </form>
+
+            <div class="form-links">
+                <a href="{{ url_for('main.company_deals', company_id=proposal.from_company_id if proposal.from_company_id != reviewed_company.company_id else proposal.to_company_id) }}">Cancel</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2025 Barter.com. Building partnerships through service exchange.
+    </footer>
+</body>
+</html>

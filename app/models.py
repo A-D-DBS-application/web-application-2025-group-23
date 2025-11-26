@@ -9,7 +9,7 @@
 #   
 #   voor mac:
 #   python3 -m flask --app run db migrate -m "{wat je deed} - {je naam}"
-#   python3 -m flask --app run db upgrade#
+#   python3 -m flask --app run db upgrade
 
 # Gebruik expliciet de venv python of activeer de venv; vermijd system python3 verwarring
 # Voorbeeld:
@@ -71,6 +71,8 @@ class Company(db.Model):
     created_at = db.Column(DateTime(timezone=True))
     # Code users can submit to request joining the company
     join_code = db.Column(db.Text, nullable=True, unique=True)
+    # Barter coins for the company (virtual currency for balancing trades)
+    barter_coins = db.Column(db.Integer, nullable=False, default=0)
 
     # Relaties:
     # - members: lijst van CompanyMember records
@@ -148,12 +150,22 @@ class CompanyMember(db.Model):
 
 
 # ==========================
+# SERVICE CATEGORY (Association table for many-to-many)
+# ==========================
+service_categories = db.Table(
+    'service_categories',
+    db.Column('service_id', UUID(as_uuid=True), db.ForeignKey('service.service_id'), primary_key=True),
+    db.Column('category_name', db.Text, primary_key=True)
+)
+
+
+# ==========================
 # SERVICE
 # ==========================
 class Service(db.Model):
     """
     Een service die door een company aangeboden of gevraagd wordt.
-    Komt overeen met de 'service' tabel (uuid, jsonb, enum, ...).
+    Updated to support duration, multiple categories, and active status.
     """
     __tablename__ = "service"
 
@@ -166,17 +178,22 @@ class Service(db.Model):
 
     title = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=False)
-    category = db.Column(db.Text, nullable=False)
+    # Duration in hours (can be decimal, e.g. 1.5 hours)
+    duration_hours = db.Column(db.Numeric, nullable=False)
+    
+    # Many-to-many relationship with categories (stored as text tags)
+    # Categories: Finance, Accounting, IT, Marketing, Legal, Design, HR, Consulting, etc.
+    categories = db.Column(db.Text)  # Comma-separated for simplicity, e.g. "Finance,Accounting"
 
-    is_offered = db.Column(db.Boolean, nullable=False)  # True = aanbod, False = vraag
+    is_offered = db.Column(db.Boolean, nullable=False, default=True)  # True = offering service
+    is_active = db.Column(db.Boolean, nullable=False, default=True)  # Can be deactivated
 
-    estimated_time_min = db.Column(db.Integer)          # int4, mag NULL
+    estimated_time_min = db.Column(db.Integer)          # int4, mag NULL (legacy)
     value_estimate = db.Column(db.Numeric)              # numeric, mag NULL
     availability = db.Column(JSONB)                     # jsonb, bv. {"mon": ["evening"]}
 
-    # In Supabase: ENUM 'service_status' → hier gewoon Text,
-    # DB zelf bewaakt toegelaten waarden.
-    status = db.Column(db.Text, nullable=False)
+    # In Supabase: ENUM 'service_status' → hier gewoon Text
+    status = db.Column(db.Text, nullable=False, default='active')
 
     created_at = db.Column(DateTime(timezone=True))
     updated_at = db.Column(DateTime(timezone=True))
@@ -188,7 +205,119 @@ class Service(db.Model):
 
 
 # ==========================
-# BARTERDEAL
+# SERVICE INTEREST
+# ==========================
+class ServiceInterest(db.Model):
+    """
+    Tracks when a user/company expresses interest in a service.
+    Enables mutual interest detection for deal proposals.
+    """
+    __tablename__ = "service_interest"
+
+    interest_id = db.Column(UUID(as_uuid=True), primary_key=True)
+    service_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("service.service_id"),
+        nullable=False
+    )
+    user_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("user.user_id"),
+        nullable=False
+    )
+    company_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("company.company_id"),
+        nullable=False
+    )
+    created_at = db.Column(DateTime(timezone=True), nullable=False)
+
+    # Relationships
+    service = db.relationship("Service", backref="interests")
+    user = db.relationship("user", backref="service_interests")
+    company = db.relationship("Company", backref="service_interests")
+
+    def __repr__(self) -> str:
+        return f"<ServiceInterest {self.interest_id}>"
+
+
+# ==========================
+# DEAL PROPOSAL
+# ==========================
+class DealProposal(db.Model):
+    """
+    A proposal sent from one company admin to another to trade services.
+    Can include barter coins to balance value differences.
+    """
+    __tablename__ = "deal_proposal"
+
+    proposal_id = db.Column(UUID(as_uuid=True), primary_key=True)
+    from_company_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("company.company_id"),
+        nullable=False
+    )
+    to_company_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("company.company_id"),
+        nullable=False
+    )
+    from_service_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("service.service_id"),
+        nullable=False
+    )
+    to_service_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("service.service_id"),
+        nullable=False
+    )
+    barter_coins_offered = db.Column(db.Integer, nullable=False, default=0)
+    message = db.Column(db.Text)  # Optional message from proposer
+    status = db.Column(db.Text, nullable=False, default='pending')  # pending, accepted, rejected
+    created_at = db.Column(DateTime(timezone=True), nullable=False)
+
+    # Relationships
+    from_company = db.relationship("Company", foreign_keys=[from_company_id], backref="sent_proposals")
+    to_company = db.relationship("Company", foreign_keys=[to_company_id], backref="received_proposals")
+    from_service = db.relationship("Service", foreign_keys=[from_service_id])
+    to_service = db.relationship("Service", foreign_keys=[to_service_id])
+
+    def __repr__(self) -> str:
+        return f"<DealProposal {self.proposal_id} ({self.status})>"
+
+
+# ==========================
+# ACTIVE DEAL
+# ==========================
+class ActiveDeal(db.Model):
+    """
+    Tracks ongoing deals after proposal acceptance.
+    Both companies must mark as complete before reviews can be submitted.
+    """
+    __tablename__ = "active_deal"
+
+    active_deal_id = db.Column(UUID(as_uuid=True), primary_key=True)
+    proposal_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("deal_proposal.proposal_id"),
+        nullable=False
+    )
+    from_company_completed = db.Column(db.Boolean, nullable=False, default=False)
+    to_company_completed = db.Column(db.Boolean, nullable=False, default=False)
+    status = db.Column(db.Text, nullable=False, default='in_progress')  # in_progress, completed
+    created_at = db.Column(DateTime(timezone=True), nullable=False)
+    completed_at = db.Column(DateTime(timezone=True))
+
+    # Relationships
+    proposal = db.relationship("DealProposal", backref="active_deal")
+
+    def __repr__(self) -> str:
+        return f"<ActiveDeal {self.active_deal_id} ({self.status})>"
+
+
+# ==========================
+# BARTER DEAL
 # ==========================
 class BarterDeal(db.Model):
     """
@@ -275,14 +404,16 @@ class Contract(db.Model):
 class Review(db.Model):
     """
     Review die een user schrijft over een company na een deal.
+    Now references active_deal instead of barterdeal.
     """
     __tablename__ = "review"
 
     review_id = db.Column(UUID(as_uuid=True), primary_key=True)
 
+    # Changed to reference active_deal instead of barterdeal
     deal_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("barterdeal.deal_id"),
+        db.ForeignKey("active_deal.active_deal_id"),
         nullable=False,
     )
     reviewer_id = db.Column(
@@ -301,8 +432,8 @@ class Review(db.Model):
         db.ForeignKey("company.company_id"),
     )
 
-    deal = db.relationship(
-        "BarterDeal",
+    active_deal = db.relationship(
+        "ActiveDeal",
         backref=db.backref("reviews", lazy="dynamic"),
     )
     reviewer = db.relationship(

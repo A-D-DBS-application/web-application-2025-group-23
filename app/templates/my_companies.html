@@ -50,19 +50,22 @@
                     {% for c in member_companies %}
                         <div class="company-item">
                             <div class="company-name">{{ c.name }}</div>
-                            {% set membership = namespace(is_admin=false) %}
-                            {% for m in admin_companies %}
-                                {% if m.company_id == c.company_id %}
-                                    {% set membership.is_admin = true %}
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <a class="btn-primary small" href="{{ url_for('main.company_activities', company_id=c.company_id) }}">Activities</a>
+                                {% set membership = namespace(is_admin=false) %}
+                                {% for m in admin_companies %}
+                                    {% if m.company_id == c.company_id %}
+                                        {% set membership.is_admin = true %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not membership.is_admin %}
+                                    <form method="post" action="{{ url_for('main.leave_company', company_id=c.company_id) }}" onsubmit="return confirm('Are you sure you want to leave this company?');" style="display:inline;">
+                                        <button type="submit" class="btn-danger small">Leave</button>
+                                    </form>
+                                {% else %}
+                                    <span class="member-role" style="color: var(--gray); font-size: 13px;">(Admin - delete company to leave)</span>
                                 {% endif %}
-                            {% endfor %}
-                            {% if not membership.is_admin %}
-                                <form method="post" action="{{ url_for('main.leave_company', company_id=c.company_id) }}" onsubmit="return confirm('Are you sure you want to leave this company?');" style="display:inline;">
-                                    <button type="submit" class="btn-danger small">Leave</button>
-                                </form>
-                            {% else %}
-                                <span class="member-role" style="color: var(--gray); font-size: 13px;">(Admin - delete company to leave)</span>
-                            {% endif %}
+                            </div>
                         </div>
                     {% endfor %}
                 {% else %}

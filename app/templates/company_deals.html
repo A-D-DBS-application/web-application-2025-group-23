@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Deals - {{ company.name }} | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        .deal-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .deal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .deal-services {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 16px;
+            align-items: center;
+            margin: 16px 0;
+        }
+        .service-box {
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+        .completion-status {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+            padding: 12px;
+            background: #e8f5e9;
+            border-radius: 6px;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-in-progress {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .status-completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">www.barter.com</div>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.my_companies') }}">My Companies</a>
+        </nav>
+    </header>
+
+    <section class="content-container">
+        <div class="content-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category,msg in messages %}
+                  <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            
+            <h1>Active Deals - {{ company.name }}</h1>
+            <p style="color: var(--gray); margin-bottom: 24px;">Services currently in progress</p>
+
+            <!-- IN PROGRESS DEALS -->
+            {% if in_progress_deals %}
+                <div style="margin-bottom: 32px;">
+                    <h3>🔄 Services in progress</h3>
+                    {% for deal in in_progress_deals %}
+                        {% set proposal = deal.proposal %}
+                        {% set is_from_company = (proposal.from_company_id == company.company_id) %}
+                        {% set other_company = proposal.to_company if is_from_company else proposal.from_company %}
+                        
+                        <div class="deal-card">
+                            <div class="deal-header">
+                                <div>
+                                    <h4 style="margin: 0; color: var(--blue);">Deal with {{ other_company.name }}</h4>
+                                    <p style="margin: 4px 0 0 0; color: var(--gray); font-size: 13px;">
+                                        Started on {{ deal.created_at.strftime('%Y-%m-%d') }}
+                                    </p>
+                                </div>
+                                <span class="status-badge status-in-progress">In Progress</span>
+                            </div>
+
+                            <div class="deal-services">
+                                <div class="service-box">
+                                    <strong>{{ company.name }} provides:</strong><br>
+                                    {{ proposal.from_service.title if is_from_company else proposal.to_service.title }}
+                                </div>
+                                <div style="text-align: center; font-size: 24px; color: var(--blue);">⇄</div>
+                                <div class="service-box">
+                                    <strong>{{ other_company.name }} provides:</strong><br>
+                                    {{ proposal.to_service.title if is_from_company else proposal.from_service.title }}
+                                </div>
+                            </div>
+
+                            {% if proposal.barter_coins_offered > 0 %}
+                                <div style="margin: 12px 0; padding: 8px; background: #fff9c4; border-radius: 4px; font-size: 14px;">
+                                    💰 <strong>Barter Coins:</strong> {{ proposal.barter_coins_offered }} coins 
+                                    {% if is_from_company %}(you paid){% else %}(you received){% endif %}
+                                </div>
+                            {% endif %}
+
+                            <div class="completion-status">
+                                <div style="flex: 1;">
+                                    {% if is_from_company %}
+                                        <strong>Your status:</strong> 
+                                        {% if deal.from_company_completed %}
+                                            <span style="color: green;">✓ Completed</span>
+                                        {% else %}
+                                            <span style="color: orange;">⏳ In progress</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <strong>Your status:</strong>
+                                        {% if deal.to_company_completed %}
+                                            <span style="color: green;">✓ Completed</span>
+                                        {% else %}
+                                            <span style="color: orange;">⏳ In progress</span>
+                                        {% endif %}
+                                    {% endif %}
+                                    <br>
+                                    <strong>Their status:</strong>
+                                    {% if is_from_company %}
+                                        {% if deal.to_company_completed %}
+                                            <span style="color: green;">✓ Completed</span>
+                                        {% else %}
+                                            <span style="color: orange;">⏳ In progress</span>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if deal.from_company_completed %}
+                                            <span style="color: green;">✓ Completed</span>
+                                        {% else %}
+                                            <span style="color: orange;">⏳ In progress</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                
+                                {% if is_admin %}
+                                    {% if (is_from_company and not deal.from_company_completed) or (not is_from_company and not deal.to_company_completed) %}
+                                        <form method="post" action="{{ url_for('main.complete_deal', deal_id=deal.active_deal_id) }}" style="display: inline;">
+                                            <button type="submit" class="btn-success">Mark as Complete</button>
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="content-card" style="padding: 24px; text-align: center; color: var(--gray); margin-bottom: 32px;">
+                    <p>No active deals at the moment</p>
+                </div>
+            {% endif %}
+
+            <!-- COMPLETED DEALS -->
+            {% if completed_deals %}
+                <div>
+                    <h3>✅ Completed Deals</h3>
+                    {% for deal in completed_deals %}
+                        {% set proposal = deal.proposal %}
+                        {% set is_from_company = (proposal.from_company_id == company.company_id) %}
+                        {% set other_company = proposal.to_company if is_from_company else proposal.from_company %}
+                        
+                        <div class="deal-card">
+                            <div class="deal-header">
+                                <div>
+                                    <h4 style="margin: 0; color: var(--blue);">Deal with {{ other_company.name }}</h4>
+                                    <p style="margin: 4px 0 0 0; color: var(--gray); font-size: 13px;">
+                                        Completed on {{ deal.completed_at.strftime('%Y-%m-%d') if deal.completed_at else 'Unknown' }}
+                                    </p>
+                                </div>
+                                <span class="status-badge status-completed">Completed</span>
+                            </div>
+
+                            <div class="deal-services">
+                                <div class="service-box">
+                                    <strong>{{ company.name }} provided:</strong><br>
+                                    {{ proposal.from_service.title if is_from_company else proposal.to_service.title }}
+                                </div>
+                                <div style="text-align: center; font-size: 24px; color: var(--blue);">⇄</div>
+                                <div class="service-box">
+                                    <strong>{{ other_company.name }} provided:</strong><br>
+                                    {{ proposal.to_service.title if is_from_company else proposal.from_service.title }}
+                                </div>
+                            </div>
+
+                            {% if can_review.get(deal.active_deal_id, False) %}
+                                <div style="margin-top: 16px;">
+                                    <a href="{{ url_for('main.review_deal', deal_id=deal.active_deal_id) }}" class="btn-primary">
+                                        ⭐ Leave Review
+                                    </a>
+                                </div>
+                            {% else %}
+                                <p style="color: var(--gray); margin-top: 12px; font-style: italic;">
+                                    Review already submitted
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-links" style="margin-top: 24px;">
+                <a href="{{ url_for('main.manage_company', company_id=company.company_id) }}">Back to Manage Company</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2025 Barter.com. Building partnerships through service exchange.
+    </footer>
+</body>
+</html>

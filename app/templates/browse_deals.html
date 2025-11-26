@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Deals | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        .filters-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--gray);
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .category-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .category-filter-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .category-filter-item input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .category-filter-item label {
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .service-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: box-shadow 0.2s;
+        }
+        .service-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .company-name {
+            font-weight: 500;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        .rating {
+            color: #ffa500;
+            font-size: 14px;
+        }
+        .service-title {
+            color: var(--blue);
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .service-description {
+            color: var(--gray);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .service-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--gray);
+            margin-bottom: 12px;
+        }
+        .service-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .category-tag {
+            background: #e3f2fd;
+            color: var(--blue);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">www.barter.com</div>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.my_companies') }}">My Companies</a>
+        </nav>
+    </header>
+
+    <section class="content-container">
+        <div class="content-card">
+            <h1>Browse Deals</h1>
+            <p style="color: var(--gray); margin-bottom: 24px;">Discover services from companies</p>
+
+            <!-- FILTERS -->
+            <form method="get" class="filters-section">
+                <input type="text" 
+                       name="search" 
+                       class="search-box" 
+                       placeholder="Search services..." 
+                       value="{{ search_query }}">
+                
+                <h4 style="margin-bottom: 12px;">Filter by Category</h4>
+                <div class="category-filters">
+                    {% for cat in categories %}
+                        <div class="category-filter-item">
+                            <input type="checkbox" 
+                                   id="filter_{{ loop.index }}" 
+                                   name="category" 
+                                   value="{{ cat }}"
+                                   {% if cat in selected_categories %}checked{% endif %}>
+                            <label for="filter_{{ loop.index }}">{{ cat }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="submit" class="btn-primary">Apply Filters</button>
+                <a href="{{ url_for('main.browse_deals') }}" class="btn-outline" style="margin-left: 8px;">Clear Filters</a>
+            </form>
+
+            <!-- SERVICES LIST -->
+            {% if services %}
+                <div style="margin-top: 24px;">
+                    <p style="color: var(--gray); margin-bottom: 16px;">Found {{ services|length }} service(s)</p>
+                    
+                    {% for service in services %}
+                        <div class="service-card">
+                            <div class="company-header">
+                                <span class="company-name">{{ service.company.name }}</span>
+                                {% if company_ratings[service.company_id] %}
+                                    <span class="rating">★ {{ company_ratings[service.company_id] }} / 5</span>
+                                {% else %}
+                                    <span class="rating" style="color: var(--gray);">No ratings yet</span>
+                                {% endif %}
+                            </div>
+                            
+                            <h3 class="service-title">{{ service.title }}</h3>
+                            <p class="service-description">{{ service.description }}</p>
+                            
+                            {% if service.categories %}
+                                <div class="service-categories">
+                                    {% for cat in service.categories.split(',') %}
+                                        <span class="category-tag">{{ cat }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="service-meta">
+                                <div><strong>Duration:</strong> {{ service.duration_hours }} hours</div>
+                            </div>
+                            
+                            <a href="{{ url_for('main.service_detail', service_id=service.service_id) }}" class="btn-primary small">View Details</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="content-card" style="padding: 32px; text-align: center; color: var(--gray); margin-top: 24px;">
+                    <p>No services found matching your criteria.</p>
+                    <p style="margin-top: 8px;">Try adjusting your filters or search terms.</p>
+                </div>
+            {% endif %}
+
+            <div class="form-links" style="margin-top: 24px;">
+                <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2025 Barter.com. Building partnerships through service exchange.
+    </footer>
+</body>
+</html>
