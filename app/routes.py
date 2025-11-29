@@ -8,12 +8,34 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
     """
-    Serve the public start page for anonymous users, and the old home/dashboard
-    (index.html) for logged-in users.
+    Serve the public start page for anonymous users, and profile page for logged-in users
     """
     if 'user_id' in session:
         usr = user.query.get(session['user_id'])
-        return render_template('index.html', username=usr.username if usr else None)
+        user_id = uuid.UUID(session['user_id'])
+        
+        # Get all companies for this user
+        memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+        companies = []
+        for membership in memberships:
+            company = Company.query.get(membership.company_id)
+            if company:
+                # Count members and services
+                member_count = CompanyMember.query.filter_by(company_id=company.company_id).count()
+                service_count = Service.query.filter_by(company_id=company.company_id).count()
+                
+                companies.append({
+                    'company_id': company.company_id,
+                    'name': company.name,
+                    'description': getattr(company, 'description', None),
+                    'role': 'Admin' if membership.is_admin else 'Member',
+                    'member_count': member_count,
+                    'service_count': service_count
+                })
+        
+        return render_template('index.html', 
+                             username=usr.username if usr else None,
+                             companies=companies)
     # anonymous users see the new start/landing page
     return render_template('start.html')
 
@@ -51,7 +73,7 @@ def login():
         return 'User not found'
     return render_template('login.html')
 
-@main.route('/logout', methods=['POST'])
+@main.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.pop('user_id', None)
     return redirect(url_for('main.index'))
@@ -105,7 +127,7 @@ def create_company():
         db.session.add(member)
         db.session.commit()
         flash('Company created — you are admin and member', 'success')
-        return redirect(url_for('main.my_companies'))
+        return redirect(url_for('main.index'))
     return render_template('create_company.html')
 
 
@@ -141,18 +163,6 @@ def join_company():
                     flash('Request sent — wait for approval', 'success')
                     return redirect(url_for('main.join_company'))
     return render_template('join_company.html')
-
-
-@main.route('/companies/my')
-def my_companies():
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    uid = uuid.UUID(session['user_id'])
-    memberships = CompanyMember.query.filter_by(user_id=uid).all()
-    admin_companies = [m.company for m in memberships if m.is_admin]
-    # Show all companies (including admin ones) in member section
-    member_companies = [m.company for m in memberships]
-    return render_template('my_companies.html', admin_companies=admin_companies, member_companies=member_companies)
 
 
 @main.route('/company/<uuid:company_id>/manage')
@@ -267,16 +277,116 @@ def manage_company(company_id):
 
 @main.route('/company/<uuid:company_id>')
 def view_company(company_id):
-    """Member-facing read-only company view (no management actions)."""
+    """Company view with management features for admins."""
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
     uid = uuid.UUID(session['user_id'])
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
     if not membership:
         return 'Forbidden', 403
+    
     company = Company.query.get(company_id)
     members = CompanyMember.query.filter_by(company_id=company_id).all()
-    return render_template('company_view.html', company=company, members=members, is_admin=membership.is_admin)
+    from .models import user as User
+    for m in members:
+        m.user_obj = User.query.get(m.user_id)
+    
+    # If admin, get additional management data
+    pending = []
+    mutual_interests = []
+    incoming_proposals = []
+    sent_proposals = []
+    
+    if membership.is_admin:
+        pending = CompanyJoinRequest.query.filter_by(company_id=company_id).all()
+        
+        # Get mutual interests
+        my_services = Service.query.filter_by(company_id=company_id, is_active=True).all()
+        for my_service in my_services:
+            interests_in_my_service = ServiceInterest.query.filter_by(service_id=my_service.service_id).all()
+            
+            for interest in interests_in_my_service:
+                other_company_id = interest.company_id
+                if other_company_id == company_id:
+                    continue
+                
+                other_services = Service.query.filter_by(company_id=other_company_id, is_active=True).all()
+                
+                for other_service in other_services:
+                    mutual = ServiceInterest.query.filter_by(
+                        service_id=other_service.service_id,
+                        company_id=company_id
+                    ).first()
+                    
+                    if mutual:
+                        existing_proposal = DealProposal.query.filter(
+                            db.or_(
+                                db.and_(
+                                    DealProposal.from_company_id == company_id,
+                                    DealProposal.to_company_id == other_company_id,
+                                    DealProposal.from_service_id == my_service.service_id,
+                                    DealProposal.to_service_id == other_service.service_id,
+                                    DealProposal.status == 'pending'
+                                ),
+                                db.and_(
+                                    DealProposal.from_company_id == other_company_id,
+                                    DealProposal.to_company_id == company_id,
+                                    DealProposal.from_service_id == other_service.service_id,
+                                    DealProposal.to_service_id == my_service.service_id,
+                                    DealProposal.status == 'pending'
+                                )
+                            )
+                        ).first()
+                        
+                        if not existing_proposal:
+                            active_deal_check = db.session.query(ActiveDeal).join(DealProposal).filter(
+                                db.or_(
+                                    db.and_(
+                                        DealProposal.from_company_id == company_id,
+                                        DealProposal.to_company_id == other_company_id,
+                                        DealProposal.from_service_id == my_service.service_id,
+                                        DealProposal.to_service_id == other_service.service_id,
+                                        ActiveDeal.status == 'in_progress'
+                                    ),
+                                    db.and_(
+                                        DealProposal.from_company_id == other_company_id,
+                                        DealProposal.to_company_id == company_id,
+                                        DealProposal.from_service_id == other_service.service_id,
+                                        DealProposal.to_service_id == my_service.service_id,
+                                        ActiveDeal.status == 'in_progress'
+                                    )
+                                )
+                            ).first()
+                            
+                            if not active_deal_check:
+                                mutual_interests.append({
+                                    'my_service': my_service,
+                                    'other_service': other_service,
+                                    'other_company': Company.query.get(other_company_id)
+                                })
+        
+        # Get incoming proposals
+        incoming_proposals = DealProposal.query.filter_by(
+            to_company_id=company_id,
+            status='pending'
+        ).all()
+        
+        # Get sent proposals
+        sent_proposals = DealProposal.query.filter_by(
+            from_company_id=company_id
+        ).all()
+    
+    return render_template('company_view.html', 
+                         company=company, 
+                         members=members, 
+                         is_admin=membership.is_admin,
+                         pending=pending,
+                         mutual_interests=mutual_interests,
+                         incoming_proposals=incoming_proposals,
+                         sent_proposals=sent_proposals)
+
+# Alias for backward compatibility
+company_view = view_company
 
 
 @main.route('/company/<uuid:company_id>/accept/<uuid:request_id>', methods=['POST'])
@@ -308,26 +418,62 @@ def accept_join_request(company_id, request_id):
 
 @main.route('/company/<uuid:company_id>/transfer/<uuid:member_id>', methods=['POST'])
 def transfer_admin(company_id, member_id):
-    """Transfer admin role to a non-admin member. Only the current admin can do this."""
+    """Promote a member to admin. Admins can promote others."""
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
-    # find the current admin for the company and ensure caller is that admin
-    current_admin = CompanyMember.query.filter_by(company_id=company_id, is_admin=True).first()
-    if not current_admin or str(current_admin.user_id) != session.get('user_id'):
+    
+    uid = uuid.UUID(session['user_id'])
+    # Ensure caller is admin
+    current_admin = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
+    if not current_admin:
         return 'Forbidden', 403
+    
     target = CompanyMember.query.get(member_id)
     if not target or target.company_id != company_id:
         return 'Not found', 404
+    
     if target.is_admin:
-        flash('Deze gebruiker is al admin', 'warning')
+        flash('This user is already an admin', 'warning')
         return redirect(url_for('main.manage_company', company_id=company_id))
-    # Perform transfer: target becomes admin, current_admin loses admin
+    
+    # Promote target to admin
     target.is_admin = True
-    current_admin.is_admin = False
     db.session.commit()
-    flash('Admin-rechten overgedragen. Je bent nu gewone member.', 'success')
-    # Redirect to overall companies overview so user sees updated member/admin sections
-    return redirect(url_for('main.my_companies'))
+    flash(f'{target.user_obj.username if hasattr(target, "user_obj") and target.user_obj else "User"} is now an admin', 'success')
+    return redirect(url_for('main.manage_company', company_id=company_id))
+
+
+@main.route('/company/<uuid:company_id>/demote/<uuid:member_id>', methods=['POST'])
+def demote_admin(company_id, member_id):
+    """Demote an admin to regular member. Any admin can demote other admins."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    uid = uuid.UUID(session['user_id'])
+    # Ensure caller is admin
+    current_admin = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
+    if not current_admin:
+        return 'Forbidden', 403
+    
+    target = CompanyMember.query.get(member_id)
+    if not target or target.company_id != company_id:
+        return 'Not found', 404
+    
+    if not target.is_admin:
+        flash('This user is not an admin', 'warning')
+        return redirect(url_for('main.manage_company', company_id=company_id))
+    
+    # Check if this is the last admin
+    admin_count = CompanyMember.query.filter_by(company_id=company_id, is_admin=True).count()
+    if admin_count <= 1:
+        flash('Cannot demote the last admin. Promote someone else first.', 'error')
+        return redirect(url_for('main.manage_company', company_id=company_id))
+    
+    # Demote target to regular member
+    target.is_admin = False
+    db.session.commit()
+    flash(f'{target.user_obj.username if hasattr(target, "user_obj") and target.user_obj else "User"} is now a regular member', 'success')
+    return redirect(url_for('main.manage_company', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/remove/<uuid:member_id>', methods=['POST'])
@@ -342,12 +488,14 @@ def remove_member(company_id, member_id):
     member = CompanyMember.query.get(member_id)
     if not member or member.company_id != company_id:
         return 'Not found', 404
-    # disallow removing admins completely (we only support 1 admin per company)
+    # disallow removing admins - they must be demoted first
     if member.is_admin:
-        return 'Cannot remove admin users', 400
-    # do not allow removing yourself (admins can't remove themselves)
+        flash('Cannot remove admin users. Demote them first.', 'error')
+        return redirect(url_for('main.manage_company', company_id=company_id))
+    # do not allow removing yourself (use leave company instead)
     if str(member.user_id) == session.get('user_id'):
-        return "Can't remove yourself", 400
+        flash("Use 'Leave Company' to remove yourself", 'warning')
+        return redirect(url_for('main.manage_company', company_id=company_id))
     db.session.delete(member)
     db.session.commit()
     flash('Member removed', 'success')
@@ -362,13 +510,19 @@ def leave_company(company_id):
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
     if not membership:
         return 'Not a member', 400
-    # Admins are not allowed to leave a company — they must delete the company instead.
+    
+    # Check if user is admin
     if membership.is_admin:
-        return 'Admins cannot leave the company. Delete the company instead.', 400
+        # Check if there are other admins
+        other_admins = CompanyMember.query.filter_by(company_id=company_id, is_admin=True).filter(CompanyMember.user_id != uid).count()
+        if other_admins == 0:
+            flash('You are the only admin. Please promote another member to admin before leaving, or delete the company.', 'error')
+            return redirect(url_for('main.manage_company', company_id=company_id))
+    
     db.session.delete(membership)
     db.session.commit()
     flash('You have left the company', 'success')
-    return redirect(url_for('main.my_companies'))
+    return redirect(url_for('main.index'))
 
 
 @main.route('/company/<uuid:company_id>/delete', methods=['POST'])
@@ -379,13 +533,35 @@ def delete_company(company_id):
     admin_membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
     if not admin_membership:
         return 'Forbidden', 403
-    # delete members, join requests, and company
+    
+    # Delete all related data
+    # Delete service interests related to this company's services
+    company_services = Service.query.filter_by(company_id=company_id).all()
+    for service in company_services:
+        ServiceInterest.query.filter_by(service_id=service.service_id).delete()
+        ServiceInterest.query.filter_by(offering_service_id=service.service_id).delete()
+    
+    # Delete services
+    Service.query.filter_by(company_id=company_id).delete()
+    
+    # Delete deal proposals
+    DealProposal.query.filter(
+        db.or_(
+            DealProposal.from_company_id == company_id,
+            DealProposal.to_company_id == company_id
+        )
+    ).delete()
+    
+    # Delete members and join requests
     CompanyMember.query.filter_by(company_id=company_id).delete()
     CompanyJoinRequest.query.filter_by(company_id=company_id).delete()
+    
+    # Delete company
     Company.query.filter_by(company_id=company_id).delete()
+    
     db.session.commit()
     flash('Company and all data deleted', 'success')
-    return redirect(url_for('main.my_companies'))
+    return redirect(url_for('main.index'))
 
 
 @main.route('/company/<uuid:company_id>/activities')
@@ -451,6 +627,7 @@ def add_service(company_id):
             title=title,
             description=description,
             duration_hours=duration,
+            barter_coins_cost=0,  # Default to 0, can be edited later
             categories=','.join(categories) if categories else None,
             is_offered=is_offered,
             is_active=True,
@@ -476,12 +653,17 @@ def add_service(company_id):
 
 
 @main.route('/deals/browse')
-def browse_deals():
+@main.route('/deals/browse/<uuid:company_id>')
+def browse_deals(company_id=None):
     """Browse all active services from all companies with filters."""
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
     
     uid = uuid.UUID(session['user_id'])
+    
+    # Save company_id to session if provided
+    if company_id:
+        session['last_marketplace_company'] = str(company_id)
     
     # Get filter parameters
     search_query = request.args.get('search', '').strip()
@@ -530,7 +712,8 @@ def browse_deals():
                          categories=available_categories,
                          selected_categories=selected_categories,
                          search_query=search_query,
-                         company_ratings=company_ratings)
+                         company_ratings=company_ratings,
+                         selected_company_id=company_id)
 
 
 @main.route('/service/<uuid:service_id>')
@@ -548,6 +731,21 @@ def service_detail(service_id):
     
     # Get user's companies for interest button
     user_companies = CompanyMember.query.filter_by(user_id=uid).all()
+    
+    # Get the selected company from query parameter (from marketplace) or session
+    selected_company_id = request.args.get('company_id')
+    selected_company = None
+    if selected_company_id:
+        try:
+            selected_company = uuid.UUID(selected_company_id)
+        except:
+            selected_company = None
+    elif 'last_marketplace_company' in session:
+        # Use last company from session if no company_id in URL
+        try:
+            selected_company = uuid.UUID(session['last_marketplace_company'])
+        except:
+            selected_company = None
     
     # Check if user has already expressed interest from any of their companies
     existing_interests = {}
@@ -592,6 +790,11 @@ def service_detail(service_id):
             if not completed_deal:
                 interests.append(interest)
     
+    # Get user's services from their selected company (for offering in exchange)
+    my_services = []
+    if selected_company:
+        my_services = Service.query.filter_by(company_id=selected_company, is_active=True).all()
+    
     return render_template('service_detail.html',
                          service=service,
                          company=company,
@@ -601,7 +804,9 @@ def service_detail(service_id):
                          reviews=reviews,
                          avg_rating=avg_rating,
                          total_reviews=len(reviews),
-                         interests=interests)
+                         interests=interests,
+                         selected_company_id=selected_company,
+                         my_services=my_services)
 
 
 @main.route('/service/<uuid:service_id>/interest', methods=['POST'])
@@ -624,12 +829,12 @@ def express_interest(service_id):
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
     if not membership:
         flash('You are not a member of this company', 'error')
-        return redirect(url_for('main.service_detail', service_id=service_id))
+        return redirect(url_for('main.service_detail', service_id=service_id, company_id=company_id))
     
     # Check if user's company owns this service
     if service.company_id == company_id:
         flash('You cannot express interest in your own service', 'error')
-        return redirect(url_for('main.service_detail', service_id=service_id))
+        return redirect(url_for('main.service_detail', service_id=service_id, company_id=company_id))
     
     # Check if interest already exists AND there's an active deal
     existing = ServiceInterest.query.filter_by(
@@ -657,25 +862,37 @@ def express_interest(service_id):
         # Only block if there's an active deal
         if active_deal_exists:
             flash('You have already expressed interest in this service', 'info')
-            return redirect(url_for('main.service_detail', service_id=service_id))
+            return redirect(url_for('main.service_detail', service_id=service_id, company_id=company_id))
         else:
             # Interest exists but no active deal, delete old interest and allow new one
             db.session.delete(existing)
+    
+    # Get a service from this company to offer (use first active service)
+    my_services = Service.query.filter_by(company_id=company_id, is_active=True).all()
+    if not my_services:
+        flash('Your company needs to have at least one active service to express interest', 'error')
+        return redirect(url_for('main.service_detail', service_id=service_id, company_id=company_id))
+    
+    # Use the first service as the offering
+    offering_service = my_services[0]
     
     # Create interest
     interest = ServiceInterest(
         interest_id=uuid.uuid4(),
         service_id=service_id,
-        user_id=uid,
         company_id=company_id,
+        offering_service_id=offering_service.service_id,
         created_at=datetime.datetime.now(datetime.timezone.utc)
     )
     
     db.session.add(interest)
     db.session.commit()
     
+    # Remember this company in session for future visits
+    session['last_marketplace_company'] = str(company_id)
+    
     flash('Interest registered successfully!', 'success')
-    return redirect(url_for('main.service_detail', service_id=service_id))
+    return redirect(url_for('main.service_detail', service_id=service_id, company_id=company_id))
 
 
 @main.route('/proposal/send', methods=['POST'])
@@ -846,7 +1063,7 @@ def company_deals(company_id):
     for deal in completed_deals:
         # Check if user has already reviewed this deal
         existing_review = Review.query.filter_by(
-            deal_id=deal.proposal.from_service_id,  # Using service_id as deal_id for now
+            deal_id=deal.active_deal_id,
             reviewer_id=uid
         ).first()
         can_review[deal.active_deal_id] = not existing_review
@@ -930,9 +1147,23 @@ def review_deal(deal_id):
     active_deal = ActiveDeal.query.get_or_404(deal_id)
     proposal = active_deal.proposal
     
+    # Check if user already reviewed
+    existing_review = Review.query.filter_by(
+        deal_id=deal_id,
+        reviewer_id=uid
+    ).first()
+    
+    if existing_review:
+        flash('You have already reviewed this deal', 'warning')
+        if 'company_id' in session:
+            return redirect(url_for('main.company_requests', company_id=session['company_id']))
+        return redirect(url_for('main.index'))
+    
     # Check if deal is completed
     if active_deal.status != 'completed':
         flash('This deal is not yet completed', 'error')
+        if 'company_id' in session:
+            return redirect(url_for('main.company_requests', company_id=session['company_id']))
         return redirect(url_for('main.index'))
     
     # Determine which company the user is reviewing
@@ -968,16 +1199,6 @@ def review_deal(deal_id):
             flash('Rating must be between 1 and 5', 'error')
             return redirect(url_for('main.review_deal', deal_id=deal_id))
         
-        # Check if user already reviewed
-        existing_review = Review.query.filter_by(
-            deal_id=deal_id,
-            reviewer_id=uid
-        ).first()
-        
-        if existing_review:
-            flash('You have already reviewed this deal', 'warning')
-            return redirect(url_for('main.company_deals', company_id=my_company_id))
-        
         # Create review
         review = Review(
             review_id=uuid.uuid4(),
@@ -993,10 +1214,560 @@ def review_deal(deal_id):
         db.session.commit()
         
         flash('Review added successfully!', 'success')
-        return redirect(url_for('main.company_deals', company_id=my_company_id))
+        return redirect(url_for('main.company_requests', company_id=my_company_id))
     
     # GET: show review form
     return render_template('review_deal.html',
                          active_deal=active_deal,
                          proposal=proposal,
                          reviewed_company=reviewed_company)
+
+
+@main.route('/start')
+def start():
+    """
+    Public landing page (start.html)
+    """
+    return render_template('start.html')
+
+
+@main.route('/support')
+def support():
+    """
+    Support page
+    """
+    return render_template('support.html')
+
+
+@main.route('/about-us')
+def about_us():
+    """
+    About Us page
+    """
+    return render_template('about_us.html')
+
+
+@main.route('/company-choice')
+def company_choice():
+    """
+    Page to choose between creating or joining a company
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    return render_template('company_choice.html')
+
+
+@main.route('/select-company-marketplace')
+def select_company_for_marketplace():
+    """
+    Select which company to use for browsing marketplace
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    
+    # Get all companies where user is a member
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        company = Company.query.get(membership.company_id)
+        if company:
+            companies.append({
+                'company_id': company.company_id,
+                'name': company.name,
+                'description': getattr(company, 'description', None)
+            })
+    
+    return render_template('select_company_marketplace.html', companies=companies)
+
+
+@main.route('/company/<uuid:company_id>/services')
+def company_services(company_id):
+    """
+    View services for a company
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get(company_id)
+    if not company:
+        return 'Company not found', 404
+    
+    # Check if user is member
+    user_id = uuid.UUID(session['user_id'])
+    membership = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=company_id
+    ).first()
+    
+    if not membership:
+        return 'Access denied', 403
+    
+    services = Service.query.filter_by(company_id=company_id).all()
+    
+    return render_template('company_services.html', 
+                         company=company, 
+                         services=services,
+                         is_admin=membership.is_admin)
+
+
+@main.route('/company/<uuid:company_id>/requests')
+def company_requests(company_id):
+    """
+    View all requests for a company (4 tabs)
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get(company_id)
+    if not company:
+        return 'Company not found', 404
+    
+    user_id = uuid.UUID(session['user_id'])
+    membership = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=company_id
+    ).first()
+    
+    if not membership or not membership.is_admin:
+        return 'Access denied - Admin only', 403
+    
+    # Outgoing requests (You Requested) - only show pending requests
+    outgoing = []
+    my_services = Service.query.filter_by(company_id=company_id).all()
+    for service in my_services:
+        proposals = DealProposal.query.filter_by(
+            from_service_id=service.service_id,
+            status='pending'  # Only show pending requests
+        ).all()
+        for prop in proposals:
+            target_service = Service.query.get(prop.to_service_id)
+            target_company = Company.query.get(target_service.company_id) if target_service else None
+            outgoing.append({
+                'proposal_id': prop.proposal_id,
+                'service_name': target_service.title if target_service else 'Unknown',
+                'company_name': target_company.name if target_company else 'Unknown',
+                'description': target_service.description if target_service else '',
+                'status': prop.status,
+                'status_display': prop.status.title()
+            })
+    
+    # Incoming requests - only show pending requests
+    incoming = []
+    for service in my_services:
+        proposals = DealProposal.query.filter_by(
+            to_service_id=service.service_id,
+            status='pending'  # Only show pending requests
+        ).all()
+        for prop in proposals:
+            offering_service = Service.query.get(prop.from_service_id)
+            offering_company = Company.query.get(offering_service.company_id) if offering_service else None
+            incoming.append({
+                'proposal_id': prop.proposal_id,
+                'service_name': offering_service.title if offering_service else 'Unknown',
+                'from_company': offering_company.name if offering_company else 'Unknown',
+                'description': offering_service.description if offering_service else '',
+                'status': prop.status,
+                'status_display': prop.status.title(),
+                'barter_coins_offered': prop.barter_coins_offered,
+                'message': prop.message
+            })
+    
+    # Barterdeal Overview (mutual interests)
+    # Logic: Find all interests where:
+    # 1. Another company is interested in my service (offering their service)
+    # 2. I am interested in one of their services (offering my service)
+    barter_deals = []
+    seen_pairs = set()  # To avoid duplicates
+    
+    # Get all interests where someone is interested in my services
+    all_interests_in_my_services = ServiceInterest.query.join(
+        Service, ServiceInterest.service_id == Service.service_id
+    ).filter(Service.company_id == company_id).all()
+    
+    for their_interest in all_interests_in_my_services:
+        # their_interest: They want my service (service_id), offering their service (offering_service_id)
+        their_company_id = their_interest.company_id
+        my_service_they_want = Service.query.get(their_interest.service_id)
+        their_service_they_offer = Service.query.get(their_interest.offering_service_id)
+        
+        if not their_service_they_offer:
+            continue
+        
+        # Now check: Do I have an interest in any of their services?
+        my_interests_in_their_services = ServiceInterest.query.join(
+            Service, ServiceInterest.service_id == Service.service_id
+        ).filter(
+            ServiceInterest.company_id == company_id,
+            Service.company_id == their_company_id
+        ).all()
+        
+        for my_interest in my_interests_in_their_services:
+            # Check if this creates a mutual deal
+            pair_id = tuple(sorted([str(their_interest.interest_id), str(my_interest.interest_id)]))
+            if pair_id in seen_pairs:
+                continue
+            seen_pairs.add(pair_id)
+            
+            their_service_i_want = Service.query.get(my_interest.service_id)
+            my_service_i_offer = Service.query.get(my_interest.offering_service_id)
+            their_company = Company.query.get(their_company_id)
+            
+            if their_service_they_offer and my_service_i_offer:
+                barter_deals.append({
+                    'deal_id': f"{their_interest.interest_id}_{my_interest.interest_id}",
+                    'service1_name': my_service_i_offer.title,
+                    'service1_description': my_service_i_offer.description,
+                    'company1_name': company.name,
+                    'service2_name': their_service_they_offer.title,
+                    'service2_description': their_service_they_offer.description,
+                    'company2_name': their_company.name if their_company else 'Unknown',
+                    'interest1_id': their_interest.interest_id,
+                    'interest2_id': my_interest.interest_id
+                })
+    
+    # My Contracts - using ActiveDeal system
+    # Show contracts that are in_progress OR completed but not yet reviewed by current user
+    contracts = []
+    active_deals = ActiveDeal.query.filter(
+        ActiveDeal.status.in_(['in_progress', 'completed'])
+    ).all()
+    
+    for active_deal in active_deals:
+        proposal = DealProposal.query.get(active_deal.proposal_id)
+        if not proposal:
+            continue
+            
+        # Check if this company is involved in this deal
+        if proposal.from_company_id != company_id and proposal.to_company_id != company_id:
+            continue
+        
+        # Get services and companies
+        from_service = Service.query.get(proposal.from_service_id)
+        to_service = Service.query.get(proposal.to_service_id)
+        from_company = Company.query.get(proposal.from_company_id)
+        to_company = Company.query.get(proposal.to_company_id)
+        
+        # Determine which is "my" service and which is "their" service
+        is_from_company = (proposal.from_company_id == company_id)
+        my_service = from_service if is_from_company else to_service
+        their_service = to_service if is_from_company else from_service
+        other_company = to_company if is_from_company else from_company
+        
+        # Check if current user has reviewed this deal
+        user_reviewed = Review.query.filter_by(
+            deal_id=active_deal.active_deal_id,
+            reviewer_id=uuid.UUID(session['user_id'])
+        ).first() is not None
+        
+        # If completed and user has reviewed, don't show this contract
+        if active_deal.status == 'completed' and user_reviewed:
+            continue
+        
+        contracts.append({
+            'contract_id': active_deal.active_deal_id,
+            'service1_name': my_service.title if my_service else 'Unknown',
+            'service2_name': their_service.title if their_service else 'Unknown',
+            'other_company': other_company.name if other_company else 'Unknown',
+            'status': active_deal.status,
+            'status_display': active_deal.status.title().replace('_', ' '),
+            'signed_date': active_deal.created_at.strftime('%Y-%m-%d') if active_deal.created_at else 'Unknown',
+            'your_service_delivered': active_deal.from_company_completed if is_from_company else active_deal.to_company_completed,
+            'their_service_delivered': active_deal.to_company_completed if is_from_company else active_deal.from_company_completed,
+            'reviewed': user_reviewed,
+            'proposal_id': proposal.proposal_id
+        })
+    
+    return render_template('company_requests.html',
+                         company=company,
+                         outgoing_requests=outgoing,
+                         incoming_requests=incoming,
+                         barter_deals=barter_deals,
+                         contracts=contracts)
+
+
+@main.route('/request/<proposal_id>/cancel', methods=['POST'])
+def cancel_request(proposal_id):
+    """
+    Cancel an outgoing request
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    proposal = DealProposal.query.get(proposal_id)
+    if proposal:
+        db.session.delete(proposal)
+        db.session.commit()
+        flash('Request cancelled', 'success')
+    
+    return redirect(request.referrer or url_for('main.index'))
+
+
+@main.route('/request/<proposal_id>/accept', methods=['POST'])
+def accept_request(proposal_id):
+    """
+    Accept an incoming request - creates an ActiveDeal
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    proposal = DealProposal.query.get(proposal_id)
+    if not proposal:
+        flash('Proposal not found', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    # Verify user is admin of the receiving company
+    uid = uuid.UUID(session['user_id'])
+    membership = CompanyMember.query.filter_by(
+        company_id=proposal.to_company_id,
+        user_id=uid,
+        is_admin=True
+    ).first()
+    
+    if not membership:
+        flash('You are not an admin of this company', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    if proposal.status != 'pending':
+        flash('This proposal has already been processed', 'warning')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    # Transfer barter coins if applicable
+    if proposal.barter_coins_offered > 0:
+        from_company = Company.query.get(proposal.from_company_id)
+        to_company = Company.query.get(proposal.to_company_id)
+        
+        if from_company and to_company:
+            from_company.barter_coins -= proposal.barter_coins_offered
+            to_company.barter_coins += proposal.barter_coins_offered
+    
+    # Update proposal status
+    proposal.status = 'accepted'
+    
+    # Create active deal
+    active_deal = ActiveDeal(
+        active_deal_id=uuid.uuid4(),
+        proposal_id=uuid.UUID(proposal_id),
+        from_company_completed=False,
+        to_company_completed=False,
+        status='in_progress',
+        created_at=datetime.datetime.now(datetime.timezone.utc)
+    )
+    
+    db.session.add(active_deal)
+    db.session.commit()
+    
+    flash('Request accepted! The deal is now active in My Contracts.', 'success')
+    return redirect(request.referrer or url_for('main.index'))
+
+
+@main.route('/request/<proposal_id>/decline', methods=['POST'])
+def decline_request(proposal_id):
+    """
+    Decline an incoming request
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    proposal = DealProposal.query.get(proposal_id)
+    if proposal:
+        proposal.status = 'declined'
+        db.session.commit()
+        flash('Request declined', 'success')
+    
+    return redirect(request.referrer or url_for('main.index'))
+
+
+@main.route('/deal/<deal_id>/sign-contract', methods=['GET', 'POST'])
+def sign_contract(deal_id):
+    """
+    Sign a contract for a barter deal - shows form to add barter coins and message
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    # Parse deal_id (format: interest1_id_interest2_id)
+    parts = deal_id.split('_')
+    if len(parts) != 2:
+        return 'Invalid deal ID', 400
+    
+    interest1 = ServiceInterest.query.get(parts[0])
+    interest2 = ServiceInterest.query.get(parts[1])
+    
+    if not interest1 or not interest2:
+        return 'Interests not found', 404
+    
+    # Get services from the interests
+    service_a = Service.query.get(interest1.offering_service_id)
+    service_b = Service.query.get(interest2.offering_service_id)
+    
+    if not service_a or not service_b:
+        return 'Services not found', 404
+    
+    # If GET request, show the contract signing form
+    if request.method == 'GET':
+        company_a = Company.query.get(service_a.company_id)
+        company_b = Company.query.get(service_b.company_id)
+        return render_template('sign_contract.html',
+                             deal_id=deal_id,
+                             service_a=service_a,
+                             service_b=service_b,
+                             company_a=company_a,
+                             company_b=company_b)
+    
+    # POST request - process the contract signing
+    barter_coins = request.form.get('barter_coins', 0, type=int)
+    message = request.form.get('message', '')
+    
+    # Get current user's company
+    user_id = uuid.UUID(session['user_id'])
+    
+    # Determine which company the user belongs to
+    membership_a = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=service_a.company_id
+    ).first()
+    
+    membership_b = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=service_b.company_id
+    ).first()
+    
+    # Determine from/to based on which company user is from
+    if membership_a:
+        from_service = service_a
+        to_service = service_b
+        from_company_id = service_a.company_id
+        to_company_id = service_b.company_id
+    elif membership_b:
+        from_service = service_b
+        to_service = service_a
+        from_company_id = service_b.company_id
+        to_company_id = service_a.company_id
+    else:
+        flash('You are not a member of either company', 'error')
+        return redirect(url_for('main.index'))
+    
+    # Create DealProposal with PENDING status (goes to "You Requested" and "Incoming Requests")
+    proposal = DealProposal(
+        proposal_id=uuid.uuid4(),
+        from_service_id=from_service.service_id,
+        to_service_id=to_service.service_id,
+        from_company_id=from_company_id,
+        to_company_id=to_company_id,
+        barter_coins_offered=barter_coins,
+        message=message,
+        status='pending',
+        created_at=datetime.datetime.now(datetime.timezone.utc)
+    )
+    db.session.add(proposal)
+    
+    # Remove the interests since they're now converted to a proposal
+    db.session.delete(interest1)
+    db.session.delete(interest2)
+    
+    db.session.commit()
+    
+    flash('Proposal sent successfully!', 'success')
+    return redirect(url_for('main.company_requests', company_id=from_company_id))
+
+
+@main.route('/contract/<contract_id>/mark-delivered', methods=['POST'])
+def mark_service_delivered(contract_id):
+    """
+    Mark your service as delivered in an active deal
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    active_deal = ActiveDeal.query.get(contract_id)
+    
+    if not active_deal:
+        return 'Active deal not found', 404
+    
+    proposal = DealProposal.query.get(active_deal.proposal_id)
+    if not proposal:
+        return 'Proposal not found', 404
+    
+    # Find which company the user belongs to
+    membership_from = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=proposal.from_company_id
+    ).first()
+    membership_to = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=proposal.to_company_id
+    ).first()
+    
+    if not (membership_from or membership_to):
+        return 'Access denied', 403
+    
+    # Mark appropriate service as delivered
+    if membership_from:
+        active_deal.from_company_completed = True
+    else:
+        active_deal.to_company_completed = True
+    
+    # Check if both delivered
+    if active_deal.from_company_completed and active_deal.to_company_completed:
+        active_deal.status = 'completed'
+        active_deal.completed_at = datetime.datetime.now(datetime.timezone.utc)
+    
+    db.session.commit()
+    flash('Service marked as delivered', 'success')
+    
+    return redirect(request.referrer or url_for('main.index'))
+
+
+@main.route('/contract/<contract_id>/write-review', methods=['GET', 'POST'])
+def write_review(contract_id):
+    """
+    Write a review for a completed active deal
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    if request.method == 'POST':
+        rating = request.form.get('rating', type=int)
+        comment = request.form.get('comment', '')
+        
+        user_id = uuid.UUID(session['user_id'])
+        active_deal = ActiveDeal.query.get(contract_id)
+        
+        if not active_deal:
+            flash('Active deal not found', 'error')
+            return redirect(url_for('main.index'))
+        
+        proposal = DealProposal.query.get(active_deal.proposal_id)
+        if not proposal:
+            flash('Proposal not found', 'error')
+            return redirect(url_for('main.index'))
+        
+        # Determine reviewer company
+        membership_from = CompanyMember.query.filter_by(
+            user_id=user_id,
+            company_id=proposal.from_company_id
+        ).first()
+        
+        reviewer_company_id = proposal.from_company_id if membership_from else proposal.to_company_id
+        reviewed_company_id = proposal.to_company_id if membership_from else proposal.from_company_id
+        
+        review = Review(
+            review_id=uuid.uuid4(),
+            deal_id=uuid.UUID(contract_id),
+            reviewer_id=user_id,
+            reviewed_company_id=reviewed_company_id,
+            rating=rating,
+            comment=comment,
+            created_at=datetime.datetime.now(datetime.timezone.utc)
+        )
+        db.session.add(review)
+        db.session.commit()
+        
+        flash('Review submitted successfully!', 'success')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    active_deal = ActiveDeal.query.get(contract_id)
+    return render_template('write_review.html', contract={'contract_id': contract_id}, active_deal=active_deal)

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Choice – Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #e8f0fe;
+            min-height: 100vh;
+        }
+        .dashboard-header {
+            background-color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .dashboard-header .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        .dashboard-header nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .dashboard-header nav a {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        .choice-container {
+            max-width: 600px;
+            margin: 60px auto;
+            padding: 40px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .back-link {
+            display: flex;
+            align-items: center;
+            color: #333;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            color: #1a73e8;
+        }
+        .choice-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 40px;
+        }
+        .choice-option {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .choice-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            background-color: #1a73e8;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .choice-icon svg {
+            width: 30px;
+            height: 30px;
+            stroke: white;
+        }
+        .choice-option h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .choice-option p {
+            margin: 0 0 20px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .choice-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .choice-btn:hover {
+            background-color: #1557b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="logo">Barter.com</div>
+        <nav>
+            <a href="{{ url_for('main.select_company_for_marketplace') }}">Marketplace</a>
+            <a href="{{ url_for('main.support') }}">Support</a>
+            <a href="{{ url_for('main.about_us') }}">About Us</a>
+            <a href="{{ url_for('main.index') }}" class="btn-login" style="background-color: #1a73e8; color: white; padding: 8px 20px; border-radius: 4px;">My Profile</a>
+        </nav>
+    </div>
+    
+    <div class="choice-container">
+        <a href="{{ url_for('main.index') }}" class="back-link">← How do you want to start?</a>
+        
+        <div class="choice-option">
+            <div class="choice-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h3>Create a new company</h3>
+            <p>Become a company member</p>
+            <a href="{{ url_for('main.create_company') }}" class="choice-btn">Continue</a>
+        </div>
+        
+        <div class="choice-option">
+            <div class="choice-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="3" stroke="white" stroke-width="2"/>
+                    <path d="M6 21v-2c0-2 2-4 6-4s6 2 6 4v2" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h3>Join an existing company</h3>
+            <p>Enter invite code</p>
+            <a href="{{ url_for('main.join_company') }}" class="choice-btn">Continue</a>
+        </div>
+    </div>
+</body>
+</html>

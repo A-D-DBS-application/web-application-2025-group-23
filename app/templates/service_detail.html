@@ -138,28 +138,38 @@
 
             <!-- EXPRESS INTEREST (for non-members of this company) -->
             {% if not is_own_company and user_companies %}
+                {% set already_interested = selected_company_id and selected_company_id in existing_interests %}
+                
+                {% if already_interested %}
+                <div class="interest-form">
+                    <h3 style="margin-top: 0;">Already Interested</h3>
+                    <p style="color: #28a745; font-weight: 500;">
+                        ✓ Your company has already expressed interest in this service!
+                    </p>
+                </div>
+                {% else %}
                 <div class="interest-form">
                     <h3 style="margin-top: 0;">Express Interest</h3>
                     <p style="color: var(--gray); margin-bottom: 12px;">
-                        Interested in this service? Let them know which of your companies is interested!
+                        Interested in this service? Let {{ company.name }} know!
                     </p>
                     
                     <form method="post" action="{{ url_for('main.express_interest', service_id=service.service_id) }}">
-                        <label for="company_id"><strong>Select your company:</strong></label>
-                        <select name="company_id" id="company_id" class="company-select" required>
-                            <option value="">-- Choose a company --</option>
-                            {% for membership in user_companies %}
-                                <option value="{{ membership.company_id }}"
-                                        {% if membership.company_id in existing_interests %}disabled{% endif %}>
-                                    {{ membership.company.name }}
-                                    {% if membership.company_id in existing_interests %}(Already interested){% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
+                        {% if selected_company_id %}
+                        <input type="hidden" name="company_id" value="{{ selected_company_id }}">
+                        {% else %}
+                        <p style="color: #dc3545; margin-bottom: 12px;">Please select a company from the marketplace first.</p>
+                        <a href="{{ url_for('main.select_company_for_marketplace') }}" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                            Select Company
+                        </a>
+                        {% endif %}
                         
+                        {% if selected_company_id %}
                         <button type="submit" class="btn-primary">Express Interest</button>
+                        {% endif %}
                     </form>
                 </div>
+                {% endif %}
             {% elif is_own_company %}
                 <div class="interested-companies">
                     <h3 style="margin-top: 0;">Companies Interested in This Service</h3>

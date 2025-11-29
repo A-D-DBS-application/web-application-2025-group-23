@@ -108,13 +108,17 @@
 </head>
 <body>
     <!-- HEADER -->
-    <header class="header">
-        <div class="logo">www.barter.com</div>
-        <nav class="nav">
-            <a href="{{ url_for('main.index') }}">Dashboard</a>
-            <a href="{{ url_for('main.my_companies') }}">My Companies</a>
+    <div class="dashboard-header" style="background-color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div class="logo" style="font-size: 24px; font-weight: bold; color: #1a73e8;">Barter.com</div>
+        <nav style="display: flex; gap: 20px; align-items: center;">
+            <a href="{{ url_for('main.index') }}" style="color: #333; text-decoration: none; font-size: 15px;">Dashboard</a>
+            <a href="{{ url_for('main.select_company_for_marketplace') }}" style="color: #333; text-decoration: none; font-size: 15px;">Switch Company</a>
+            <a href="{{ url_for('main.profile_settings') }}" style="color: #333; text-decoration: none; font-size: 15px;">My Profile</a>
+            <a href="{{ url_for('main.support') }}" style="color: #333; text-decoration: none; font-size: 15px;">Support</a>
+            <a href="{{ url_for('main.about_us') }}" style="color: #333; text-decoration: none; font-size: 15px;">About Us</a>
+            <a href="{{ url_for('main.logout') }}" style="background-color: #dc3545; color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-size: 15px;">Logout</a>
         </nav>
-    </header>
+    </div>
 
     <section class="content-container">
         <div class="content-card">
@@ -178,7 +182,7 @@
                                 <div><strong>Duration:</strong> {{ service.duration_hours }} hours</div>
                             </div>
                             
-                            <a href="{{ url_for('main.service_detail', service_id=service.service_id) }}" class="btn-primary small">View Details</a>
+                            <a href="{{ url_for('main.service_detail', service_id=service.service_id, company_id=selected_company_id) }}" class="btn-primary small">View Details</a>
                         </div>
                     {% endfor %}
                 </div>

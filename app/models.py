@@ -68,6 +68,7 @@ class Company(db.Model):
 
     company_id = db.Column(UUID(as_uuid=True), primary_key=True)
     name = db.Column(db.Text)  # in Supabase nullable = allowed
+    description = db.Column(db.Text, nullable=True)  # Company description
     created_at = db.Column(DateTime(timezone=True))
     # Code users can submit to request joining the company
     join_code = db.Column(db.Text, nullable=True, unique=True)
@@ -181,6 +182,9 @@ class Service(db.Model):
     # Duration in hours (can be decimal, e.g. 1.5 hours)
     duration_hours = db.Column(db.Numeric, nullable=False)
     
+    # Barter coins cost for this service
+    barter_coins_cost = db.Column(db.Integer, nullable=False, default=0)
+    
     # Many-to-many relationship with categories (stored as text tags)
     # Categories: Finance, Accounting, IT, Marketing, Legal, Design, HR, Consulting, etc.
     categories = db.Column(db.Text)  # Comma-separated for simplicity, e.g. "Finance,Accounting"
@@ -209,8 +213,10 @@ class Service(db.Model):
 # ==========================
 class ServiceInterest(db.Model):
     """
-    Tracks when a user/company expresses interest in a service.
-    Enables mutual interest detection for deal proposals.
+    Tracks when a company expresses interest in another company's service.
+    company_id: The company showing interest
+    service_id: The service they're interested in
+    offering_service_id: The service they're offering in exchange
     """
     __tablename__ = "service_interest"
 
@@ -220,22 +226,22 @@ class ServiceInterest(db.Model):
         db.ForeignKey("service.service_id"),
         nullable=False
     )
-    user_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("user.user_id"),
-        nullable=False
-    )
     company_id = db.Column(
         UUID(as_uuid=True),
         db.ForeignKey("company.company_id"),
         nullable=False
     )
+    offering_service_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("service.service_id"),
+        nullable=False
+    )
     created_at = db.Column(DateTime(timezone=True), nullable=False)
 
     # Relationships
-    service = db.relationship("Service", backref="interests")
-    user = db.relationship("user", backref="service_interests")
+    service = db.relationship("Service", foreign_keys=[service_id], backref="interests")
     company = db.relationship("Company", backref="service_interests")
+    offering_service = db.relationship("Service", foreign_keys=[offering_service_id])
 
     def __repr__(self) -> str:
         return f"<ServiceInterest {self.interest_id}>"

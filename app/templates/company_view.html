@@ -10,16 +10,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header class="header">
-        <div class="logo">www.barter.com</div>
-        <nav class="nav">
-            <a href="{{ url_for('main.index') }}">Dashboard</a>
-            <a href="{{ url_for('main.my_companies') }}">My Companies</a>
-            {% if is_admin %}
-            <a href="{{ url_for('main.manage_company', company_id=company.company_id) }}" class="btn-primary small">Manage</a>
-            {% endif %}
+    <div class="dashboard-header" style="background-color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div class="logo" style="font-size: 24px; font-weight: bold; color: #1a73e8;">Barter.com</div>
+        <nav style="display: flex; gap: 20px; align-items: center;">
+            <a href="{{ url_for('main.profile_settings') }}" style="color: #333; text-decoration: none; font-size: 15px;">My Profile</a>
+            <a href="{{ url_for('main.support') }}" style="color: #333; text-decoration: none; font-size: 15px;">Support</a>
+            <a href="{{ url_for('main.about_us') }}" style="color: #333; text-decoration: none; font-size: 15px;">About Us</a>
+            <a href="{{ url_for('main.select_company_for_marketplace') }}" style="background-color: #007bff; color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-size: 15px;">Marketplace</a>
+            <a href="{{ url_for('main.logout') }}" style="background-color: #dc3545; color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-size: 15px;">Logout</a>
         </nav>
-    </header>
+    </div>
 
     <section class="content-container">
         <div class="content-card">
@@ -31,23 +31,82 @@
               {% endif %}
             {% endwith %}
             <h1>{{ company.name }}</h1>
+            
             <div class="info-section">
-                <h3>Join Code</h3>
-                <div class="code-display">{{ company.join_code or 'No code' }}</div>
+                <h3>Company Info</h3>
+                <div class="code-display">Join Code: {{ company.join_code or 'No code' }}</div>
+                <div style="margin-top: 8px;"><strong>Barter Coins:</strong> {{ company.barter_coins }}</div>
+                <div style="margin-top: 12px; display: flex; gap: 10px;">
+                    <a href="{{ url_for('main.company_services', company_id=company.company_id) }}" class="btn-primary small">My Services</a>
+                    <a href="{{ url_for('main.company_requests', company_id=company.company_id) }}" class="btn-primary small">Requests</a>
+                </div>
             </div>
+
+            <!-- ADMIN ONLY: PENDING JOIN REQUESTS -->
+            {% if is_admin %}
             <div class="company-section">
-                <h3>Members</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Pending Join Requests</h3>
+                    <form method="post" action="{{ url_for('main.delete_company', company_id=company.company_id) }}" onsubmit="return confirm('Are you sure you want to delete this company? This will remove all members and data.');" style="display:inline;">
+                        <button type="submit" class="btn-danger small">Delete Company</button>
+                    </form>
+                </div>
+                {% if pending %}
+                    {% for r in pending %}
+                        <div class="member-item">
+                            <div class="member-name">{{ r.user.username if r.user else r.user_id }}</div>
+                            <form method="post" action="{{ url_for('main.accept_join_request', company_id=company.company_id, request_id=r.request_id) }}" style="display:inline;">
+                                <button type="submit" class="btn-primary small">Accept</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-state">No pending requests</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- MEMBERS SECTION -->
+            <div class="company-section">
+                <h3>Company Members</h3>
                 {% for m in members %}
-                  <div class="member-item">
-                      <div>
-                        <div class="member-name">{{ m.user_obj.username if m.user_obj else m.user_id }}</div>
-                        <div class="member-role">{{ 'Admin' if m.is_admin else 'Member' }}</div>
-                      </div>
-                  </div>
+                    <div class="member-item">
+                        <div>
+                            <div class="member-name">
+                                {{ m.user_obj.username if m.user_obj else m.user_id }}
+                                {% if m.user_id|string == session['user_id'] %}(You){% endif %}
+                            </div>
+                            <div class="member-role">{{ 'Admin' if m.is_admin else 'Member' }}</div>
+                        </div>
+                        {% if is_admin and m.user_id|string != session['user_id'] %}
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            {% if m.is_admin %}
+                                <form method="post" action="{{ url_for('main.demote_admin', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Demote this admin to regular member?');" style="display:inline;">
+                                    <button type="submit" class="btn-outline small">Demote Admin</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ url_for('main.transfer_admin', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Promote this member to admin?');" style="display:inline;">
+                                    <button type="submit" class="btn-success small">Promote to Admin</button>
+                                </form>
+                                <form method="post" action="{{ url_for('main.remove_member', company_id=company.company_id, member_id=m.member_id) }}" onsubmit="return confirm('Remove this member?');" style="display:inline;">
+                                    <button type="submit" class="btn-danger small">Remove</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
                 {% endfor %}
             </div>
-            <div class="form-links">
-                <a href="{{ url_for('main.my_companies') }}">Back to My Companies</a>
+
+            <!-- LEAVE COMPANY -->
+            <div style="margin-top: 30px;">
+                <form method="post" action="{{ url_for('main.leave_company', company_id=company.company_id) }}" onsubmit="return confirm('Are you sure you want to leave this company?{% if is_admin %} If you are the only admin, promote someone else first.{% endif %}');">
+                    <button type="submit" class="btn-outline" style="width: 100%; padding: 12px;">Leave Company</button>
+                </form>
+            </div>
+
+            <div class="form-links" style="margin-top: 20px;">
+                <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
             </div>
         </div>
     </section>

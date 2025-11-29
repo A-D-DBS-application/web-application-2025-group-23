@@ -16,10 +16,9 @@
         <div class="logo">www.barter.com</div>
 
         <nav class="nav">
-            <a href="#" class="disabled">Support</a>
-            <a href="#" class="disabled">About Us</a>
+            <a href="{{ url_for('main.support') }}">Support</a>
+            <a href="{{ url_for('main.about_us') }}">About Us</a>
             <a href="{{ url_for('main.login') }}" class="btn-primary small">Log in</a>
-            <a href="{{ url_for('main.register') }}" class="btn-primary small">Register</a>
         </nav>
     </header>
 
@@ -33,8 +32,7 @@
         </p>
 
         <div class="hero-buttons">
-            <button class="btn-primary large" disabled>Get Started</button>
-            <button class="btn-outline large" disabled>Browse Marketplace</button>
+            <a href="{{ url_for('main.register') }}" class="btn-primary large">Get Started</a>
         </div>
     </section>
 
@@ -78,17 +76,6 @@
             <h3>Company Hubs</h3>
             <p>Create private spaces for your teams to collaborate on trades efficiently.</p>
         </div>
-    </section>
-
-    <!-- CTA BLOCK -->
-    <section class="cta">
-        <h2>Ready to start trading?</h2>
-
-        <p class="cta-subtext">
-            Join hundreds of companies already exchanging services on Barter.com.
-        </p>
-
-        <button class="btn-primary large" disabled>Create Free Account</button>
     </section>
 
     <!-- FOOTER -->
