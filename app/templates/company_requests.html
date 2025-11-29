@@ -370,7 +370,7 @@
                     {% elif contract.status == 'completed' %}
                     <div class="request-actions">
                         {% if not contract.reviewed %}
-                        <a href="{{ url_for('main.write_review', contract_id=contract.contract_id) }}" class="btn btn-review">Write Review</a>
+                        <a href="{{ url_for('main.review_deal', deal_id=contract.contract_id) }}" class="btn btn-review">Write Review</a>
                         {% else %}
                         <span style="color: #28a745; font-size: 13px;">✓ Review submitted</span>
                         {% endif %}

@@ -511,7 +511,7 @@ def add_service(company_id):
         db.session.commit()
         
         flash('Service added successfully', 'success')
-        return redirect(url_for('main.company_activities', company_id=company_id))
+        return redirect(url_for('main.company_services', company_id=company_id))
     
     # GET: show form
     available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
