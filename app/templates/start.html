@@ -46,7 +46,7 @@
         .header nav a:hover {
             color: #2563eb;
         }
-        .btn-register {
+        .btn-login-header {
             background-color: white;
             color: #2563eb;
             padding: 10px 24px;
@@ -56,7 +56,7 @@
             border: 2px solid #2563eb;
             transition: all 0.2s;
         }
-        .btn-register:hover {
+        .btn-login-header:hover {
             background-color: #2563eb;
             color: white;
         }
@@ -153,14 +153,14 @@
         <nav>
             <a href="{{ url_for('main.support') }}">Support</a>
             <a href="{{ url_for('main.about_us') }}">About Us</a>
-            <a href="{{ url_for('main.register') }}" class="btn-register">Register</a>
+            <a href="{{ url_for('main.login') }}" class="btn-login-header">Login</a>
         </nav>
     </div>
 
     <div class="hero">
         <h1>Trade what you do best,<br>Gain what you need most</h1>
         <p>A marketplace where entrepreneurs and startups exchange services without monetary transactions. Collaborate, grow, and succeed together.</p>
-        <a href="{{ url_for('main.login') }}" class="btn-primary">Get started →</a>
+        <a href="{{ url_for('main.register') }}" class="btn-primary">Get started →</a>
     </div>
 
     <div class="features">

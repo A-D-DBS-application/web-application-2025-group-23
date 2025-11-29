@@ -45,6 +45,7 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        email = request.form.get('email')
         if not username or not password:
             flash('Username and password are required', 'error')
             return render_template('register.html')
@@ -52,6 +53,7 @@ def register():
             new_user = user(
                 user_id=uuid.uuid4(),
                 username=username,
+                email=email,
                 password_hash=generate_password_hash(password)
             )
             db.session.add(new_user)
@@ -92,7 +94,6 @@ def profile_settings():
     usr = user.query.get(session['user_id'])
     if request.method == 'POST':
         usr.email = request.form.get('email', usr.email)
-        usr.role = request.form.get('role', usr.role)
         usr.location = request.form.get('location', usr.location)
         usr.job_description = request.form.get('jobdescription', usr.job_description)
         # `company_name` is not a column on the `user` model — keep only supported fields
@@ -308,7 +309,7 @@ def accept_join_request(company_id, request_id):
     db.session.delete(req)
     db.session.commit()
     flash('The user has been added to the company', 'success')
-    return redirect(url_for('main.manage_company', company_id=company_id))
+    return redirect(url_for('main.view_company', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/transfer/<uuid:member_id>', methods=['POST'])
