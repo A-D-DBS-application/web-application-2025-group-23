@@ -40,6 +40,7 @@ class user(db.Model):
     user_id = db.Column(UUID(as_uuid=True), primary_key=True)
     username = db.Column(db.Text, nullable=False, unique=True)
     email = db.Column(db.Text)
+    password_hash = db.Column(db.Text, nullable=False)
 
     # Korte beschrijving/omschrijving van iemands job / functie
     job_description = db.Column(db.Text)

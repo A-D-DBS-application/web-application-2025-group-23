@@ -1,4 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 from .models import db, user, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review, ServiceInterest, DealProposal, ActiveDeal
 import uuid
 import datetime
@@ -36,41 +37,45 @@ def index():
         return render_template('index.html', 
                              username=usr.username if usr else None,
                              companies=companies)
-    # anonymous users see the new start/landing page
+    # anonymous users see the start page
     return render_template('start.html')
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
-        if username is None:
-            return 'Missing required fields', 400
+        password = request.form.get('password')
+        if not username or not password:
+            flash('Username and password are required', 'error')
+            return render_template('register.html')
         if user.query.filter_by(username=username).first() is None:
             new_user = user(
                 user_id=uuid.uuid4(),
-                username=username
+                username=username,
+                password_hash=generate_password_hash(password)
             )
             db.session.add(new_user)
             db.session.commit()
 
             session['user_id'] = str(new_user.user_id)
             return redirect(url_for('main.index'))
-        return 'Username already registered'
+        flash('Username already registered', 'error')
+        return render_template('register.html')
     return render_template('register.html')
 
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form.get('username')
+        password = request.form.get('password')
         usr = user.query.filter_by(username=username).first()
-        if usr:
-
+        if usr and check_password_hash(usr.password_hash, password):
             # UUID als string in session
             session['user_id'] = str(usr.user_id)
-
             return redirect(url_for('main.index'))
-        return 'User not found'
+        flash('Invalid username or password', 'error')
+        return render_template('login.html')
     return render_template('login.html')
 
 @main.route('/logout', methods=['GET', 'POST'])
@@ -164,116 +169,6 @@ def join_company():
                     return redirect(url_for('main.join_company'))
     return render_template('join_company.html')
 
-
-@main.route('/company/<uuid:company_id>/manage')
-def manage_company(company_id):
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    uid = uuid.UUID(session['user_id'])
-    # check if caller is admin
-    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid, is_admin=True).first()
-    if not membership:
-        # non-admin members get redirected to the member view of the company
-        member_check = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
-        if member_check:
-            flash('You do not have admin rights for this company', 'warning')
-            return redirect(url_for('main.view_company', company_id=company_id))
-        return 'Forbidden', 403
-    company = Company.query.get(company_id)
-    members = CompanyMember.query.filter_by(company_id=company_id).all()
-    pending = CompanyJoinRequest.query.filter_by(company_id=company_id).all()
-    
-    # Get mutual interests: services where both companies have expressed interest
-    my_services = Service.query.filter_by(company_id=company_id, is_active=True).all()
-    mutual_interests = []
-    
-    for my_service in my_services:
-        # Get companies interested in my service
-        interests_in_my_service = ServiceInterest.query.filter_by(service_id=my_service.service_id).all()
-        
-        for interest in interests_in_my_service:
-            other_company_id = interest.company_id
-            if other_company_id == company_id:
-                continue  # Skip own company
-            
-            # Get services from the other company
-            other_services = Service.query.filter_by(company_id=other_company_id, is_active=True).all()
-            
-            for other_service in other_services:
-                # Check if we have someone from our company interested in their service
-                mutual = ServiceInterest.query.filter_by(
-                    service_id=other_service.service_id,
-                    company_id=company_id
-                ).first()
-                
-                if mutual:
-                    # Check if there's already a pending proposal or an active deal (not completed)
-                    # Completed deals don't block new proposals
-                    existing_proposal = DealProposal.query.filter(
-                        db.or_(
-                            db.and_(
-                                DealProposal.from_company_id == company_id,
-                                DealProposal.to_company_id == other_company_id,
-                                DealProposal.from_service_id == my_service.service_id,
-                                DealProposal.to_service_id == other_service.service_id,
-                                DealProposal.status == 'pending'
-                            ),
-                            db.and_(
-                                DealProposal.from_company_id == other_company_id,
-                                DealProposal.to_company_id == company_id,
-                                DealProposal.from_service_id == other_service.service_id,
-                                DealProposal.to_service_id == my_service.service_id,
-                                DealProposal.status == 'pending'
-                            )
-                        )
-                    ).first()
-                    
-                    # Also check if there's an active deal in progress (not completed)
-                    if not existing_proposal:
-                        active_deal_check = db.session.query(ActiveDeal).join(DealProposal).filter(
-                            db.or_(
-                                db.and_(
-                                    DealProposal.from_company_id == company_id,
-                                    DealProposal.to_company_id == other_company_id,
-                                    DealProposal.from_service_id == my_service.service_id,
-                                    DealProposal.to_service_id == other_service.service_id,
-                                    ActiveDeal.status == 'in_progress'
-                                ),
-                                db.and_(
-                                    DealProposal.from_company_id == other_company_id,
-                                    DealProposal.to_company_id == company_id,
-                                    DealProposal.from_service_id == other_service.service_id,
-                                    DealProposal.to_service_id == my_service.service_id,
-                                    ActiveDeal.status == 'in_progress'
-                                )
-                            )
-                        ).first()
-                        
-                        if not active_deal_check:
-                            mutual_interests.append({
-                                'my_service': my_service,
-                                'other_service': other_service,
-                                'other_company': Company.query.get(other_company_id)
-                            })
-    
-    # Get incoming proposals
-    incoming_proposals = DealProposal.query.filter_by(
-        to_company_id=company_id,
-        status='pending'
-    ).all()
-    
-    # Get sent proposals
-    sent_proposals = DealProposal.query.filter_by(
-        from_company_id=company_id
-    ).all()
-    
-    return render_template('manage_company.html', 
-                         company=company, 
-                         members=members, 
-                         pending=pending,
-                         mutual_interests=mutual_interests,
-                         incoming_proposals=incoming_proposals,
-                         sent_proposals=sent_proposals)
 
 @main.route('/company/<uuid:company_id>')
 def view_company(company_id):
@@ -562,30 +457,6 @@ def delete_company(company_id):
     db.session.commit()
     flash('Company and all data deleted', 'success')
     return redirect(url_for('main.index'))
-
-
-@main.route('/company/<uuid:company_id>/activities')
-def company_activities(company_id):
-    """Show all services/activities for a company. Members only."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    uid = uuid.UUID(session['user_id'])
-    company = Company.query.get_or_404(company_id)
-    
-    # Check if user is a member of this company
-    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
-    if not membership:
-        flash('You are not a member of this company', 'error')
-        return redirect(url_for('main.my_companies'))
-    
-    # Get all services for this company
-    services = Service.query.filter_by(company_id=company_id).order_by(Service.created_at.desc()).all()
-    
-    return render_template('company_activities.html', 
-                         company=company, 
-                         services=services,
-                         is_admin=membership.is_admin)
 
 
 @main.route('/company/<uuid:company_id>/service/add', methods=['GET', 'POST'])
@@ -1223,14 +1094,6 @@ def review_deal(deal_id):
                          reviewed_company=reviewed_company)
 
 
-@main.route('/start')
-def start():
-    """
-    Public landing page (start.html)
-    """
-    return render_template('start.html')
-
-
 @main.route('/support')
 def support():
     """
@@ -1723,51 +1586,5 @@ def mark_service_delivered(contract_id):
 
 @main.route('/contract/<contract_id>/write-review', methods=['GET', 'POST'])
 def write_review(contract_id):
-    """
-    Write a review for a completed active deal
-    """
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    if request.method == 'POST':
-        rating = request.form.get('rating', type=int)
-        comment = request.form.get('comment', '')
-        
-        user_id = uuid.UUID(session['user_id'])
-        active_deal = ActiveDeal.query.get(contract_id)
-        
-        if not active_deal:
-            flash('Active deal not found', 'error')
-            return redirect(url_for('main.index'))
-        
-        proposal = DealProposal.query.get(active_deal.proposal_id)
-        if not proposal:
-            flash('Proposal not found', 'error')
-            return redirect(url_for('main.index'))
-        
-        # Determine reviewer company
-        membership_from = CompanyMember.query.filter_by(
-            user_id=user_id,
-            company_id=proposal.from_company_id
-        ).first()
-        
-        reviewer_company_id = proposal.from_company_id if membership_from else proposal.to_company_id
-        reviewed_company_id = proposal.to_company_id if membership_from else proposal.from_company_id
-        
-        review = Review(
-            review_id=uuid.uuid4(),
-            deal_id=uuid.UUID(contract_id),
-            reviewer_id=user_id,
-            reviewed_company_id=reviewed_company_id,
-            rating=rating,
-            comment=comment,
-            created_at=datetime.datetime.now(datetime.timezone.utc)
-        )
-        db.session.add(review)
-        db.session.commit()
-        
-        flash('Review submitted successfully!', 'success')
-        return redirect(request.referrer or url_for('main.index'))
-    
-    active_deal = ActiveDeal.query.get(contract_id)
-    return render_template('write_review.html', contract={'contract_id': contract_id}, active_deal=active_deal)
+    """Removed - use review_deal route instead"""
+    return redirect(url_for('main.index'))

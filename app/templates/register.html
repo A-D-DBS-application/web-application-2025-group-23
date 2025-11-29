@@ -94,6 +94,12 @@
             font-weight: 500;
             text-align: center;
         }
+        .error-message {
+            color: #d32f2f;
+            margin-bottom: 15px;
+            font-size: 13px;
+            text-align: center;
+        }
         .form-group {
             margin-bottom: 20px;
         }
@@ -145,7 +151,7 @@
     <div class="register-header">
         <div class="logo">Barter.com</div>
         <nav>
-            <a href="{{ url_for('main.start') }}">Marketplace</a>
+            <a href="{{ url_for('main.index') }}">Marketplace</a>
             <a href="{{ url_for('main.support') }}">Support</a>
             <a href="{{ url_for('main.about_us') }}">About Us</a>
             <a href="{{ url_for('main.login') }}" class="btn-login">Login</a>
@@ -159,12 +165,22 @@
         <div class="right-panel">
             <div class="register-box">
                 <h2>Create your account</h2>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="error-message">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
                 <form method="post">
                     <div class="form-group">
                         <input type="text" name="username" placeholder="Username" required>
                     </div>
                     <div class="form-group">
-                        <input type="email" name="email" placeholder="E-mail" required>
+                        <input type="email" name="email" placeholder="E-mail">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="password" placeholder="Password" required>
                     </div>
                     <button type="submit" class="btn-register">Register</button>
                 </form>
