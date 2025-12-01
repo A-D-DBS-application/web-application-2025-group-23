@@ -480,11 +480,35 @@ def add_service(company_id):
         description = request.form.get('description')
         duration_hours = request.form.get('duration_hours')
         categories = request.form.getlist('categories')  # Multiple checkboxes
+        custom_category = request.form.get('custom_category')  # Custom category input
         is_offered = request.form.get('is_offered') == 'true'
         
+        # Validation: check all required fields first
         if not title or not description or not duration_hours:
-            flash('Please fill in all required fields', 'error')
-            return redirect(url_for('main.add_service', company_id=company_id))
+            flash('Vul dit veld in.', 'error')
+            return render_template('service_add.html',
+                                 company=company,
+                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 form_title=title,
+                                 form_description=description,
+                                 form_duration=duration_hours,
+                                 form_categories=categories)
+        
+        # If "Other" is selected but custom_category is empty, show error
+        if 'Other' in categories and not custom_category:
+            flash('Vul dit veld in.', 'error')
+            return render_template('service_add.html',
+                                 company=company,
+                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 form_title=title,
+                                 form_description=description,
+                                 form_duration=duration_hours,
+                                 form_categories=categories)
+        
+        # Replace "Other" with the custom category value
+        if 'Other' in categories and custom_category:
+            categories.remove('Other')
+            categories.append(custom_category.strip())
         
         try:
             duration = float(duration_hours)

@@ -48,6 +48,52 @@
             cursor: pointer;
             font-size: 14px;
         }
+        #custom_category_input {
+            margin-left: 8px;
+            margin-top: 8px;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            max-width: 400px;
+            display: none;
+            box-sizing: border-box;
+        }
+        #custom_category_input.show {
+            display: block;
+        }
+        .category-item.other-item {
+            grid-column: 1 / -1;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .custom-category-wrapper {
+            width: 100%;
+            position: relative;
+        }
+        .custom-category-wrapper .error-message {
+            position: absolute;
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            white-space: nowrap;
+            top: -35px;
+            left: 0;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .custom-category-wrapper .error-message.show {
+            display: block;
+        }
+        #custom_category_input.error {
+            border-color: #dc3545;
+            background-color: #fff5f5;
+        }
     </style>
 </head>
 <body>
@@ -76,17 +122,17 @@
             <form method="post">
                 <div class="form-group">
                     <label for="title">Service Title *</label>
-                    <input type="text" id="title" name="title" required placeholder="e.g., Financial Consulting">
+                    <input type="text" id="title" name="title" required placeholder="e.g., Financial Consulting" value="{{ form_title or '' }}">
                 </div>
 
                 <div class="form-group">
                     <label for="description">Description *</label>
-                    <textarea id="description" name="description" required rows="4" placeholder="Describe the service in detail..."></textarea>
+                    <textarea id="description" name="description" required rows="4" placeholder="Describe the service in detail...">{{ form_description or '' }}</textarea>
                 </div>
 
                 <div class="form-group">
                     <label for="duration_hours">Duration (hours) *</label>
-                    <input type="number" id="duration_hours" name="duration_hours" required step="0.5" min="0.5" placeholder="e.g., 2.5">
+                    <input type="number" id="duration_hours" name="duration_hours" required step="0.5" min="0.5" placeholder="e.g., 2.5" value="{{ form_duration or '' }}">
                 </div>
 
                 <input type="hidden" name="is_offered" value="true">
@@ -96,10 +142,20 @@
                     <div class="category-grid">
                         {% for cat in categories %}
                             <div class="category-item">
-                                <input type="checkbox" id="cat_{{ loop.index }}" name="categories" value="{{ cat }}">
+                                <input type="checkbox" id="cat_{{ loop.index }}" name="categories" value="{{ cat }}" {% if cat in (form_categories or []) %}checked{% endif %}>
                                 <label for="cat_{{ loop.index }}">{{ cat }}</label>
                             </div>
                         {% endfor %}
+                        <div class="category-item other-item">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="cat_other" name="categories" value="Other" onchange="toggleCustomCategoryInput()" {% if 'Other' in (form_categories or []) %}checked{% endif %}>
+                                <label for="cat_other">Other</label>
+                            </div>
+                            <div class="custom-category-wrapper">
+                                <div class="error-message" id="custom_category_error">Vul dit veld in.</div>
+                                <input type="text" id="custom_category_input" name="custom_category" placeholder="Specify your custom category here...">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -115,5 +171,47 @@
     <footer class="footer">
         © 2025 Barter.com. Building partnerships through service exchange.
     </footer>
+
+    <script>
+        function toggleCustomCategoryInput() {
+            const checkbox = document.getElementById('cat_other');
+            const customInput = document.getElementById('custom_category_input');
+            const errorMsg = document.getElementById('custom_category_error');
+            
+            if (checkbox.checked) {
+                customInput.classList.add('show');
+                customInput.focus();
+            } else {
+                customInput.classList.remove('show');
+                customInput.value = '';
+                customInput.classList.remove('error');
+                errorMsg.classList.remove('show');
+            }
+        }
+        
+        // On page load, check if "Other" should be shown
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkbox = document.getElementById('cat_other');
+            if (checkbox.checked) {
+                toggleCustomCategoryInput();
+            }
+            
+            // Add form submission validation
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const catOther = document.getElementById('cat_other');
+                const customInput = document.getElementById('custom_category_input');
+                const errorMsg = document.getElementById('custom_category_error');
+                
+                if (catOther.checked && !customInput.value.trim()) {
+                    e.preventDefault();
+                    customInput.classList.add('error');
+                    errorMsg.classList.add('show');
+                    customInput.focus();
+                    return false;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
