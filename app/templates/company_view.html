@@ -11,7 +11,9 @@
 </head>
 <body>
     <div class="dashboard-header" style="background-color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <div class="logo" style="font-size: 24px; font-weight: bold; color: #1a73e8;">Barter.com</div>
+        <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
+            <div class="logo" style="font-size: 20px; font-weight: 600; color: #1a73e8;">Barter.com</div>
+        </a>
         <nav style="display: flex; gap: 20px; align-items: center;">
             <a href="{{ url_for('main.profile_settings') }}" style="color: #333; text-decoration: none; font-size: 15px;">My Profile</a>
             <a href="{{ url_for('main.support') }}" style="color: #333; text-decoration: none; font-size: 15px;">Support</a>
@@ -73,7 +75,9 @@
                     <div class="member-item">
                         <div>
                             <div class="member-name">
-                                {{ m.user_obj.username if m.user_obj else m.user_id }}
+                                <a href="{{ url_for('main.view_user_profile', user_id=m.user_id) }}" style="color: var(--blue); text-decoration: none; cursor: pointer;">
+                                    {{ m.user_obj.username if m.user_obj else m.user_id }}
+                                </a>
                                 {% if m.user_id|string == session['user_id'] %}(You){% endif %}
                             </div>
                             <div class="member-role">{{ 'Admin' if m.is_admin else 'Member' }}</div>

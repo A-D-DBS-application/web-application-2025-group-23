@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.username }}'s Profile | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        .profile-header {
+            background: linear-gradient(135deg, var(--blue) 0%, #0066cc 100%);
+            color: white;
+            padding: 40px 32px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        .profile-header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 600;
+            color: white;
+        }
+        .profile-info {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        .info-group {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-group:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: var(--blue);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .info-value {
+            font-size: 16px;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+        .empty-state {
+            color: var(--gray);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
+            <div class="logo" style="color: #1a73e8; font-size: 20px; font-weight: 600;">Barter.com</div>
+        </a>
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}">Dashboard</a>
+            <a href="{{ url_for('main.index') }}">Browse</a>
+        </nav>
+    </header>
+
+    <section class="content-container">
+        <div class="form-card">
+            <!-- PROFILE HEADER -->
+            <div class="profile-header">
+                <h1>{{ user.username }}</h1>
+            </div>
+
+            <!-- PROFILE INFO -->
+            <div class="profile-info">
+                {% if user.email %}
+                    <div class="info-group">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ user.email }}</div>
+                    </div>
+                {% endif %}
+
+                {% if user.location %}
+                    <div class="info-group">
+                        <div class="info-label">Location</div>
+                        <div class="info-value">{{ user.location }}</div>
+                    </div>
+                {% else %}
+                    <div class="info-group">
+                        <div class="info-label">Location</div>
+                        <div class="info-value empty-state">Not specified</div>
+                    </div>
+                {% endif %}
+
+                {% if user.job_description %}
+                    <div class="info-group">
+                        <div class="info-label">Job Description / Role</div>
+                        <div class="info-value">{{ user.job_description }}</div>
+                    </div>
+                {% else %}
+                    <div class="info-group">
+                        <div class="info-label">Job Description / Role</div>
+                        <div class="info-value empty-state">Not specified</div>
+                    </div>
+                {% endif %}
+
+                {% if user.created_at %}
+                    <div class="info-group">
+                        <div class="info-label">Member Since</div>
+                        <div class="info-value">{{ user.created_at.strftime('%d %B %Y') if user.created_at else 'Unknown' }}</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- BACK BUTTON -->
+            <div class="form-links" style="margin-top: 24px;">
+                <a href="javascript:history.back()">← Back</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2025 Barter.com. Building partnerships through service exchange.
+    </footer>
+</body>
+</html>

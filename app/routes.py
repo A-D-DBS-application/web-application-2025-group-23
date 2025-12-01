@@ -104,6 +104,17 @@ def profile_settings():
     return render_template('profile.html', user=usr)
 
 
+@main.route('/user/<uuid:user_id>')
+def view_user_profile(user_id):
+    """View public profile of another user."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    viewed_user = user.query.get_or_404(user_id)
+    
+    return render_template('user_profile.html', user=viewed_user)
+
+
 @main.route('/company/create', methods=['GET', 'POST'])
 def create_company():
     if 'user_id' not in session:

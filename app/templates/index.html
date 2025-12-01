@@ -130,7 +130,9 @@
 </head>
 <body>
     <div class="dashboard-header">
-        <div class="logo">Barter.com</div>
+        <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
+            <div class="logo" style="color: #1a73e8; font-size: 20px; font-weight: 600;">Barter.com</div>
+        </a>
         <nav>
             <a href="{{ url_for('main.profile_settings') }}">My Profile</a>
             <a href="{{ url_for('main.support') }}">Support</a>
