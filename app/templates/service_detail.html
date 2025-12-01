@@ -94,6 +94,13 @@
                 {% endfor %}
               {% endif %}
             {% endwith %}
+            
+            <!-- BACK LINK -->
+            {% if back_link %}
+            <a href="{{ back_link }}" style="display: inline-flex; align-items: center; color: #1a73e8; text-decoration: none; margin-bottom: 20px; font-size: 14px; gap: 6px;">
+                <span style="font-size: 18px;">←</span> Back to Trade Requests
+            </a>
+            {% endif %}
 
             <!-- SERVICE HEADER -->
             <div class="service-header">

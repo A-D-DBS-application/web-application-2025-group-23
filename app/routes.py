@@ -1,6 +1,6 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import db, user, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review, ServiceInterest, DealProposal, ActiveDeal
+from .models import db, user, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review, ServiceInterest, DealProposal, ActiveDeal, Message, Deliverable
 import uuid
 import datetime
 
@@ -575,6 +575,16 @@ def edit_service(service_id):
         flash('You do not have permission to edit this service', 'error')
         return redirect(url_for('main.company_services', company_id=service.company_id))
     
+    # Check if service is in a pending proposal (locked)
+    pending_proposals = DealProposal.query.filter(
+        DealProposal.status == 'pending',
+        ((DealProposal.from_service_id == service_id) | (DealProposal.to_service_id == service_id))
+    ).first()
+    
+    if pending_proposals:
+        flash('Cannot edit service while it is part of a pending negotiation', 'warning')
+        return redirect(url_for('main.company_services', company_id=service.company_id))
+    
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
@@ -668,6 +678,16 @@ def delete_service(service_id):
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
     if not membership or not membership.is_admin:
         flash('You do not have permission to delete this service', 'error')
+        return redirect(url_for('main.company_services', company_id=company_id))
+    
+    # Check if service is in a pending proposal (locked)
+    pending_proposals = DealProposal.query.filter(
+        DealProposal.status == 'pending',
+        ((DealProposal.from_service_id == service_id) | (DealProposal.to_service_id == service_id))
+    ).first()
+    
+    if pending_proposals:
+        flash('Cannot delete service while it is part of a pending negotiation', 'warning')
         return redirect(url_for('main.company_services', company_id=company_id))
     
     # Delete the service
@@ -828,6 +848,12 @@ def service_detail(service_id):
     if selected_company:
         my_services = Service.query.filter_by(company_id=selected_company, is_active=True).all()
     
+    # Get referrer information (where user came from)
+    referrer = request.args.get('referrer')
+    back_link = None
+    if referrer == 'requests' and selected_company_id:
+        back_link = url_for('main.company_requests', company_id=selected_company_id)
+    
     return render_template('service_detail.html',
                          service=service,
                          company=company,
@@ -839,7 +865,8 @@ def service_detail(service_id):
                          total_reviews=len(reviews),
                          interests=interests,
                          selected_company_id=selected_company,
-                         my_services=my_services)
+                         my_services=my_services,
+                         back_link=back_link)
 
 
 @main.route('/service/<uuid:service_id>/interest', methods=['POST'])
@@ -1367,15 +1394,44 @@ def company_requests(company_id):
             status='pending'  # Only show pending requests
         ).all()
         for prop in proposals:
-            target_service = Service.query.get(prop.to_service_id)
-            target_company = Company.query.get(target_service.company_id) if target_service else None
+            from_service = Service.query.get(prop.from_service_id)
+            to_service = Service.query.get(prop.to_service_id)
+            target_company = Company.query.get(to_service.company_id) if to_service else None
+            
+            # Get all messages for this proposal, including initial message if it exists
+            messages = Message.query.filter_by(proposal_id=prop.proposal_id).order_by(Message.created_at).all()
+            message_list = []
+            
+            # Add initial message first if it exists
+            if prop.message:
+                my_company = Company.query.get(prop.from_company_id)
+                message_list.append({
+                    'content': prop.message,
+                    'company_name': my_company.name if my_company else 'Unknown',
+                    'timestamp': prop.created_at.strftime('%Y-%m-%d %H:%M:%S') if prop.created_at else 'Unknown'
+                })
+            
+            # Then add all follow-up messages
+            for msg in messages:
+                msg_company = Company.query.get(msg.from_company_id)
+                message_list.append({
+                    'content': msg.content,
+                    'company_name': msg_company.name if msg_company else 'Unknown',
+                    'timestamp': msg.created_at.strftime('%Y-%m-%d %H:%M:%S') if msg.created_at else 'Unknown'
+                })
+            
             outgoing.append({
                 'proposal_id': prop.proposal_id,
-                'service_name': target_service.title if target_service else 'Unknown',
+                'my_service_id': from_service.service_id if from_service else None,
+                'my_service_name': from_service.title if from_service else 'Unknown',
+                'my_service_description': from_service.description if from_service else '',
+                'their_service_id': to_service.service_id if to_service else None,
+                'their_service_name': to_service.title if to_service else 'Unknown',
+                'their_service_description': to_service.description if to_service else '',
                 'company_name': target_company.name if target_company else 'Unknown',
-                'description': target_service.description if target_service else '',
                 'status': prop.status,
-                'status_display': prop.status.title()
+                'status_display': prop.status.title(),
+                'messages': message_list
             })
     
     # Incoming requests - only show pending requests
@@ -1386,17 +1442,46 @@ def company_requests(company_id):
             status='pending'  # Only show pending requests
         ).all()
         for prop in proposals:
-            offering_service = Service.query.get(prop.from_service_id)
-            offering_company = Company.query.get(offering_service.company_id) if offering_service else None
+            from_service = Service.query.get(prop.from_service_id)
+            to_service = Service.query.get(prop.to_service_id)
+            offering_company = Company.query.get(from_service.company_id) if from_service else None
+            
+            # Get all messages for this proposal, including initial message if it exists
+            messages = Message.query.filter_by(proposal_id=prop.proposal_id).order_by(Message.created_at).all()
+            message_list = []
+            
+            # Add initial message first if it exists
+            if prop.message:
+                message_list.append({
+                    'content': prop.message,
+                    'company_name': offering_company.name if offering_company else 'Unknown',
+                    'timestamp': prop.created_at.strftime('%Y-%m-%d %H:%M:%S') if prop.created_at else 'Unknown'
+                })
+            
+            # Then add all follow-up messages
+            for msg in messages:
+                msg_company = Company.query.get(msg.from_company_id)
+                message_list.append({
+                    'content': msg.content,
+                    'company_name': msg_company.name if msg_company else 'Unknown',
+                    'timestamp': msg.created_at.strftime('%Y-%m-%d %H:%M:%S') if msg.created_at else 'Unknown'
+                })
+            
             incoming.append({
                 'proposal_id': prop.proposal_id,
-                'service_name': offering_service.title if offering_service else 'Unknown',
+                'their_service_id': from_service.service_id if from_service else None,
+                'their_service_name': from_service.title if from_service else 'Unknown',
+                'their_service_description': from_service.description if from_service else '',
+                'my_service_id': to_service.service_id if to_service else None,
+                'my_service_name': to_service.title if to_service else 'Unknown',
+                'my_service_description': to_service.description if to_service else '',
                 'from_company': offering_company.name if offering_company else 'Unknown',
-                'description': offering_service.description if offering_service else '',
+                'from_company_id': offering_company.company_id if offering_company else None,
                 'status': prop.status,
                 'status_display': prop.status.title(),
                 'barter_coins_offered': prop.barter_coins_offered,
-                'message': prop.message
+                'message': prop.message,
+                'messages': message_list
             })
     
     # Barterdeal Overview (mutual interests)
@@ -1746,7 +1831,67 @@ def mark_service_delivered(contract_id):
     return redirect(request.referrer or url_for('main.index'))
 
 
+@main.route('/proposal/<proposal_id>/message', methods=['POST'])
+def send_proposal_message(proposal_id):
+    """
+    Send a message on a proposal for negotiation
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    proposal = DealProposal.query.get(proposal_id)
+    
+    if not proposal:
+        flash('Proposal not found', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    # Find which company the user belongs to
+    membership_from = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=proposal.from_company_id
+    ).first()
+    membership_to = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=proposal.to_company_id
+    ).first()
+    
+    if not (membership_from or membership_to):
+        flash('You are not part of either company in this proposal', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    # Only allow admins to send messages
+    if not (membership_from and membership_from.is_admin) and not (membership_to and membership_to.is_admin):
+        flash('Only company admins can send messages', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    message_content = request.form.get('message_content', '').strip()
+    if not message_content:
+        flash('Message cannot be empty', 'warning')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    # Determine which company is sending the message
+    from_company_id = proposal.from_company_id if membership_from else proposal.to_company_id
+    
+    # Create and save message
+    message = Message(
+        message_id=uuid.uuid4(),
+        proposal_id=uuid.UUID(proposal_id),
+        from_company_id=from_company_id,
+        content=message_content,
+        created_at=datetime.datetime.now(datetime.timezone.utc)
+    )
+    
+    db.session.add(message)
+    db.session.commit()
+    
+    flash('Message sent', 'success')
+    return redirect(request.referrer or url_for('main.index'))
+
+
 @main.route('/contract/<contract_id>/write-review', methods=['GET', 'POST'])
 def write_review(contract_id):
     """Removed - use review_deal route instead"""
     return redirect(url_for('main.index'))
+
+
