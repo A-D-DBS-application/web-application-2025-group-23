@@ -42,31 +42,70 @@ COMPANIES & SERVICES:
 """
 
 import uuid
+import sys
 import datetime
 from werkzeug.security import generate_password_hash
 from app import create_app
 from app.models import db, user, Company, CompanyMember, CompanyJoinRequest, Service, DealProposal, ActiveDeal, BarterDeal, Contract, Review, ServiceInterest
 
-def seed_database():
+def seed_database(force_reset=False):
     """Populate database with example data"""
     app = create_app()
     
     with app.app_context():
-        # Clear existing data (optional - comment out if you want to keep existing data)
-        print("Clearing existing data...")
-        # Delete in reverse order of foreign key dependencies
-        db.session.query(Review).delete()
-        db.session.query(Contract).delete()
-        db.session.query(ActiveDeal).delete()
-        db.session.query(BarterDeal).delete()
-        db.session.query(DealProposal).delete()
-        db.session.query(ServiceInterest).delete()
-        db.session.query(Service).delete()
-        db.session.query(CompanyJoinRequest).delete()
-        db.session.query(CompanyMember).delete()
-        db.session.query(Company).delete()
-        db.session.query(user).delete()
-        db.session.commit()
+        # Standard seed data usernames
+        seed_usernames = [
+            'alice_johnson', 'bob_smith', 'charlie_brown', 'diana_prince', 'edward_norton',
+            'fiona_apple', 'george_lucas', 'hannah_montana', 'isaac_newton', 'julia_roberts',
+            'kevin_hart', 'laura_palmer', 'mark_twain', 'nina_simone', 'oscar_wilde',
+            'patricia_hill', 'quincy_jones', 'rachel_green', 'samuel_jackson', 'tina_turner'
+        ]
+        
+        # Check if seed data already exists
+        seed_users_count = db.session.query(user).filter(user.username.in_(seed_usernames)).count()
+        
+        if seed_users_count > 0 and not force_reset:
+            print("="*70)
+            print("⚠️  SEED DATA ALREADY EXISTS!")
+            print("="*70)
+            print(f"\nFound {seed_users_count}/20 seed users in database.")
+            print("Running seed_data.py again would create DUPLICATE accounts!")
+            print("\nOptions:")
+            print("  1. Do nothing - your existing data is safe")
+            print("  2. Reset database: python -m flask db reset")
+            print("  3. Force-seed anyway (NOT RECOMMENDED): python seed_data.py --reset")
+            print("\nNo changes made. Your data is protected.")
+            print("="*70)
+            return
+        
+        if force_reset and seed_users_count > 0:
+            print("="*70)
+            print("🔄 FORCE RESET INITIATED")
+            print("="*70)
+            print("\n⚠️  Clearing existing seed data...")
+            
+            # Delete in correct order to avoid FK conflicts
+            try:
+                db.session.query(Review).delete()
+                db.session.query(ServiceInterest).delete()
+                db.session.query(Contract).delete()
+                db.session.query(ActiveDeal).delete()
+                db.session.query(BarterDeal).delete()
+                db.session.query(DealProposal).delete()
+                db.session.query(Service).delete()
+                db.session.query(CompanyJoinRequest).delete()
+                db.session.query(CompanyMember).delete()
+                db.session.query(Company).delete()
+                db.session.query(user).filter(user.username.in_(seed_usernames)).delete()
+                db.session.commit()
+                print("✓ Cleared existing seed data")
+            except Exception as e:
+                db.session.rollback()
+                print(f"✗ Error clearing data: {e}")
+                return
+        
+        print("✓ Database is empty, proceeding with seeding...")
+        print()
         
         # Create 20 users
         print("Creating 20 users...")
@@ -292,4 +331,15 @@ def seed_database():
             print(f"  → Member of: {company_names[company_idx]}")
 
 if __name__ == '__main__':
-    seed_database()
+    # Check for --reset flag
+    force_reset = '--reset' in sys.argv
+    
+    if force_reset:
+        print("\n⚠️  WARNING: Using --reset flag!")
+        print("This will DELETE existing seed data and recreate it.")
+        response = input("Are you SURE? Type 'yes' to continue: ").strip().lower()
+        if response != 'yes':
+            print("Aborted. No changes made.")
+            sys.exit(0)
+    
+    seed_database(force_reset=force_reset)
