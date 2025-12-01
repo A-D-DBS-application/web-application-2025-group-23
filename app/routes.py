@@ -548,6 +548,125 @@ def add_service(company_id):
                          categories=available_categories)
 
 
+@main.route('/service/<uuid:service_id>/edit', methods=['GET', 'POST'])
+def edit_service(service_id):
+    """Edit an existing service. Admin only."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    uid = uuid.UUID(session['user_id'])
+    service = Service.query.get_or_404(service_id)
+    company = Company.query.get(service.company_id)
+    
+    # Check if user is admin of this company
+    membership = CompanyMember.query.filter_by(company_id=service.company_id, user_id=uid).first()
+    if not membership or not membership.is_admin:
+        flash('You do not have permission to edit this service', 'error')
+        return redirect(url_for('main.company_services', company_id=service.company_id))
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        duration_hours = request.form.get('duration_hours')
+        categories = request.form.getlist('categories')
+        custom_category = request.form.get('custom_category')
+        
+        # Validation: check all required fields
+        if not title or not description or not duration_hours:
+            flash('Vul dit veld in.', 'error')
+            return render_template('service_edit.html',
+                                 company=company,
+                                 service=service,
+                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 form_title=title,
+                                 form_description=description,
+                                 form_duration=duration_hours,
+                                 form_categories=categories)
+        
+        # If "Other" is selected but custom_category is empty, show error
+        if 'Other' in categories and not custom_category:
+            flash('Vul dit veld in.', 'error')
+            return render_template('service_edit.html',
+                                 company=company,
+                                 service=service,
+                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 form_title=title,
+                                 form_description=description,
+                                 form_duration=duration_hours,
+                                 form_categories=categories)
+        
+        # Replace "Other" with the custom category value
+        if 'Other' in categories and custom_category:
+            categories.remove('Other')
+            categories.append(custom_category.strip())
+        
+        try:
+            duration = float(duration_hours)
+        except ValueError:
+            flash('Invalid duration', 'error')
+            return render_template('service_edit.html',
+                                 company=company,
+                                 service=service,
+                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 form_title=title,
+                                 form_description=description,
+                                 form_duration=duration_hours,
+                                 form_categories=categories)
+        
+        # Update service
+        service.title = title
+        service.description = description
+        service.duration_hours = duration
+        service.categories = ','.join(categories) if categories else None
+        service.updated_at = datetime.datetime.now(datetime.timezone.utc)
+        
+        db.session.commit()
+        
+        flash('Service updated successfully', 'success')
+        return redirect(url_for('main.company_services', company_id=service.company_id))
+    
+    # GET: show form with current values
+    available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
+                           'Design', 'Development', 'Consulting', 'Sales', 'HR', 
+                           'Operations', 'Customer Support']
+    
+    # Parse existing categories
+    form_categories = service.categories.split(',') if service.categories else []
+    
+    return render_template('service_edit.html',
+                         company=company,
+                         service=service,
+                         categories=available_categories,
+                         form_title=service.title,
+                         form_description=service.description,
+                         form_duration=service.duration_hours,
+                         form_categories=form_categories)
+
+
+@main.route('/service/<uuid:service_id>/delete', methods=['GET', 'POST'])
+def delete_service(service_id):
+    """Delete a service. Admin only."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    uid = uuid.UUID(session['user_id'])
+    service = Service.query.get_or_404(service_id)
+    company_id = service.company_id
+    
+    # Check if user is admin of this company
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
+    if not membership or not membership.is_admin:
+        flash('You do not have permission to delete this service', 'error')
+        return redirect(url_for('main.company_services', company_id=company_id))
+    
+    # Delete the service
+    db.session.delete(service)
+    db.session.commit()
+    
+    flash('Service deleted successfully', 'success')
+    return redirect(url_for('main.company_services', company_id=company_id))
+
+
 @main.route('/deals/browse')
 @main.route('/deals/browse/<uuid:company_id>')
 def browse_deals(company_id=None):

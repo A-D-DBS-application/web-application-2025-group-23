@@ -58,6 +58,13 @@
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .service-content {
+            flex: 1;
+            padding-right: 20px;
         }
         .service-title {
             font-size: 18px;
@@ -69,10 +76,38 @@
             color: #666;
             margin-bottom: 10px;
         }
-        .service-price {
-            font-size: 14px;
-            color: #1a73e8;
+        .service-meta {
+            font-size: 13px;
+            color: #999;
+        }
+        .service-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .btn-edit, .btn-delete {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
             font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-edit {
+            background-color: #4285f4;
+            color: white;
+        }
+        .btn-edit:hover {
+            background-color: #357ae8;
+        }
+        .btn-delete {
+            background-color: #ea4335;
+            color: white;
+        }
+        .btn-delete:hover {
+            background-color: #c5221f;
         }
         .add-btn {
             display: inline-block;
@@ -114,8 +149,17 @@
         {% if services %}
             {% for service in services %}
             <div class="service-card">
-                <div class="service-title">{{ service.title }}</div>
-                <div class="service-description">{{ service.description }}</div>
+                <div class="service-content">
+                    <div class="service-title">{{ service.title }}</div>
+                    <div class="service-description">{{ service.description }}</div>
+                    <div class="service-meta">Duration: {{ service.duration_hours }} hours | Categories: {{ service.categories or 'None' }}</div>
+                </div>
+                {% if is_admin %}
+                <div class="service-actions">
+                    <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" class="btn-edit">Edit</a>
+                    <button class="btn-delete" onclick="confirmDelete('{{ service.service_id }}', '{{ service.title }}')">Delete</button>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         {% else %}
@@ -128,5 +172,13 @@
         <a href="{{ url_for('main.add_service', company_id=company.company_id) }}" class="add-btn">Add new service</a>
         {% endif %}
     </div>
+
+    <script>
+        function confirmDelete(serviceId, serviceTitle) {
+            if (confirm(`Are you sure you want to delete "${serviceTitle}"? This action cannot be undone.`)) {
+                window.location.href = `{{ url_for('main.delete_service', service_id='SERVICE_ID') }}`.replace('SERVICE_ID', serviceId);
+            }
+        }
+    </script>
 </body>
 </html>
