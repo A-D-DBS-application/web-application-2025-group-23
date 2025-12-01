@@ -670,7 +670,7 @@ def delete_service(service_id):
 @main.route('/deals/browse')
 @main.route('/deals/browse/<uuid:company_id>')
 def browse_deals(company_id=None):
-    """Browse all active services from all companies with filters."""
+    """Browse all active services from OTHER companies only."""
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
     
@@ -680,12 +680,19 @@ def browse_deals(company_id=None):
     if company_id:
         session['last_marketplace_company'] = str(company_id)
     
+    # Get all company IDs where the user is a member
+    user_company_ids = db.session.query(CompanyMember.company_id).filter_by(user_id=uid).all()
+    user_company_ids = [cid[0] for cid in user_company_ids]  # Extract UUID from tuples
+    
     # Get filter parameters
     search_query = request.args.get('search', '').strip()
     selected_categories = request.args.getlist('category')
     
-    # Base query: ALL active services from ALL companies
-    query = Service.query.filter(Service.is_active == True)
+    # Base query: active services from OTHER companies (NOT the user's own companies)
+    query = Service.query.filter(
+        Service.is_active == True,
+        ~Service.company_id.in_(user_company_ids)  # Exclude user's companies
+    )
     
     # Apply search filter
     if search_query:
