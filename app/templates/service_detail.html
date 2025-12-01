@@ -130,7 +130,7 @@
                     <div style="margin-top: 16px;">
                         <strong>Categories:</strong><br>
                         {% for cat in service.categories.split(',') %}
-                            <span class="category-tag">{{ cat }}</span>
+                            <span class="category-tag">{{ cat.strip() }}</span>
                         {% endfor %}
                     </div>
                 {% endif %}

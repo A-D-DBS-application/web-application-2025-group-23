@@ -152,7 +152,7 @@
                 <div class="service-content">
                     <div class="service-title">{{ service.title }}</div>
                     <div class="service-description">{{ service.description }}</div>
-                    <div class="service-meta">Duration: {{ service.duration_hours }} hours | Categories: {{ service.categories or 'None' }}</div>
+                    <div class="service-meta">Duration: {{ service.duration_hours }} hours | Categories: {{ service.categories.replace(',', ', ') if service.categories else 'None' }}</div>
                 </div>
                 {% if is_admin %}
                 <div class="service-actions">
