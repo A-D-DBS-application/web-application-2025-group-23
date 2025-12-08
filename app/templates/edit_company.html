@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Company | Barter</title>
+    <title>Edit Company | Barter</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
                     <div class="sidebar-companies">
                         {% if companies %}
                             {% for comp in companies %}
-                            <button class="sidebar-company-card"
+                            <button class="sidebar-company-card {% if comp.company_id == company.company_id %}sidebar-company-card--active{% endif %}"
                                     onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
                                 <div class="sidebar-company-name">{{ comp.name }}</div>
                                 <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
@@ -47,8 +47,8 @@
                 <header class="workspace-header-bar">
                     <div class="workspace-header-content">
                         <div class="workspace-header-left">
-                            <button class="link-back" onclick="window.location.href='{{ url_for('main.my_companies') }}'">
-                                ← Back to My companies
+                            <button class="link-back" onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=company.company_id) }}'">
+                                ← Back to Workspace
                             </button>
                         </div>
                         <nav class="workspace-nav">
@@ -70,32 +70,27 @@
                         {% endwith %}
                         
                         <div class="page-header">
-                            <h1 class="page-title">Create new company</h1>
-                            <p class="page-subtitle">Set up your company workspace to start trading services</p>
+                            <h1 class="page-title">Edit company</h1>
+                            <p class="page-subtitle">Update your company information</p>
                         </div>
                         
                         <form method="post" class="company-form">
-                            <div class="form-layout">
+                            <div class="form-main">
                                 <div class="logo-upload">
-                                    <div class="logo-upload-card">
-                                        <div class="logo-upload-icon">
-                                            <svg width="56" height="56" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M12 5v14M5 12h14"/>
-                                            </svg>
-                                        </div>
-                                        <span class="logo-upload-text">Upload logo</span>
+                                    <div class="logo-upload__box">
+                                        <div class="logo-upload__icon">+</div>
                                     </div>
                                 </div>
                                 
                                 <div class="form-fields">
                                     <div class="form-field form-field--full">
                                         <label for="name">Company Name *</label>
-                                        <input type="text" id="name" name="name" required placeholder="Enter company name">
+                                        <input type="text" id="name" name="name" required value="{{ company.name }}" placeholder="Enter company name">
                                     </div>
                                     
                                     <div class="form-field form-field--full">
                                         <label for="description">Description</label>
-                                        <textarea id="description" name="description" placeholder="Describe your company..."></textarea>
+                                        <textarea id="description" name="description" placeholder="Describe your company...">{{ company.description or '' }}</textarea>
                                     </div>
                                     
                                     <div class="form-field form-field--two-col">
@@ -104,11 +99,11 @@
                                             <div class="select-wrapper">
                                                 <select id="category" name="category">
                                                     <option value="">Select category</option>
-                                                    <option value="Technology">Technology</option>
-                                                    <option value="Marketing">Marketing</option>
-                                                    <option value="Consulting">Consulting</option>
-                                                    <option value="Design">Design</option>
-                                                    <option value="Other">Other</option>
+                                                    <option value="Technology" {% if company.category == 'Technology' %}selected{% endif %}>Technology</option>
+                                                    <option value="Marketing" {% if company.category == 'Marketing' %}selected{% endif %}>Marketing</option>
+                                                    <option value="Consulting" {% if company.category == 'Consulting' %}selected{% endif %}>Consulting</option>
+                                                    <option value="Design" {% if company.category == 'Design' %}selected{% endif %}>Design</option>
+                                                    <option value="Other" {% if company.category == 'Other' %}selected{% endif %}>Other</option>
                                                 </select>
                                                 <span class="select-arrow">▼</span>
                                             </div>
@@ -116,13 +111,13 @@
                                         
                                         <div class="form-field">
                                             <label for="website">Website</label>
-                                            <input type="url" id="website" name="website" placeholder="https://example.com">
+                                            <input type="url" id="website" name="website" value="{{ company.website or '' }}" placeholder="https://example.com">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary btn-create">Create company</button>
+                            <button type="submit" class="btn btn-primary btn-save">Save changes</button>
                         </form>
                     </div>
                 </div>

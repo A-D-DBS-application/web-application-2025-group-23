@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Company workspace – {{ company.name }} – Barter.com</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body class="app-page">
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-inner">
+        <div class="app-sidebar-logo">
+          <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
+        </div>
+
+        <div class="sidebar-profile sidebar-profile--compact">
+          <div class="sidebar-avatar sidebar-avatar--small"></div>
+          <div>
+            <div class="sidebar-user-name sidebar-user-name--small">Hi, {{ username }}</div>
+            <div class="sidebar-user-sub">My companies</div>
+          </div>
+        </div>
+
+        <div class="sidebar-companies">
+          {% for comp in companies %}
+          <button class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}"
+                  onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+            <div class="sidebar-company-name">{{ comp.name }}</div>
+            <div class="sidebar-company-meta">{{ comp.member_count }} members • {{ comp.service_count }} services</div>
+            <span class="sidebar-company-role tag">{{ comp.role }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="app-header">
+        <div class="app-header-content">
+          <div class="app-header-left">
+            <button class="link-back" onclick="window.location.href='{{ url_for('main.my_companies') }}'">
+              ← Back to My companies
+            </button>
+          </div>
+
+          <nav class="app-nav">
+            <a href="#" class="app-nav-link">Marketplace</a>
+            <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
+            <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <div class="app-content-inner">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category,msg in messages %}
+                <div class="alert alert-{{ category }}">{{ msg }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <section class="workspace-header">
+            <div class="workspace-header-left">
+              <div class="company-logo-placeholder"></div>
+              <div>
+                <h1 class="workspace-company-name">{{ company.name }}</h1>
+                <p class="workspace-company-description">
+                  {{ company.description if company.description else 'No description provided' }}
+                </p>
+                <div class="workspace-company-stats">
+                  <span>{{ member_count }} members • {{ service_count }} services</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <nav class="workspace-tabs">
+            <div class="tabs-left">
+              <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
+                 class="tab-link tab-link--active">Overview</a>
+              <a href="{{ url_for('main.workspace_members', company_id=company.company_id) }}" 
+                 class="tab-link">Members</a>
+              <a href="{{ url_for('main.workspace_services', company_id=company.company_id) }}" 
+                 class="tab-link">Services</a>
+            </div>
+            <div class="tabs-right">
+              <a href="#" class="tab-link tab-link--link-only">
+                Go to tradeflow
+              </a>
+            </div>
+          </nav>
+
+          <section class="workspace-body">
+            <div class="workspace-info">
+              <h2 class="section-title">Company information</h2>
+              <p class="workspace-info-text">
+                {{ company.description if company.description else 'No description provided' }}
+              </p>
+
+              <div class="workspace-info-grid">
+                <div class="workspace-info-item">
+                  <div class="workspace-info-label">Members</div>
+                  <div class="workspace-info-value">{{ member_count }}</div>
+                </div>
+                <div class="workspace-info-item">
+                  <div class="workspace-info-label">Services</div>
+                  <div class="workspace-info-value">{{ service_count }}</div>
+                </div>
+              </div>
+            </div>
+
+            {% if is_admin %}
+            <aside class="workspace-admin-card">
+              <h3 class="workspace-admin-title">Admin settings</h3>
+              <p class="workspace-admin-text">
+                You are the company admin. Only you can edit the company details.
+              </p>
+              <p class="workspace-admin-text workspace-admin-text--small">
+                Update your company's name, description, logo, category, and public info.
+              </p>
+              <a href="{{ url_for('main.edit_company', company_id=company.company_id) }}" 
+                 class="btn btn-primary workspace-admin-btn">
+                Edit company
+              </a>
+            </aside>
+            {% endif %}
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

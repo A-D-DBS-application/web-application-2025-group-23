@@ -3,55 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile | Barter</title>
+    <title>My Profile | Barter</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- HEADER -->
-    <header class="header">
-        <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
-            <div class="logo" style="color: #1a73e8; font-size: 20px; font-weight: 600;">Barter.com</div>
-        </a>
-        <nav class="nav">
-            <a href="{{ url_for('main.index') }}">Dashboard</a>
-            <a href="{{ url_for('main.index') }}">My Companies</a>
-            <a href="{{ url_for('main.select_company_for_marketplace') }}" style="background-color: #007bff; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">Marketplace</a>
-        </nav>
-    </header>
-
-    <section class="form-container">
-        <div class="form-card">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category,msg in messages %}
-                  <div class="alert alert-{{ category }}">{{ msg }}</div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-            <h1>My Profile</h1>
-            <form method="post">
-                <label>Username</label>
-                <input name="username" value="{{ user.username or '' }}" readonly>
-                <label>Email</label>
-                <input name="email" value="{{ user.email or '' }}">
-                <label>Location</label>
-                <input name="location" value="{{ user.location or '' }}">
-                <label>Job Description</label>
-                <input name="jobdescription" value="{{ user.job_description or '' }}">
-                <button type="submit" class="btn-primary large">Save Changes</button>
-            </form>
-            <div class="form-links">
-                <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
+    <div class="my-companies-page">
+        <header class="site-header">
+            <div class="container">
+                <div class="site-header-inner">
+                    <a href="{{ url_for('main.my_companies') }}" class="site-logo">Barter.com</a>
+                    <nav class="site-nav">
+                        <a href="{{ url_for('main.my_companies') }}" class="site-nav-link">My companies</a>
+                        <a href="{{ url_for('main.profile_settings') }}" class="site-nav-link site-nav-link--active">Profile</a>
+                        <a href="{{ url_for('main.logout') }}" class="site-nav-link">Log out</a>
+                    </nav>
+                </div>
             </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        © 2025 Barter.com. Building partnerships through service exchange.
-    </footer>
-    <script src="{{ url_for('static', filename='device-detection.js') }}"></script>
+        </header>
+        
+        <main class="my-companies-main">
+            <div class="container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category,msg in messages %}
+                      <div class="alert alert-{{ category }}" style="margin-bottom: 24px;">{{ msg }}</div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+                
+                <div class="my-companies-intro">
+                    <h1 class="my-companies-title">My Profile</h1>
+                    <p class="my-companies-subtitle">Manage your personal information and settings</p>
+                </div>
+                
+                <div style="max-width: 700px; margin: 0 auto;">
+                    <form method="post" style="background: #fff; border-radius: 10px; border: 1px solid rgba(142, 142, 142, 0.3); padding: 32px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
+                        <div class="form-field form-field--full" style="margin-bottom: 20px;">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" value="{{ user.username or '' }}" readonly style="background: #E5E5E5; cursor: not-allowed;">
+                        </div>
+                        
+                        <div class="form-field form-field--full" style="margin-bottom: 20px;">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" value="{{ user.email or '' }}" placeholder="your.email@example.com">
+                        </div>
+                        
+                        <div class="form-field form-field--full" style="margin-bottom: 20px;">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" name="location" value="{{ user.location or '' }}" placeholder="e.g., Brussels, Belgium">
+                        </div>
+                        
+                        <div class="form-field form-field--full" style="margin-bottom: 24px;">
+                            <label for="jobdescription">Job Description</label>
+                            <input type="text" id="jobdescription" name="jobdescription" value="{{ user.job_description or '' }}" placeholder="e.g., Software Engineer">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%; height: 48px; font-size: 18px;">Save Changes</button>
+                    </form>
+                    
+                    <div style="text-align: center; margin-top: 24px;">
+                        <a href="{{ url_for('main.my_companies') }}" class="btn btn-ghost">← Back to My Companies</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>

@@ -9,35 +9,12 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
     """
-    Serve the public start page for anonymous users, and profile page for logged-in users
+    Serve the public start page for anonymous users, redirect logged-in users to my_companies
     """
     if 'user_id' in session:
-        usr = user.query.get(session['user_id'])
-        user_id = uuid.UUID(session['user_id'])
-        
-        # Get all companies for this user
-        memberships = CompanyMember.query.filter_by(user_id=user_id).all()
-        companies = []
-        for membership in memberships:
-            company = Company.query.get(membership.company_id)
-            if company:
-                # Count members and services
-                member_count = CompanyMember.query.filter_by(company_id=company.company_id).count()
-                service_count = Service.query.filter_by(company_id=company.company_id).count()
-                
-                companies.append({
-                    'company_id': company.company_id,
-                    'name': company.name,
-                    'description': getattr(company, 'description', None),
-                    'role': 'Admin' if membership.is_admin else 'Member',
-                    'member_count': member_count,
-                    'service_count': service_count
-                })
-        
-        return render_template('index.html', 
-                             username=usr.username if usr else None,
-                             companies=companies)
-    # anonymous users see the start page
+        # Logged-in users should go to my_companies page
+        return redirect(url_for('main.my_companies'))
+    # Anonymous users see the start page
     return render_template('start.html')
 
 @main.route('/register', methods=['GET', 'POST'])
@@ -60,7 +37,7 @@ def register():
             db.session.commit()
 
             session['user_id'] = str(new_user.user_id)
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.my_companies'))
         flash('Username already registered', 'error')
         return render_template('register.html')
     return render_template('register.html')
@@ -75,7 +52,7 @@ def login():
         if usr and check_password_hash(usr.password_hash, password):
             # UUID als string in session
             session['user_id'] = str(usr.user_id)
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.my_companies'))
         flash('Invalid username or password', 'error')
         return render_template('login.html')
     return render_template('login.html')
@@ -115,17 +92,109 @@ def view_user_profile(user_id):
     return render_template('user_profile.html', user=viewed_user)
 
 
+@main.route('/my-companies')
+def my_companies():
+    """Landing page after login showing user's companies."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    
+    # Get all companies for this user
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        company = Company.query.get(membership.company_id)
+        if company:
+            # Count members and services
+            member_count = CompanyMember.query.filter_by(company_id=company.company_id).count()
+            service_count = Service.query.filter_by(company_id=company.company_id).count()
+            
+            companies.append({
+                'company_id': company.company_id,
+                'name': company.name,
+                'description': getattr(company, 'description', None),
+                'role': 'Admin' if membership.is_admin else 'Member',
+                'is_admin': membership.is_admin,
+                'member_count': member_count,
+                'service_count': service_count
+            })
+    
+    return render_template('my_companies.html', 
+                         username=usr.username,
+                         companies=companies)
+
+
+@main.route('/onboarding')
+def onboarding():
+    """Onboarding page to create or join a company."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        company = Company.query.get(membership.company_id)
+        if company:
+            member_count = CompanyMember.query.filter_by(company_id=company.company_id).count()
+            service_count = Service.query.filter_by(company_id=company.company_id).count()
+            
+            companies.append({
+                'company_id': company.company_id,
+                'name': company.name,
+                'role': 'Admin' if membership.is_admin else 'Member',
+                'member_count': member_count,
+                'service_count': service_count
+            })
+    
+    return render_template('onboarding_get_started.html', 
+                         username=usr.username,
+                         companies=companies)
+
+
 @main.route('/company/create', methods=['GET', 'POST'])
 def create_company():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        comp = Company.query.get(membership.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if membership.is_admin else 'Member',
+                'member_count': member_count,
+                'service_count': service_count
+            })
+    
     if request.method == 'POST':
         name = request.form.get('name')
+        description = request.form.get('description')
+        category = request.form.get('category')
+        website = request.form.get('website')
+        
         if not name:
-            return 'Name required', 400
+            flash('Company name is required', 'error')
+            return render_template('create_company.html', username=usr.username, companies=companies)
+        
         company = Company(
             company_id=uuid.uuid4(),
             name=name,
+            description=description,
             created_at=datetime.datetime.now(),
             join_code=uuid.uuid4().hex[:8]
         )
@@ -136,7 +205,7 @@ def create_company():
         member = CompanyMember(
             member_id=uuid.uuid4(),
             company_id=company.company_id,
-            user_id=uuid.UUID(session['user_id']),
+            user_id=user_id,
             member_role='founder',
             is_admin=True,
             created_at=datetime.datetime.now(),
@@ -144,14 +213,35 @@ def create_company():
         db.session.add(member)
         db.session.commit()
         flash('Company created — you are admin and member', 'success')
-        return redirect(url_for('main.index'))
-    return render_template('create_company.html')
+        return redirect(url_for('main.workspace_overview', company_id=company.company_id))
+    
+    return render_template('create_company.html', username=usr.username, companies=companies)
 
 
 @main.route('/company/join', methods=['GET', 'POST'])
 def join_company():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        comp = Company.query.get(membership.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if membership.is_admin else 'Member',
+                'member_count': member_count,
+                'service_count': service_count
+            })
+    
     msg = None
     if request.method == 'POST':
         code = request.form.get('code')
@@ -163,7 +253,7 @@ def join_company():
                 msg = 'Invalid code'
             else:
                 # check if already member
-                existing = CompanyMember.query.filter_by(company_id=company.company_id, user_id=uuid.UUID(session['user_id'])).first()
+                existing = CompanyMember.query.filter_by(company_id=company.company_id, user_id=user_id).first()
                 if existing:
                     flash('You are already a member of this company', 'warning')
                     return redirect(url_for('main.join_company'))
@@ -172,14 +262,219 @@ def join_company():
                     req = CompanyJoinRequest(
                         request_id=uuid.uuid4(),
                         company_id=company.company_id,
-                        user_id=uuid.UUID(session['user_id']),
+                        user_id=user_id,
                         created_at=datetime.datetime.now(),
                     )
                     db.session.add(req)
                     db.session.commit()
                     flash('Request sent — wait for approval', 'success')
-                    return redirect(url_for('main.join_company'))
-    return render_template('join_company.html')
+                    return redirect(url_for('main.my_companies'))
+    
+    return render_template('join_company.html', username=usr.username, companies=companies)
+
+
+@main.route('/workspace/<uuid:company_id>')
+@main.route('/workspace/<uuid:company_id>/overview')
+def workspace_overview(company_id):
+    """Company workspace - Overview tab."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
+    if not membership:
+        return 'Forbidden', 403
+    
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if m.is_admin else 'Member',
+                'is_admin': m.is_admin,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    # Company stats
+    member_count = CompanyMember.query.filter_by(company_id=company_id).count()
+    service_count = Service.query.filter_by(company_id=company_id).count()
+    
+    return render_template('company_workspace_overview.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         is_admin=membership.is_admin,
+                         member_count=member_count,
+                         service_count=service_count)
+
+
+@main.route('/workspace/<uuid:company_id>/members')
+def workspace_members(company_id):
+    """Company workspace - Members tab."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
+    if not membership:
+        return 'Forbidden', 403
+    
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if m.is_admin else 'Member',
+                'is_admin': m.is_admin,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    # Get members
+    members = CompanyMember.query.filter_by(company_id=company_id).all()
+    from .models import user as User
+    for m in members:
+        m.user_obj = User.query.get(m.user_id)
+    
+    # Get pending join requests (if admin)
+    pending = []
+    if membership.is_admin:
+        pending = CompanyJoinRequest.query.filter_by(company_id=company_id).all()
+        for req in pending:
+            req.user_obj = User.query.get(req.user_id)
+    
+    # Company stats
+    member_count = CompanyMember.query.filter_by(company_id=company_id).count()
+    service_count = Service.query.filter_by(company_id=company_id).count()
+    
+    return render_template('company_workspace_members.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         is_admin=membership.is_admin,
+                         current_user_id=user_id,
+                         members=members,
+                         pending=pending,
+                         member_count=member_count,
+                         service_count=service_count)
+
+
+@main.route('/workspace/<uuid:company_id>/services')
+def workspace_services(company_id):
+    """Company workspace - Services tab."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
+    if not membership:
+        return 'Forbidden', 403
+    
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if m.is_admin else 'Member',
+                'is_admin': m.is_admin,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    # Get services
+    services = Service.query.filter_by(company_id=company_id).all()
+    
+    # Company stats
+    member_count = CompanyMember.query.filter_by(company_id=company_id).count()
+    service_count = Service.query.filter_by(company_id=company_id).count()
+    
+    return render_template('company_workspace_services.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         is_admin=membership.is_admin,
+                         services=services,
+                         member_count=member_count,
+                         service_count=service_count)
+
+
+@main.route('/company/<uuid:company_id>/edit', methods=['GET', 'POST'])
+def edit_company(company_id):
+    """Edit company details - admin only."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id, is_admin=True).first()
+    if not membership:
+        return 'Forbidden - Admin only', 403
+    
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if m.is_admin else 'Member',
+                'is_admin': m.is_admin,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    if request.method == 'POST':
+        company.name = request.form.get('name', company.name)
+        company.description = request.form.get('description', company.description)
+        # TODO: Add category and website fields to Company model if needed
+        
+        db.session.commit()
+        flash('Company updated successfully', 'success')
+        return redirect(url_for('main.workspace_overview', company_id=company_id))
+    
+    return render_template('edit_company.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         is_admin=True)
 
 
 @main.route('/company/<uuid:company_id>')
@@ -320,7 +615,7 @@ def accept_join_request(company_id, request_id):
     db.session.delete(req)
     db.session.commit()
     flash('The user has been added to the company', 'success')
-    return redirect(url_for('main.view_company', company_id=company_id))
+    return redirect(url_for('main.workspace_members', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/transfer/<uuid:member_id>', methods=['POST'])
@@ -345,9 +640,11 @@ def transfer_admin(company_id, member_id):
     
     # Promote target to admin
     target.is_admin = True
+    # Demote current admin
+    current_admin.is_admin = False
     db.session.commit()
-    flash(f'{target.user_obj.username if hasattr(target, "user_obj") and target.user_obj else "User"} is now an admin', 'success')
-    return redirect(url_for('main.manage_company', company_id=company_id))
+    flash(f'{target.user_obj.username if hasattr(target, "user_obj") and target.user_obj else "User"} is now an admin. You are now a regular member.', 'success')
+    return redirect(url_for('main.workspace_members', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/demote/<uuid:member_id>', methods=['POST'])
@@ -374,13 +671,13 @@ def demote_admin(company_id, member_id):
     admin_count = CompanyMember.query.filter_by(company_id=company_id, is_admin=True).count()
     if admin_count <= 1:
         flash('Cannot demote the last admin. Promote someone else first.', 'error')
-        return redirect(url_for('main.manage_company', company_id=company_id))
+        return redirect(url_for('main.workspace_members', company_id=company_id))
     
     # Demote target to regular member
     target.is_admin = False
     db.session.commit()
     flash(f'{target.user_obj.username if hasattr(target, "user_obj") and target.user_obj else "User"} is now a regular member', 'success')
-    return redirect(url_for('main.manage_company', company_id=company_id))
+    return redirect(url_for('main.workspace_members', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/remove/<uuid:member_id>', methods=['POST'])
@@ -398,15 +695,15 @@ def remove_member(company_id, member_id):
     # disallow removing admins - they must be demoted first
     if member.is_admin:
         flash('Cannot remove admin users. Demote them first.', 'error')
-        return redirect(url_for('main.manage_company', company_id=company_id))
+        return redirect(url_for('main.workspace_members', company_id=company_id))
     # do not allow removing yourself (use leave company instead)
     if str(member.user_id) == session.get('user_id'):
         flash("Use 'Leave Company' to remove yourself", 'warning')
-        return redirect(url_for('main.manage_company', company_id=company_id))
+        return redirect(url_for('main.workspace_members', company_id=company_id))
     db.session.delete(member)
     db.session.commit()
     flash('Member removed', 'success')
-    return redirect(url_for('main.manage_company', company_id=company_id))
+    return redirect(url_for('main.workspace_members', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/leave', methods=['POST'])
@@ -424,12 +721,12 @@ def leave_company(company_id):
         other_admins = CompanyMember.query.filter_by(company_id=company_id, is_admin=True).filter(CompanyMember.user_id != uid).count()
         if other_admins == 0:
             flash('You are the only admin. Please promote another member to admin before leaving, or delete the company.', 'error')
-            return redirect(url_for('main.manage_company', company_id=company_id))
+            return redirect(url_for('main.workspace_members', company_id=company_id))
     
     db.session.delete(membership)
     db.session.commit()
     flash('You have left the company', 'success')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.my_companies'))
 
 
 @main.route('/company/<uuid:company_id>/delete', methods=['POST'])
@@ -547,7 +844,7 @@ def add_service(company_id):
         db.session.commit()
         
         flash('Service added successfully', 'success')
-        return redirect(url_for('main.company_services', company_id=company_id))
+        return redirect(url_for('main.workspace_services', company_id=company_id))
     
     # GET: show form
     available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
@@ -573,7 +870,7 @@ def edit_service(service_id):
     membership = CompanyMember.query.filter_by(company_id=service.company_id, user_id=uid).first()
     if not membership or not membership.is_admin:
         flash('You do not have permission to edit this service', 'error')
-        return redirect(url_for('main.company_services', company_id=service.company_id))
+        return redirect(url_for('main.workspace_services', company_id=service.company_id))
     
     # Check if service is in a pending proposal (locked)
     pending_proposals = DealProposal.query.filter(
@@ -583,7 +880,7 @@ def edit_service(service_id):
     
     if pending_proposals:
         flash('Cannot edit service while it is part of a pending negotiation', 'warning')
-        return redirect(url_for('main.company_services', company_id=service.company_id))
+        return redirect(url_for('main.workspace_services', company_id=service.company_id))
     
     if request.method == 'POST':
         title = request.form.get('title')
@@ -644,7 +941,7 @@ def edit_service(service_id):
         db.session.commit()
         
         flash('Service updated successfully', 'success')
-        return redirect(url_for('main.company_services', company_id=service.company_id))
+        return redirect(url_for('main.workspace_services', company_id=service.company_id))
     
     # GET: show form with current values
     available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
