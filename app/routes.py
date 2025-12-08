@@ -429,6 +429,44 @@ def workspace_services(company_id):
                          service_count=service_count)
 
 
+@main.route('/workspace/<uuid:company_id>/service/<uuid:service_id>/view')
+def workspace_service_view(company_id, service_id):
+    """Public view of a service within workspace context."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = user.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
+    if not membership:
+        return 'Forbidden', 403
+    
+    service = Service.query.get_or_404(service_id)
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'member_count': member_count,
+                'is_admin': m.is_admin,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    return render_template('workspace_service_public_view.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         service=service,
+                         is_admin=membership.is_admin)
+
+
 @main.route('/company/<uuid:company_id>/edit', methods=['GET', 'POST'])
 def edit_company(company_id):
     """Edit company details - admin only."""
@@ -791,6 +829,21 @@ def add_service(company_id):
         custom_category = request.form.get('custom_category')  # Custom category input
         is_offered = request.form.get('is_offered') == 'true'
         
+        # Get user info for error responses
+        usr = user.query.get(uid)
+        memberships = CompanyMember.query.filter_by(user_id=uid).all()
+        user_companies = []
+        for m in memberships:
+            comp = Company.query.get(m.company_id)
+            if comp:
+                member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+                user_companies.append({
+                    'company_id': comp.company_id,
+                    'name': comp.name,
+                    'member_count': member_count,
+                    'is_admin': m.is_admin
+                })
+        
         # Validation: check all required fields first
         if not title or not description or not duration_hours:
             flash('Vul dit veld in.', 'error')
@@ -800,7 +853,9 @@ def add_service(company_id):
                                  form_title=title,
                                  form_description=description,
                                  form_duration=duration_hours,
-                                 form_categories=categories)
+                                 form_categories=categories,
+                                 current_user=usr,
+                                 user_companies=user_companies)
         
         # If "Other" is selected but custom_category is empty, show error
         if 'Other' in categories and not custom_category:
@@ -811,7 +866,9 @@ def add_service(company_id):
                                  form_title=title,
                                  form_description=description,
                                  form_duration=duration_hours,
-                                 form_categories=categories)
+                                 form_categories=categories,
+                                 current_user=usr,
+                                 user_companies=user_companies)
         
         # Replace "Other" with the custom category value
         if 'Other' in categories and custom_category:
@@ -851,9 +908,26 @@ def add_service(company_id):
                            'Design', 'Development', 'Consulting', 'Sales', 'HR', 
                            'Operations', 'Customer Support']
     
+    # Get user info and companies for sidebar
+    usr = user.query.get(uid)
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    user_companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            user_companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'member_count': member_count,
+                'is_admin': m.is_admin
+            })
+    
     return render_template('service_add.html', 
                          company=company,
-                         categories=available_categories)
+                         categories=available_categories,
+                         current_user=usr,
+                         user_companies=user_companies)
 
 
 @main.route('/service/<uuid:service_id>/edit', methods=['GET', 'POST'])
