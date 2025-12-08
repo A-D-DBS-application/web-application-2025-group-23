@@ -30,7 +30,7 @@ db = SQLAlchemy()
 # ==========================
 # USER
 # ==========================
-class user(db.Model):
+class User(db.Model):
     """
     Profielgegevens van een gebruiker.
     Komt overeen met de 'user' tabel in Supabase.
@@ -55,7 +55,7 @@ class user(db.Model):
     role = db.Column(db.Text)                
 
     def __repr__(self) -> str:
-        return f"<user {self.username}>"
+        return f"<User {self.username}>"
 
 
 # ==========================
@@ -108,7 +108,7 @@ class CompanyJoinRequest(db.Model):
     created_at = db.Column(DateTime(timezone=True))
 
     company = db.relationship("Company", backref=db.backref("join_requests", lazy="dynamic"))
-    user = db.relationship("user", backref=db.backref("join_requests", lazy="dynamic"))
+    user = db.relationship("User", backref=db.backref("join_requests", lazy="dynamic"))
 
     def __repr__(self) -> str:
         return f"<CompanyJoinRequest {self.request_id} company={self.company_id} user={self.user_id}>"
@@ -141,7 +141,7 @@ class CompanyMember(db.Model):
     # Relaties
     company = db.relationship("Company", back_populates="members")
     user_obj = db.relationship(
-        "user",
+        "User",
         backref=db.backref("company_memberships", lazy="dynamic"),
     )
 
@@ -444,7 +444,7 @@ class Review(db.Model):
         backref=db.backref("reviews", lazy="dynamic"),
     )
     reviewer = db.relationship(
-        "user",
+        "User",
         backref=db.backref("given_reviews", lazy="dynamic"),
     )
     reviewed_company = db.relationship(

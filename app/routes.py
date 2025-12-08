@@ -1,6 +1,6 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import db, user, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review, ServiceInterest, DealProposal, ActiveDeal, Message, Deliverable
+from .models import db, User, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review, ServiceInterest, DealProposal, ActiveDeal, Message, Deliverable
 import uuid
 import datetime
 
@@ -26,8 +26,8 @@ def register():
         if not username or not password:
             flash('Username and password are required', 'error')
             return render_template('register.html')
-        if user.query.filter_by(username=username).first() is None:
-            new_user = user(
+        if User.query.filter_by(username=username).first() is None:
+            new_user = User(
                 user_id=uuid.uuid4(),
                 username=username,
                 email=email,
@@ -48,7 +48,7 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        usr = user.query.filter_by(username=username).first()
+        usr = User.query.filter_by(username=username).first()
         if usr and check_password_hash(usr.password_hash, password):
             # UUID als string in session
             session['user_id'] = str(usr.user_id)
@@ -68,7 +68,7 @@ def logout():
 def profile_settings():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
-    usr = user.query.get(session['user_id'])
+    usr = User.query.get(session['user_id'])
     if request.method == 'POST':
         usr.email = request.form.get('email', usr.email)
         usr.location = request.form.get('location', usr.location)
@@ -87,7 +87,7 @@ def view_user_profile(user_id):
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
     
-    viewed_user = user.query.get_or_404(user_id)
+    viewed_user = User.query.get_or_404(user_id)
     
     return render_template('user_profile.html', user=viewed_user)
 
@@ -99,7 +99,7 @@ def my_companies():
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     
     # Get all companies for this user
     memberships = CompanyMember.query.filter_by(user_id=user_id).all()
@@ -133,7 +133,7 @@ def onboarding():
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     
     # Get all companies for sidebar
     memberships = CompanyMember.query.filter_by(user_id=user_id).all()
@@ -163,7 +163,7 @@ def create_company():
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     
     # Get all companies for sidebar
     memberships = CompanyMember.query.filter_by(user_id=user_id).all()
@@ -224,7 +224,7 @@ def join_company():
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     
     # Get all companies for sidebar
     memberships = CompanyMember.query.filter_by(user_id=user_id).all()
@@ -281,7 +281,7 @@ def workspace_overview(company_id):
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
     if not membership:
         return 'Forbidden', 403
@@ -326,7 +326,7 @@ def workspace_members(company_id):
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
     if not membership:
         return 'Forbidden', 403
@@ -353,7 +353,6 @@ def workspace_members(company_id):
     
     # Get members
     members = CompanyMember.query.filter_by(company_id=company_id).all()
-    from .models import user as User
     for m in members:
         m.user_obj = User.query.get(m.user_id)
     
@@ -387,7 +386,7 @@ def workspace_services(company_id):
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
     if not membership:
         return 'Forbidden', 403
@@ -436,7 +435,7 @@ def workspace_service_view(company_id, service_id):
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
     if not membership:
         return 'Forbidden', 403
@@ -474,7 +473,7 @@ def edit_company(company_id):
         return redirect(url_for('main.login'))
     
     user_id = uuid.UUID(session['user_id'])
-    usr = user.query.get(user_id)
+    usr = User.query.get(user_id)
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id, is_admin=True).first()
     if not membership:
         return 'Forbidden - Admin only', 403
@@ -830,7 +829,7 @@ def add_service(company_id):
         is_offered = request.form.get('is_offered') == 'true'
         
         # Get user info for error responses
-        usr = user.query.get(uid)
+        usr = User.query.get(uid)
         memberships = CompanyMember.query.filter_by(user_id=uid).all()
         user_companies = []
         for m in memberships:
@@ -909,7 +908,7 @@ def add_service(company_id):
                            'Operations', 'Customer Support']
     
     # Get user info and companies for sidebar
-    usr = user.query.get(uid)
+    usr = User.query.get(uid)
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
     user_companies = []
     for m in memberships:
@@ -937,6 +936,7 @@ def edit_service(service_id):
         return redirect(url_for('main.login'))
     
     uid = uuid.UUID(session['user_id'])
+    usr = User.query.get(uid)
     service = Service.query.get_or_404(service_id)
     company = Company.query.get(service.company_id)
     
@@ -945,6 +945,23 @@ def edit_service(service_id):
     if not membership or not membership.is_admin:
         flash('You do not have permission to edit this service', 'error')
         return redirect(url_for('main.workspace_services', company_id=service.company_id))
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    companies = []
+    for mem in memberships:
+        comp = Company.query.get(mem.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'member_count': member_count,
+                'service_count': service_count,
+                'role': 'Admin' if mem.is_admin else 'Member',
+                'is_selected': comp.company_id == service.company_id
+            })
     
     # Check if service is in a pending proposal (locked)
     pending_proposals = DealProposal.query.filter(
@@ -959,57 +976,25 @@ def edit_service(service_id):
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
-        duration_hours = request.form.get('duration_hours')
-        categories = request.form.getlist('categories')
-        custom_category = request.form.get('custom_category')
+        category = request.form.get('categories')  # Single category from dropdown
         
         # Validation: check all required fields
-        if not title or not description or not duration_hours:
-            flash('Vul dit veld in.', 'error')
+        if not title or not description or not category:
+            flash('Vul alle velden in', 'error')
             return render_template('service_edit.html',
+                                 username=usr.username,
+                                 companies=companies,
                                  company=company,
                                  service=service,
                                  categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
                                  form_title=title,
                                  form_description=description,
-                                 form_duration=duration_hours,
-                                 form_categories=categories)
-        
-        # If "Other" is selected but custom_category is empty, show error
-        if 'Other' in categories and not custom_category:
-            flash('Vul dit veld in.', 'error')
-            return render_template('service_edit.html',
-                                 company=company,
-                                 service=service,
-                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
-                                 form_title=title,
-                                 form_description=description,
-                                 form_duration=duration_hours,
-                                 form_categories=categories)
-        
-        # Replace "Other" with the custom category value
-        if 'Other' in categories and custom_category:
-            categories.remove('Other')
-            categories.append(custom_category.strip())
-        
-        try:
-            duration = float(duration_hours)
-        except ValueError:
-            flash('Invalid duration', 'error')
-            return render_template('service_edit.html',
-                                 company=company,
-                                 service=service,
-                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
-                                 form_title=title,
-                                 form_description=description,
-                                 form_duration=duration_hours,
-                                 form_categories=categories)
+                                 form_categories=[category] if category else [])
         
         # Update service
         service.title = title
         service.description = description
-        service.duration_hours = duration
-        service.categories = ','.join(categories) if categories else None
+        service.categories = category  # Store single category
         service.updated_at = datetime.datetime.now(datetime.timezone.utc)
         
         db.session.commit()
@@ -1026,6 +1011,8 @@ def edit_service(service_id):
     form_categories = service.categories.split(',') if service.categories else []
     
     return render_template('service_edit.html',
+                         username=usr.username,
+                         companies=companies,
                          company=company,
                          service=service,
                          categories=available_categories,
