@@ -2179,11 +2179,23 @@ def marketplace():
     
     services = query.order_by(Service.created_at.desc()).all()
     
+    # Calculate average ratings for each service
+    service_ratings = {}
+    for service in services:
+        reviews = Review.query.filter_by(reviewed_service_id=service.service_id).all()
+        if reviews:
+            avg_rating = sum(r.rating for r in reviews) / len(reviews)
+            service_ratings[str(service.service_id)] = {
+                'avg': avg_rating,
+                'count': len(reviews)
+            }
+    
     return render_template('marketplace.html',
                          services=services,
                          selected_company=selected_company,
                          search_query=search_query,
-                         category_filter=category_filter)
+                         category_filter=category_filter,
+                         service_ratings=service_ratings)
 
 
 @main.route('/marketplace/public')
@@ -2211,10 +2223,22 @@ def marketplace_public():
     
     services = query.order_by(Service.created_at.desc()).all()
     
+    # Calculate average ratings for each service
+    service_ratings = {}
+    for service in services:
+        reviews = Review.query.filter_by(reviewed_service_id=service.service_id).all()
+        if reviews:
+            avg_rating = sum(r.rating for r in reviews) / len(reviews)
+            service_ratings[str(service.service_id)] = {
+                'avg': avg_rating,
+                'count': len(reviews)
+            }
+    
     return render_template('marketplace-public.html',
                          services=services,
                          search_query=search_query,
-                         category_filter=category_filter)
+                         category_filter=category_filter,
+                         service_ratings=service_ratings)
 
 
 @main.route('/marketplace/service/<uuid:service_id>')
@@ -2248,13 +2272,19 @@ def marketplace_service_view(service_id):
         flash('Please select a company first to view service details', 'info')
         return redirect(url_for('main.marketplace'))
     
-    # Get reviews (placeholder - you can add Review model queries here)
-    reviews = []
+    # Get reviews for this service
+    reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
+    
+    # Calculate average rating
+    avg_rating = 0
+    if reviews:
+        avg_rating = sum(r.rating for r in reviews) / len(reviews)
     
     return render_template('marketplace-trade-request.html',
                          service=service,
                          selected_company=selected_company,
-                         reviews=reviews)
+                         reviews=reviews,
+                         avg_rating=avg_rating)
 
 
 @main.route('/marketplace/service/<uuid:service_id>/public')
@@ -2262,12 +2292,18 @@ def marketplace_service_public(service_id):
     """Service detail page for non-logged-in users."""
     service = Service.query.get_or_404(service_id)
     
-    # Get reviews (placeholder)
-    reviews = []
+    # Get reviews for this service
+    reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
+    
+    # Calculate average rating
+    avg_rating = 0
+    if reviews:
+        avg_rating = sum(r.rating for r in reviews) / len(reviews)
     
     return render_template('marketplace-trade-request-not-logged-in.html',
                          service=service,
-                         reviews=reviews)
+                         reviews=reviews,
+                         avg_rating=avg_rating)
 
 
 @main.route('/marketplace/service/<uuid:service_id>/request', methods=['POST'])
@@ -2895,13 +2931,13 @@ def tradeflow_ongoing_deal_detail(company_id, deal_id):
         if active_deal.from_company_completed and active_deal.to_company_completed:
             active_deal.status = 'completed'
             active_deal.completed_at = datetime.datetime.now(datetime.timezone.utc)
+            db.session.commit()
             flash('Deal completed! Both parties have confirmed delivery.', 'success')
             return redirect(url_for('main.tradeflow_completed_deals', company_id=company_id))
         else:
+            db.session.commit()
             flash('Confirmed! Waiting for the other party to confirm delivery.', 'success')
-        
-        db.session.commit()
-        return redirect(url_for('main.tradeflow_ongoing_deals', company_id=company_id))
+            return redirect(url_for('main.tradeflow_ongoing_deals', company_id=company_id))
     
     return render_template('tradeflow_ongoing_deal_detail.html',
                          company=company,
@@ -2969,17 +3005,19 @@ def tradeflow_write_review(company_id, deal_id):
         flash('Access denied', 'error')
         return redirect(url_for('main.my_companies'))
     
-    # Determine which company we're reviewing
+    # Determine which company and service we're reviewing
     if proposal.from_company_id == company_id:
         reviewed_company_id = proposal.to_company_id
+        reviewed_service_id = proposal.to_service_id
     else:
         reviewed_company_id = proposal.from_company_id
+        reviewed_service_id = proposal.from_service_id
     
     # Check if already reviewed
     existing_review = Review.query.filter_by(
         deal_id=deal_id,
         reviewer_id=session['user_id'],
-        reviewed_company_id=reviewed_company_id
+        reviewed_service_id=reviewed_service_id
     ).first()
     
     if request.method == 'POST':
@@ -2993,6 +3031,7 @@ def tradeflow_write_review(company_id, deal_id):
             rating=rating,
             comment=comment,
             reviewed_company_id=reviewed_company_id,
+            reviewed_service_id=reviewed_service_id,
             created_at=datetime.datetime.now(datetime.timezone.utc)
         )
         
@@ -3002,10 +3041,14 @@ def tradeflow_write_review(company_id, deal_id):
         flash('Review submitted!', 'success')
         return redirect(url_for('main.tradeflow_completed_deal_detail', company_id=company_id, deal_id=deal_id))
     
+    # Get the service being reviewed
+    reviewed_service = Service.query.get(reviewed_service_id)
+    
     return render_template('tradeflow_write_review.html',
                          company=company,
                          active_deal=active_deal,
                          proposal=proposal,
+                         reviewed_service=reviewed_service,
                          existing_review=existing_review)
 
 

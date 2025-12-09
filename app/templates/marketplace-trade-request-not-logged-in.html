@@ -75,8 +75,8 @@
                     </div>
                     {% if reviews and reviews|length > 0 %}
                     <div class="info-item">
-                        <span class="info-label">Reviews</span>
-                        <span class="info-value">★ {{ reviews|length }}</span>
+                        <span class="info-label">Average Rating</span>
+                        <span class="info-value" style="color: #fbbf24;">★ {{ "%.1f"|format(avg_rating) }} ({{ reviews|length }} reviews)</span>
                     </div>
                     {% endif %}
                 </div>

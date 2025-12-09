@@ -472,6 +472,10 @@ class Review(db.Model):
         UUID(as_uuid=True),
         db.ForeignKey("company.company_id"),
     )
+    reviewed_service_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("service.service_id"),
+    )
 
     active_deal = db.relationship(
         "ActiveDeal",
@@ -483,6 +487,10 @@ class Review(db.Model):
     )
     reviewed_company = db.relationship(
         "Company",
+        backref=db.backref("reviews", lazy="dynamic"),
+    )
+    reviewed_service = db.relationship(
+        "Service",
         backref=db.backref("reviews", lazy="dynamic"),
     )
 

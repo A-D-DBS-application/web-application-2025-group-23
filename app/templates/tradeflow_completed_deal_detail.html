@@ -80,28 +80,41 @@
         
         <div class="pair-grid">
           <div class="pair-side">
-            <div class="pair-label">{{ deal.proposal.from_company.name }} provided</div>
-            <div class="pair-service">{{ deal.service_a.title }}</div>
-            <div class="pair-desc">{{ deal.service_a.description }}</div>
+            <div class="pair-label">{{ proposal.from_company.name }} provided</div>
+            <div class="pair-service">{{ proposal.from_service.title }}</div>
+            <div class="pair-desc">{{ proposal.from_service.description }}</div>
           </div>
           <div class="pair-side">
-            <div class="pair-label">{{ deal.company_b.name }} provided</div>
-            <div class="pair-service">{{ deal.service_b.title }}</div>
-            <div class="pair-desc">{{ deal.service_b.description }}</div>
+            <div class="pair-label">{{ proposal.to_company.name }} provided</div>
+            <div class="pair-service">{{ proposal.to_service.title }}</div>
+            <div class="pair-desc">{{ proposal.to_service.description }}</div>
           </div>
         </div>
 
-        {% if deal.review %}
+        {% if reviews %}
         <div class="review-section">
-          <div class="review-title">Review</div>
-          <div class="rating">
-            {% for i in range(deal.review.rating) %}<span class="star">★</span>{% endfor %}
-            {% for i in range(5 - deal.review.rating) %}<span class="star" style="color: #ccc;">★</span>{% endfor %}
+          <div class="review-title">Reviews</div>
+          {% for review in reviews %}
+          <div style="background: #f5f7fa; padding: 16px; border-radius: 6px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+              <div>
+                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Review for: {{ review.reviewed_service.title }}</div>
+                <div class="rating">
+                  {% for i in range(review.rating) %}<span class="star">★</span>{% endfor %}
+                  {% for i in range(5 - review.rating) %}<span class="star" style="color: #ccc;">★</span>{% endfor %}
+                </div>
+              </div>
+              <div style="font-size: 12px; color: #5f6368;">by {{ review.reviewer.username }}</div>
+            </div>
+            <div class="review-text">{{ review.comment }}</div>
           </div>
-          <div class="review-text">{{ deal.review.comment }}</div>
-          <div class="review-author">by {{ deal.review.reviewer_company.name }}</div>
+          {% endfor %}
         </div>
         {% endif %}
+
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e8eaed;">
+          <a href="{{ url_for('main.tradeflow_write_review', company_id=company.company_id, deal_id=active_deal.active_deal_id) }}" class="btn" style="display: inline-block; background: #1A73E8; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Write Review</a>
+        </div>
       </div>
     </main>
   </div>

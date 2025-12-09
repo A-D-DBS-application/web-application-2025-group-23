@@ -90,23 +90,29 @@
       
       <div class="page-header">
         <h1 class="page-title">Write a Review</h1>
-        <p class="page-desc">Share your experience with this trade</p>
+        <p class="page-desc">Share your experience with the service you received</p>
       </div>
 
       <div class="form-card">
         <div class="deal-summary">
-          <div class="summary-title">Deal Summary</div>
-          <div class="summary-pair">
-            <div class="summary-side">
-              <div class="summary-label">You offered</div>
-              <div class="summary-value">{{ deal.service_a.title if deal.company_a_id == company.company_id else deal.service_b.title }}</div>
-            </div>
-            <div class="summary-side">
-              <div class="summary-label">They offered</div>
-              <div class="summary-value">{{ deal.service_b.title if deal.company_a_id == company.company_id else deal.service_a.title }}</div>
+          <div class="summary-title">Service You're Reviewing</div>
+          <div style="padding: 16px 0;">
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">{{ reviewed_service.title }}</h3>
+            <p style="color: #5f6368; font-size: 14px; line-height: 1.6; margin-bottom: 12px;">{{ reviewed_service.description }}</p>
+            <div style="display: flex; gap: 20px; font-size: 13px; color: #5f6368;">
+              <div><strong>Provider:</strong> {{ reviewed_service.company.name }}</div>
+              <div><strong>Category:</strong> {{ reviewed_service.category }}</div>
             </div>
           </div>
         </div>
+
+        {% if existing_review %}
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
+          <strong>You've already reviewed this service</strong>
+          <p style="margin-top: 8px; font-size: 14px;">Rating: {{ existing_review.rating }} stars</p>
+          <p style="margin-top: 4px; font-size: 14px;">{{ existing_review.comment }}</p>
+        </div>
+        {% endif %}
 
         <form method="POST">
           <div class="form-group">
