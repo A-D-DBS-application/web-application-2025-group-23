@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Started | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="onboarding-page">
+        <header class="onboarding-header">
+            <div class="onboarding-header-content">
+                <a href="{{ url_for('main.my_companies') }}" class="onboarding-logo">Barter.com</a>
+            </div>
+        </header>
+        
+        <main class="onboarding-main">
+            <div class="onboarding-content">
+                <div class="onboarding-intro">
+                    <p class="onboarding-kicker">Welcome!</p>
+                    <h1 class="onboarding-title">Let's get you started</h1>
+                </div>
+                
+                <div class="onboarding-grid">
+                    <article class="onboarding-card">
+                        <div class="onboarding-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <path d="M3 9h18"/>
+                                <path d="M9 3v18"/>
+                            </svg>
+                        </div>
+                        <h2 class="onboarding-card-title">Create new company</h2>
+                        <p class="onboarding-card-text">Start a workspace for your team and begin trading services</p>
+                        <a href="{{ url_for('main.create_company') }}" class="btn btn-primary onboarding-btn">Get Started</a>
+                    </article>
+                    
+                    <article class="onboarding-card">
+                        <div class="onboarding-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                                <path d="M20 8v6"/>
+                                <path d="M23 11h-6"/>
+                            </svg>
+                        </div>
+                        <h2 class="onboarding-card-title">Join existing company</h2>
+                        <p class="onboarding-card-text">Enter an invite code to join a company and start collaborating</p>
+                        <a href="{{ url_for('main.join_company') }}" class="btn btn-primary onboarding-btn">Join Now</a>
+                    </article>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

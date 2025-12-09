@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .category-grid {
             display: grid;
@@ -27,41 +27,7 @@
         }
         .category-item label {
             cursor: pointer;
-            font-size: 14px;
-        }
-        .radio-group {
-            display: flex;
-            gap: 24px;
-            margin: 12px 0;
-        }
-        .radio-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .radio-item input[type="radio"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-        .radio-item label {
-            cursor: pointer;
-            font-size: 14px;
-        }
-        #custom_category_input {
-            margin-left: 8px;
-            margin-top: 8px;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            width: 100%;
-            max-width: 400px;
-            display: none;
-            box-sizing: border-box;
-        }
-        #custom_category_input.show {
-            display: block;
+            font-size: 16px;
         }
         .category-item.other-item {
             grid-column: 1 / -1;
@@ -71,6 +37,7 @@
         .custom-category-wrapper {
             width: 100%;
             position: relative;
+            margin-top: 8px;
         }
         .custom-category-wrapper .error-message {
             position: absolute;
@@ -90,87 +57,136 @@
         .custom-category-wrapper .error-message.show {
             display: block;
         }
+        #custom_category_input {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: none;
+            background: #F5F5F5;
+            font-size: 16px;
+            width: 100%;
+            max-width: 400px;
+            display: none;
+        }
+        #custom_category_input.show {
+            display: block;
+        }
         #custom_category_input.error {
-            border-color: #dc3545;
+            border: 2px solid #dc3545;
             background-color: #fff5f5;
         }
     </style>
 </head>
 <body>
-    <!-- HEADER -->
-    <header class="header">
-        <div class="logo">www.barter.com</div>
-        <nav class="nav">
-            <a href="{{ url_for('main.index') }}">Dashboard</a>
-            <a href="{{ url_for('main.index') }}">My Companies</a>
-        </nav>
-    </header>
-
-    <section class="content-container">
-        <div class="form-card">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category,msg in messages %}
-                  <div class="alert alert-{{ category }}">{{ msg }}</div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-            
-            <h1>Add New Service</h1>
-            <p style="color: var(--gray); margin-bottom: 24px;">Company: {{ company.name }}</p>
-
-            <form method="post">
-                <div class="form-group">
-                    <label for="title">Service Title *</label>
-                    <input type="text" id="title" name="title" required placeholder="e.g., Financial Consulting" value="{{ form_title or '' }}">
-                </div>
-
-                <div class="form-group">
-                    <label for="description">Description *</label>
-                    <textarea id="description" name="description" required rows="4" placeholder="Describe the service in detail...">{{ form_description or '' }}</textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="duration_hours">Duration (hours) *</label>
-                    <input type="number" id="duration_hours" name="duration_hours" required step="0.5" min="0.5" placeholder="e.g., 2.5" value="{{ form_duration or '' }}">
-                </div>
-
-                <input type="hidden" name="is_offered" value="true">
-
-                <div class="form-group">
-                    <label>Categories (select all that apply)</label>
-                    <div class="category-grid">
-                        {% for cat in categories %}
-                            <div class="category-item">
-                                <input type="checkbox" id="cat_{{ loop.index }}" name="categories" value="{{ cat }}" {% if cat in (form_categories or []) %}checked{% endif %}>
-                                <label for="cat_{{ loop.index }}">{{ cat }}</label>
-                            </div>
-                        {% endfor %}
-                        <div class="category-item other-item">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <input type="checkbox" id="cat_other" name="categories" value="Other" onchange="toggleCustomCategoryInput()" {% if 'Other' in (form_categories or []) %}checked{% endif %}>
-                                <label for="cat_other">Other</label>
-                            </div>
-                            <div class="custom-category-wrapper">
-                                <div class="error-message" id="custom_category_error">Vul dit veld in.</div>
-                                <input type="text" id="custom_category_input" name="custom_category" placeholder="Specify your custom category here...">
-                            </div>
+    <div class="app-page">
+        <div class="app-layout">
+            <!-- SIDEBAR -->
+            <aside class="app-sidebar">
+                <div class="app-sidebar-inner">
+                    <div class="app-sidebar-logo">
+                        <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
+                    </div>
+                    
+                    <div class="sidebar-profile sidebar-profile--compact">
+                        <div class="sidebar-avatar sidebar-avatar--small"></div>
+                        <div>
+                            <div class="sidebar-user-name sidebar-user-name--small">{{ current_user.username }}</div>
+                            <div class="sidebar-user-sub">{{ current_user.email }}</div>
                         </div>
                     </div>
+                    
+                    <div class="sidebar-companies">
+                        {% if user_companies %}
+                            {% for comp in user_companies %}
+                            <button class="sidebar-company-card {% if comp.company_id == company.company_id %}sidebar-company-card--active{% endif %}"
+                                    onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+                                <div class="sidebar-company-name">{{ comp.name }}</div>
+                                <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
+                                <div class="sidebar-company-role">{% if comp.is_admin %}Admin{% else %}Member{% endif %}</div>
+                            </button>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                 </div>
+            </aside>
+            
+            <!-- MAIN CONTENT -->
+            <main class="app-main">
+                <header class="app-header">
+                    <div class="app-header-content">
+                        <div class="app-header-left">
+                            <a href="{{ url_for('main.workspace_services', company_id=company.company_id) }}" class="link-back">← Back to Services</a>
+                        </div>
+                        <nav class="app-nav">
+                            <a href="{{ url_for('main.marketplace') }}" class="app-nav-link">Marketplace</a>
+                            <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
+                            <a href="{{ url_for('main.profile_settings') }}" class="app-nav-link">Profile</a>
+                            <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
+                        </nav>
+                    </div>
+                </header>
+                
+                <div class="app-content">
+                    <div class="app-content-inner">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category,msg in messages %}
+                              <div class="alert alert-{{ category }}">{{ msg }}</div>
+                            {% endfor %}
+                          {% endif %}
+                        {% endwith %}
+                        
+                        <div class="page-header">
+                            <h1 class="page-title">Add New Service</h1>
+                            <p class="page-subtitle">Create a new service for {{ company.name }}</p>
+                        </div>
+                        
+                        <form method="post" class="service-form">
+                            <div class="form-field form-field--full">
+                                <label for="title">Service Title *</label>
+                                <input type="text" id="title" name="title" required placeholder="e.g., Financial Consulting" value="{{ form_title or '' }}">
+                            </div>
 
-                <button type="submit" class="btn-primary">Add Service</button>
-            </form>
+                            <div class="form-field form-field--full">
+                                <label for="description">Description *</label>
+                                <textarea id="description" name="description" required rows="4" placeholder="Describe the service in detail...">{{ form_description or '' }}</textarea>
+                            </div>
 
-            <div class="form-links">
-                <a href="{{ url_for('main.company_services', company_id=company.company_id) }}">Cancel</a>
-            </div>
+                            <div class="form-field">
+                                <label for="duration_hours">Duration (hours) *</label>
+                                <input type="number" id="duration_hours" name="duration_hours" required step="0.5" min="0.5" placeholder="e.g., 2.5" value="{{ form_duration or '' }}" style="max-width: 300px;">
+                            </div>
+
+                            <input type="hidden" name="is_offered" value="true">
+
+                            <div class="form-field form-field--full">
+                                <label>Categories (select all that apply)</label>
+                                <div class="category-grid">
+                                    {% for cat in categories %}
+                                        <div class="category-item">
+                                            <input type="checkbox" id="cat_{{ loop.index }}" name="categories" value="{{ cat }}" {% if cat in (form_categories or []) %}checked{% endif %}>
+                                            <label for="cat_{{ loop.index }}">{{ cat }}</label>
+                                        </div>
+                                    {% endfor %}
+                                    <div class="category-item other-item">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <input type="checkbox" id="cat_other" name="categories" value="Other" onchange="toggleCustomCategoryInput()" {% if 'Other' in (form_categories or []) %}checked{% endif %}>
+                                            <label for="cat_other">Other</label>
+                                        </div>
+                                        <div class="custom-category-wrapper">
+                                            <div class="error-message" id="custom_category_error">Vul dit veld in.</div>
+                                            <input type="text" id="custom_category_input" name="custom_category" placeholder="Specify your custom category here...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-create">Add Service</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
         </div>
-    </section>
-
-    <footer class="footer">
-        © 2025 Barter.com. Building partnerships through service exchange.
-    </footer>
+    </div>
 
     <script>
         function toggleCustomCategoryInput() {
@@ -189,14 +205,12 @@
             }
         }
         
-        // On page load, check if "Other" should be shown
         document.addEventListener('DOMContentLoaded', function() {
             const checkbox = document.getElementById('cat_other');
             if (checkbox.checked) {
                 toggleCustomCategoryInput();
             }
             
-            // Add form submission validation
             const form = document.querySelector('form');
             form.addEventListener('submit', function(e) {
                 const catOther = document.getElementById('cat_other');

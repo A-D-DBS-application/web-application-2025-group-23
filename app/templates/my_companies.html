@@ -3,85 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Companies | Barter</title>
+    <title>My Companies | Barter.com</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- HEADER -->
-    <header class="header">
-        <div class="logo">www.barter.com</div>
-        <nav class="nav">
-            <a href="{{ url_for('main.index') }}">Dashboard</a>
-            <a href="{{ url_for('main.profile_settings') }}">Profile</a>
-            <a href="{{ url_for('main.select_company_for_marketplace') }}" style="background-color: #007bff; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">Marketplace</a>
-        </nav>
-    </header>
-
-    <section class="content-container">
-        <div class="content-card">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category,msg in messages %}
-                  <div class="alert alert-{{ category }}">{{ msg }}</div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-            <h1>My Companies</h1>
+    <div class="my-companies-layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="my-companies-sidebar">
+            <div class="sidebar-content">
+                <div class="sidebar-logo">
+                    <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
+                </div>
+                
+                <!-- User Profile -->
+                <div class="sidebar-profile-section">
+                    <div class="profile-avatar">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                        </svg>
+                    </div>
+                    <div class="profile-greeting">Hi, User {{ username }}</div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="sidebar-actions">
+                    <a href="{{ url_for('main.create_company') }}" class="sidebar-btn">
+                        Create new company
+                    </a>
+                    <p class="sidebar-btn-desc">
+                        Start a workspace for your team.
+                    </p>
+                    
+                    <a href="{{ url_for('main.join_company') }}" class="sidebar-btn">
+                        Join existing company
+                    </a>
+                    <p class="sidebar-btn-desc">
+                        Enter an invite code to join.
+                    </p>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- MAIN CONTENT -->
+        <main class="my-companies-main-content">
+            <header class="my-companies-header">
+                <div class="my-companies-header-inner">
+                    <nav class="my-companies-nav">
+                        <a href="{{ url_for('main.select_company_for_marketplace') }}" class="nav-link">Marketplace</a>
+                        <a href="{{ url_for('main.my_companies') }}" class="nav-link nav-link--active">My companies</a>
+                        <a href="{{ url_for('main.logout') }}" class="nav-link">Log out</a>
+                    </nav>
+                </div>
+            </header>
             
-            <div class="company-section">
-                <h3>Companies I Manage (Admin)</h3>
-                {% if admin_companies %}
-                    {% for c in admin_companies %}
-                        <div class="company-item">
-                            <div class="company-name">{{ c.name }}</div>
-                            <a class="btn-primary small" href="{{ url_for('main.manage_company', company_id=c.company_id) }}">Manage</a>
-                        </div>
+            <div class="my-companies-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category,msg in messages %}
+                      <div class="alert alert-{{ category }}">{{ msg }}</div>
                     {% endfor %}
-                {% else %}
-                    <p class="empty-state">You are not an admin of any company</p>
-                {% endif %}
-            </div>
-
-            <div class="company-section">
-                <h3>Companies I'm Member Of</h3>
-                {% if member_companies %}
-                    {% for c in member_companies %}
-                        <div class="company-item">
-                            <div class="company-name">{{ c.name }}</div>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <a class="btn-primary small" href="{{ url_for('main.company_activities', company_id=c.company_id) }}">Activities</a>
-                                {% set membership = namespace(is_admin=false) %}
-                                {% for m in admin_companies %}
-                                    {% if m.company_id == c.company_id %}
-                                        {% set membership.is_admin = true %}
-                                    {% endif %}
-                                {% endfor %}
-                                {% if not membership.is_admin %}
-                                    <form method="post" action="{{ url_for('main.leave_company', company_id=c.company_id) }}" onsubmit="return confirm('Are you sure you want to leave this company?');" style="display:inline;">
-                                        <button type="submit" class="btn-danger small">Leave</button>
-                                    </form>
-                                {% else %}
-                                    <span class="member-role" style="color: var(--gray); font-size: 13px;">(Admin - delete company to leave)</span>
-                                {% endif %}
+                  {% endif %}
+                {% endwith %}
+                
+                <h1 class="page-heading">Your companies</h1>
+                
+                {% if companies %}
+                    <div class="companies-list">
+                        {% for company in companies %}
+                        <div class="company-item {% if company.is_admin %}company-item--admin{% endif %}">
+                            <div class="company-info">
+                                <h2 class="company-title">{{ company.name }}</h2>
+                                <p class="company-desc">{{ company.description or 'Description of company ' ~ company.name }}</p>
+                                <div class="company-meta">
+                                    <span class="company-badge {% if company.is_admin %}company-badge--admin{% endif %}">
+                                        {% if company.is_admin %}Admin{% else %}Member{% endif %}
+                                    </span>
+                                </div>
+                                <p class="company-stats">
+                                    {{ company.member_count }} members • {{ company.service_count }} services
+                                </p>
                             </div>
+                            <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
+                               class="company-open-btn">
+                                Open workspace
+                            </a>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 {% else %}
-                    <p class="empty-state">You are not a member of any company</p>
+                    <div class="empty-state">
+                        <p class="empty-state__text">You haven't joined any companies yet. Create a new one or join an existing company to get started!</p>
+                    </div>
                 {% endif %}
             </div>
-
-            <div class="form-links">
-                <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        © 2025 Barter.com. Building partnerships through service exchange.
-    </footer>
+        </main>
+    </div>
 </body>
 </html>

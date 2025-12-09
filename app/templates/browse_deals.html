@@ -109,7 +109,9 @@
 <body>
     <!-- HEADER -->
     <div class="dashboard-header" style="background-color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <div class="logo" style="font-size: 24px; font-weight: bold; color: #1a73e8;">Barter.com</div>
+        <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
+            <div class="logo" style="font-size: 20px; font-weight: 600; color: #1a73e8;">Barter.com</div>
+        </a>
         <nav style="display: flex; gap: 20px; align-items: center;">
             <a href="{{ url_for('main.index') }}" style="color: #333; text-decoration: none; font-size: 15px;">Dashboard</a>
             <a href="{{ url_for('main.select_company_for_marketplace') }}" style="color: #333; text-decoration: none; font-size: 15px;">Switch Company</a>
@@ -202,5 +204,6 @@
     <footer class="footer">
         © 2025 Barter.com. Building partnerships through service exchange.
     </footer>
+    <script src="{{ url_for('static', filename='device-detection.js') }}"></script>
 </body>
 </html>

@@ -132,7 +132,9 @@
 </head>
 <body>
     <div class="dashboard-header">
-        <div class="logo">Barter.com</div>
+        <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
+            <div class="logo" style="color: #1a73e8; font-size: 20px; font-weight: 600;">Barter.com</div>
+        </a>
         <nav>
             <a href="{{ url_for('main.select_company_for_marketplace') }}">Marketplace</a>
             <a href="{{ url_for('main.support') }}">Support</a>
@@ -180,5 +182,6 @@
             }
         }
     </script>
+    <script src="{{ url_for('static', filename='device-detection.js') }}"></script>
 </body>
 </html>

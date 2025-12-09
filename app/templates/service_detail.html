@@ -76,7 +76,9 @@
 <body>
     <!-- HEADER -->
     <header class="header">
-        <div class="logo">www.barter.com</div>
+        <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
+            <div class="logo" style="color: #1a73e8; font-size: 20px; font-weight: 600;">Barter.com</div>
+        </a>
         <nav class="nav">
             <a href="{{ url_for('main.index') }}">Dashboard</a>
             <a href="{{ url_for('main.browse_deals') }}">Browse Deals</a>
@@ -92,11 +94,18 @@
                 {% endfor %}
               {% endif %}
             {% endwith %}
+            
+            <!-- BACK LINK -->
+            {% if back_link %}
+            <a href="{{ back_link }}" style="display: inline-flex; align-items: center; color: #1a73e8; text-decoration: none; margin-bottom: 20px; font-size: 14px; gap: 6px;">
+                <span style="font-size: 18px;">←</span> Back to Trade Requests
+            </a>
+            {% endif %}
 
             <!-- SERVICE HEADER -->
             <div class="service-header">
-                <h1 style="margin: 0 0 8px 0;">{{ service.title }}</h1>
-                <p style="margin: 0; opacity: 0.9; font-size: 16px;">Service Offering</p>
+                <h1 style="margin: 0 0 8px 0; color: white; font-size: 32px; font-weight: 600;">{{ service.title }}</h1>
+                <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 16px; font-weight: 500;">Service Offering</p>
             </div>
 
             <!-- COMPANY INFO -->
@@ -215,5 +224,6 @@
     <footer class="footer">
         © 2025 Barter.com. Building partnerships through service exchange.
     </footer>
+    <script src="{{ url_for('static', filename='device-detection.js') }}"></script>
 </body>
 </html>

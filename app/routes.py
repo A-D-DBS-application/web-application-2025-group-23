@@ -1,6 +1,6 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import db, user, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review, ServiceInterest, DealProposal, ActiveDeal
+from .models import db, User, Company, CompanyMember, CompanyJoinRequest, Service, BarterDeal, Contract, Review, ServiceInterest, DealProposal, ActiveDeal, Message, Deliverable, TradeRequest
 import uuid
 import datetime
 
@@ -9,36 +9,20 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
     """
-    Serve the public start page for anonymous users, and profile page for logged-in users
+    Serve the public start page for anonymous users, redirect logged-in users to my_companies
     """
     if 'user_id' in session:
-        usr = user.query.get(session['user_id'])
-        user_id = uuid.UUID(session['user_id'])
-        
-        # Get all companies for this user
-        memberships = CompanyMember.query.filter_by(user_id=user_id).all()
-        companies = []
-        for membership in memberships:
-            company = Company.query.get(membership.company_id)
-            if company:
-                # Count members and services
-                member_count = CompanyMember.query.filter_by(company_id=company.company_id).count()
-                service_count = Service.query.filter_by(company_id=company.company_id).count()
-                
-                companies.append({
-                    'company_id': company.company_id,
-                    'name': company.name,
-                    'description': getattr(company, 'description', None),
-                    'role': 'Admin' if membership.is_admin else 'Member',
-                    'member_count': member_count,
-                    'service_count': service_count
-                })
-        
-        return render_template('index.html', 
-                             username=usr.username if usr else None,
-                             companies=companies)
-    # anonymous users see the start page
+        # Logged-in users should go to my_companies page
+        return redirect(url_for('main.my_companies'))
+    # Anonymous users see the start page
     return render_template('start.html')
+
+@main.route('/start')
+def start():
+    """
+    Start page route (alias for index)
+    """
+    return index()
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
@@ -49,8 +33,8 @@ def register():
         if not username or not password:
             flash('Username and password are required', 'error')
             return render_template('register.html')
-        if user.query.filter_by(username=username).first() is None:
-            new_user = user(
+        if User.query.filter_by(username=username).first() is None:
+            new_user = User(
                 user_id=uuid.uuid4(),
                 username=username,
                 email=email,
@@ -60,7 +44,7 @@ def register():
             db.session.commit()
 
             session['user_id'] = str(new_user.user_id)
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.my_companies'))
         flash('Username already registered', 'error')
         return render_template('register.html')
     return render_template('register.html')
@@ -71,11 +55,11 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        usr = user.query.filter_by(username=username).first()
+        usr = User.query.filter_by(username=username).first()
         if usr and check_password_hash(usr.password_hash, password):
             # UUID als string in session
             session['user_id'] = str(usr.user_id)
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.my_companies'))
         flash('Invalid username or password', 'error')
         return render_template('login.html')
     return render_template('login.html')
@@ -91,7 +75,7 @@ def logout():
 def profile_settings():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
-    usr = user.query.get(session['user_id'])
+    usr = User.query.get(session['user_id'])
     if request.method == 'POST':
         usr.email = request.form.get('email', usr.email)
         usr.location = request.form.get('location', usr.location)
@@ -104,17 +88,120 @@ def profile_settings():
     return render_template('profile.html', user=usr)
 
 
+@main.route('/user/<uuid:user_id>')
+def view_user_profile(user_id):
+    """View public profile of another user."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    viewed_user = User.query.get_or_404(user_id)
+    
+    return render_template('user_profile.html', user=viewed_user)
+
+
+@main.route('/my-companies')
+def my_companies():
+    """Landing page after login showing user's companies."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    
+    # Get all companies for this user
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        company = Company.query.get(membership.company_id)
+        if company:
+            # Count members and services
+            member_count = CompanyMember.query.filter_by(company_id=company.company_id).count()
+            service_count = Service.query.filter_by(company_id=company.company_id).count()
+            
+            companies.append({
+                'company_id': company.company_id,
+                'name': company.name,
+                'description': getattr(company, 'description', None),
+                'role': 'Admin' if membership.is_admin else 'Member',
+                'is_admin': membership.is_admin,
+                'member_count': member_count,
+                'service_count': service_count
+            })
+    
+    return render_template('my_companies.html', 
+                         username=usr.username,
+                         companies=companies)
+
+
+@main.route('/onboarding')
+def onboarding():
+    """Onboarding page to create or join a company."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        company = Company.query.get(membership.company_id)
+        if company:
+            member_count = CompanyMember.query.filter_by(company_id=company.company_id).count()
+            service_count = Service.query.filter_by(company_id=company.company_id).count()
+            
+            companies.append({
+                'company_id': company.company_id,
+                'name': company.name,
+                'role': 'Admin' if membership.is_admin else 'Member',
+                'member_count': member_count,
+                'service_count': service_count
+            })
+    
+    return render_template('onboarding_get_started.html', 
+                         username=usr.username,
+                         companies=companies)
+
+
 @main.route('/company/create', methods=['GET', 'POST'])
 def create_company():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        comp = Company.query.get(membership.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if membership.is_admin else 'Member',
+                'member_count': member_count,
+                'service_count': service_count
+            })
+    
     if request.method == 'POST':
         name = request.form.get('name')
+        description = request.form.get('description')
+        category = request.form.get('category')
+        website = request.form.get('website')
+        
         if not name:
-            return 'Name required', 400
+            flash('Company name is required', 'error')
+            return render_template('create_company.html', username=usr.username, companies=companies)
+        
         company = Company(
             company_id=uuid.uuid4(),
             name=name,
+            description=description,
             created_at=datetime.datetime.now(),
             join_code=uuid.uuid4().hex[:8]
         )
@@ -125,7 +212,7 @@ def create_company():
         member = CompanyMember(
             member_id=uuid.uuid4(),
             company_id=company.company_id,
-            user_id=uuid.UUID(session['user_id']),
+            user_id=user_id,
             member_role='founder',
             is_admin=True,
             created_at=datetime.datetime.now(),
@@ -133,14 +220,35 @@ def create_company():
         db.session.add(member)
         db.session.commit()
         flash('Company created — you are admin and member', 'success')
-        return redirect(url_for('main.index'))
-    return render_template('create_company.html')
+        return redirect(url_for('main.workspace_overview', company_id=company.company_id))
+    
+    return render_template('create_company.html', username=usr.username, companies=companies)
 
 
 @main.route('/company/join', methods=['GET', 'POST'])
 def join_company():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for membership in memberships:
+        comp = Company.query.get(membership.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if membership.is_admin else 'Member',
+                'member_count': member_count,
+                'service_count': service_count
+            })
+    
     msg = None
     if request.method == 'POST':
         code = request.form.get('code')
@@ -152,7 +260,7 @@ def join_company():
                 msg = 'Invalid code'
             else:
                 # check if already member
-                existing = CompanyMember.query.filter_by(company_id=company.company_id, user_id=uuid.UUID(session['user_id'])).first()
+                existing = CompanyMember.query.filter_by(company_id=company.company_id, user_id=user_id).first()
                 if existing:
                     flash('You are already a member of this company', 'warning')
                     return redirect(url_for('main.join_company'))
@@ -161,14 +269,256 @@ def join_company():
                     req = CompanyJoinRequest(
                         request_id=uuid.uuid4(),
                         company_id=company.company_id,
-                        user_id=uuid.UUID(session['user_id']),
+                        user_id=user_id,
                         created_at=datetime.datetime.now(),
                     )
                     db.session.add(req)
                     db.session.commit()
                     flash('Request sent — wait for approval', 'success')
-                    return redirect(url_for('main.join_company'))
-    return render_template('join_company.html')
+                    return redirect(url_for('main.my_companies'))
+    
+    return render_template('join_company.html', username=usr.username, companies=companies)
+
+
+@main.route('/workspace/<uuid:company_id>')
+@main.route('/workspace/<uuid:company_id>/overview')
+def workspace_overview(company_id):
+    """Company workspace - Overview tab."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
+    if not membership:
+        return 'Forbidden', 403
+    
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if m.is_admin else 'Member',
+                'is_admin': m.is_admin,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    # Company stats
+    member_count = CompanyMember.query.filter_by(company_id=company_id).count()
+    service_count = Service.query.filter_by(company_id=company_id).count()
+    
+    return render_template('company_workspace_overview.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         is_admin=membership.is_admin,
+                         member_count=member_count,
+                         service_count=service_count)
+
+
+@main.route('/workspace/<uuid:company_id>/members')
+def workspace_members(company_id):
+    """Company workspace - Members tab."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
+    if not membership:
+        return 'Forbidden', 403
+    
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if m.is_admin else 'Member',
+                'is_admin': m.is_admin,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    # Get members
+    members = CompanyMember.query.filter_by(company_id=company_id).all()
+    for m in members:
+        m.user_obj = User.query.get(m.user_id)
+    
+    # Get pending join requests (if admin)
+    pending = []
+    if membership.is_admin:
+        pending = CompanyJoinRequest.query.filter_by(company_id=company_id).all()
+        for req in pending:
+            req.user_obj = User.query.get(req.user_id)
+    
+    # Company stats
+    member_count = CompanyMember.query.filter_by(company_id=company_id).count()
+    service_count = Service.query.filter_by(company_id=company_id).count()
+    
+    return render_template('company_workspace_members.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         is_admin=membership.is_admin,
+                         current_user_id=user_id,
+                         members=members,
+                         pending=pending,
+                         member_count=member_count,
+                         service_count=service_count)
+
+
+@main.route('/workspace/<uuid:company_id>/services')
+def workspace_services(company_id):
+    """Company workspace - Services tab."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
+    if not membership:
+        return 'Forbidden', 403
+    
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if m.is_admin else 'Member',
+                'is_admin': m.is_admin,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    # Get services
+    services = Service.query.filter_by(company_id=company_id).all()
+    
+    # Company stats
+    member_count = CompanyMember.query.filter_by(company_id=company_id).count()
+    service_count = Service.query.filter_by(company_id=company_id).count()
+    
+    return render_template('company_workspace_services.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         is_admin=membership.is_admin,
+                         services=services,
+                         member_count=member_count,
+                         service_count=service_count)
+
+
+@main.route('/workspace/<uuid:company_id>/service/<uuid:service_id>/view')
+def workspace_service_view(company_id, service_id):
+    """Public view of a service within workspace context."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id).first()
+    if not membership:
+        return 'Forbidden', 403
+    
+    service = Service.query.get_or_404(service_id)
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'member_count': member_count,
+                'is_admin': m.is_admin,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    return render_template('workspace_service_public_view.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         service=service,
+                         is_admin=membership.is_admin)
+
+
+@main.route('/company/<uuid:company_id>/edit', methods=['GET', 'POST'])
+def edit_company(company_id):
+    """Edit company details - admin only."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    usr = User.query.get(user_id)
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=user_id, is_admin=True).first()
+    if not membership:
+        return 'Forbidden - Admin only', 403
+    
+    company = Company.query.get_or_404(company_id)
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+    companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'role': 'Admin' if m.is_admin else 'Member',
+                'is_admin': m.is_admin,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_selected': (comp.company_id == company_id)
+            })
+    
+    if request.method == 'POST':
+        company.name = request.form.get('name', company.name)
+        company.description = request.form.get('description', company.description)
+        # TODO: Add category and website fields to Company model if needed
+        
+        db.session.commit()
+        flash('Company updated successfully', 'success')
+        return redirect(url_for('main.workspace_overview', company_id=company_id))
+    
+    return render_template('edit_company.html',
+                         username=usr.username,
+                         companies=companies,
+                         company=company,
+                         is_admin=True)
 
 
 @main.route('/company/<uuid:company_id>')
@@ -309,7 +659,7 @@ def accept_join_request(company_id, request_id):
     db.session.delete(req)
     db.session.commit()
     flash('The user has been added to the company', 'success')
-    return redirect(url_for('main.view_company', company_id=company_id))
+    return redirect(url_for('main.workspace_members', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/transfer/<uuid:member_id>', methods=['POST'])
@@ -334,9 +684,11 @@ def transfer_admin(company_id, member_id):
     
     # Promote target to admin
     target.is_admin = True
+    # Demote current admin
+    current_admin.is_admin = False
     db.session.commit()
-    flash(f'{target.user_obj.username if hasattr(target, "user_obj") and target.user_obj else "User"} is now an admin', 'success')
-    return redirect(url_for('main.manage_company', company_id=company_id))
+    flash(f'{target.user_obj.username if hasattr(target, "user_obj") and target.user_obj else "User"} is now an admin. You are now a regular member.', 'success')
+    return redirect(url_for('main.workspace_members', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/demote/<uuid:member_id>', methods=['POST'])
@@ -363,13 +715,13 @@ def demote_admin(company_id, member_id):
     admin_count = CompanyMember.query.filter_by(company_id=company_id, is_admin=True).count()
     if admin_count <= 1:
         flash('Cannot demote the last admin. Promote someone else first.', 'error')
-        return redirect(url_for('main.manage_company', company_id=company_id))
+        return redirect(url_for('main.workspace_members', company_id=company_id))
     
     # Demote target to regular member
     target.is_admin = False
     db.session.commit()
     flash(f'{target.user_obj.username if hasattr(target, "user_obj") and target.user_obj else "User"} is now a regular member', 'success')
-    return redirect(url_for('main.manage_company', company_id=company_id))
+    return redirect(url_for('main.workspace_members', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/remove/<uuid:member_id>', methods=['POST'])
@@ -387,15 +739,15 @@ def remove_member(company_id, member_id):
     # disallow removing admins - they must be demoted first
     if member.is_admin:
         flash('Cannot remove admin users. Demote them first.', 'error')
-        return redirect(url_for('main.manage_company', company_id=company_id))
+        return redirect(url_for('main.workspace_members', company_id=company_id))
     # do not allow removing yourself (use leave company instead)
     if str(member.user_id) == session.get('user_id'):
         flash("Use 'Leave Company' to remove yourself", 'warning')
-        return redirect(url_for('main.manage_company', company_id=company_id))
+        return redirect(url_for('main.workspace_members', company_id=company_id))
     db.session.delete(member)
     db.session.commit()
     flash('Member removed', 'success')
-    return redirect(url_for('main.manage_company', company_id=company_id))
+    return redirect(url_for('main.workspace_members', company_id=company_id))
 
 
 @main.route('/company/<uuid:company_id>/leave', methods=['POST'])
@@ -413,12 +765,12 @@ def leave_company(company_id):
         other_admins = CompanyMember.query.filter_by(company_id=company_id, is_admin=True).filter(CompanyMember.user_id != uid).count()
         if other_admins == 0:
             flash('You are the only admin. Please promote another member to admin before leaving, or delete the company.', 'error')
-            return redirect(url_for('main.manage_company', company_id=company_id))
+            return redirect(url_for('main.workspace_members', company_id=company_id))
     
     db.session.delete(membership)
     db.session.commit()
     flash('You have left the company', 'success')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.my_companies'))
 
 
 @main.route('/company/<uuid:company_id>/delete', methods=['POST'])
@@ -483,6 +835,21 @@ def add_service(company_id):
         custom_category = request.form.get('custom_category')  # Custom category input
         is_offered = request.form.get('is_offered') == 'true'
         
+        # Get user info for error responses
+        usr = User.query.get(uid)
+        memberships = CompanyMember.query.filter_by(user_id=uid).all()
+        user_companies = []
+        for m in memberships:
+            comp = Company.query.get(m.company_id)
+            if comp:
+                member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+                user_companies.append({
+                    'company_id': comp.company_id,
+                    'name': comp.name,
+                    'member_count': member_count,
+                    'is_admin': m.is_admin
+                })
+        
         # Validation: check all required fields first
         if not title or not description or not duration_hours:
             flash('Vul dit veld in.', 'error')
@@ -492,7 +859,9 @@ def add_service(company_id):
                                  form_title=title,
                                  form_description=description,
                                  form_duration=duration_hours,
-                                 form_categories=categories)
+                                 form_categories=categories,
+                                 current_user=usr,
+                                 user_companies=user_companies)
         
         # If "Other" is selected but custom_category is empty, show error
         if 'Other' in categories and not custom_category:
@@ -503,7 +872,9 @@ def add_service(company_id):
                                  form_title=title,
                                  form_description=description,
                                  form_duration=duration_hours,
-                                 form_categories=categories)
+                                 form_categories=categories,
+                                 current_user=usr,
+                                 user_companies=user_companies)
         
         # Replace "Other" with the custom category value
         if 'Other' in categories and custom_category:
@@ -536,16 +907,33 @@ def add_service(company_id):
         db.session.commit()
         
         flash('Service added successfully', 'success')
-        return redirect(url_for('main.company_services', company_id=company_id))
+        return redirect(url_for('main.workspace_services', company_id=company_id))
     
     # GET: show form
     available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
                            'Design', 'Development', 'Consulting', 'Sales', 'HR', 
                            'Operations', 'Customer Support']
     
+    # Get user info and companies for sidebar
+    usr = User.query.get(uid)
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    user_companies = []
+    for m in memberships:
+        comp = Company.query.get(m.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            user_companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'member_count': member_count,
+                'is_admin': m.is_admin
+            })
+    
     return render_template('service_add.html', 
                          company=company,
-                         categories=available_categories)
+                         categories=available_categories,
+                         current_user=usr,
+                         user_companies=user_companies)
 
 
 @main.route('/service/<uuid:service_id>/edit', methods=['GET', 'POST'])
@@ -555,6 +943,7 @@ def edit_service(service_id):
         return redirect(url_for('main.login'))
     
     uid = uuid.UUID(session['user_id'])
+    usr = User.query.get(uid)
     service = Service.query.get_or_404(service_id)
     company = Company.query.get(service.company_id)
     
@@ -562,68 +951,63 @@ def edit_service(service_id):
     membership = CompanyMember.query.filter_by(company_id=service.company_id, user_id=uid).first()
     if not membership or not membership.is_admin:
         flash('You do not have permission to edit this service', 'error')
-        return redirect(url_for('main.company_services', company_id=service.company_id))
+        return redirect(url_for('main.workspace_services', company_id=service.company_id))
+    
+    # Get all companies for sidebar
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    companies = []
+    for mem in memberships:
+        comp = Company.query.get(mem.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'member_count': member_count,
+                'service_count': service_count,
+                'role': 'Admin' if mem.is_admin else 'Member',
+                'is_selected': comp.company_id == service.company_id
+            })
+    
+    # Check if service is in a pending proposal (locked)
+    pending_proposals = DealProposal.query.filter(
+        DealProposal.status == 'pending',
+        ((DealProposal.from_service_id == service_id) | (DealProposal.to_service_id == service_id))
+    ).first()
+    
+    if pending_proposals:
+        flash('Cannot edit service while it is part of a pending negotiation', 'warning')
+        return redirect(url_for('main.workspace_services', company_id=service.company_id))
     
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
-        duration_hours = request.form.get('duration_hours')
-        categories = request.form.getlist('categories')
-        custom_category = request.form.get('custom_category')
+        category = request.form.get('categories')  # Single category from dropdown
         
         # Validation: check all required fields
-        if not title or not description or not duration_hours:
-            flash('Vul dit veld in.', 'error')
+        if not title or not description or not category:
+            flash('Vul alle velden in', 'error')
             return render_template('service_edit.html',
+                                 username=usr.username,
+                                 companies=companies,
                                  company=company,
                                  service=service,
                                  categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
                                  form_title=title,
                                  form_description=description,
-                                 form_duration=duration_hours,
-                                 form_categories=categories)
-        
-        # If "Other" is selected but custom_category is empty, show error
-        if 'Other' in categories and not custom_category:
-            flash('Vul dit veld in.', 'error')
-            return render_template('service_edit.html',
-                                 company=company,
-                                 service=service,
-                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
-                                 form_title=title,
-                                 form_description=description,
-                                 form_duration=duration_hours,
-                                 form_categories=categories)
-        
-        # Replace "Other" with the custom category value
-        if 'Other' in categories and custom_category:
-            categories.remove('Other')
-            categories.append(custom_category.strip())
-        
-        try:
-            duration = float(duration_hours)
-        except ValueError:
-            flash('Invalid duration', 'error')
-            return render_template('service_edit.html',
-                                 company=company,
-                                 service=service,
-                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
-                                 form_title=title,
-                                 form_description=description,
-                                 form_duration=duration_hours,
-                                 form_categories=categories)
+                                 form_categories=[category] if category else [])
         
         # Update service
         service.title = title
         service.description = description
-        service.duration_hours = duration
-        service.categories = ','.join(categories) if categories else None
+        service.categories = category  # Store single category
         service.updated_at = datetime.datetime.now(datetime.timezone.utc)
         
         db.session.commit()
         
         flash('Service updated successfully', 'success')
-        return redirect(url_for('main.company_services', company_id=service.company_id))
+        return redirect(url_for('main.workspace_services', company_id=service.company_id))
     
     # GET: show form with current values
     available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
@@ -634,6 +1018,8 @@ def edit_service(service_id):
     form_categories = service.categories.split(',') if service.categories else []
     
     return render_template('service_edit.html',
+                         username=usr.username,
+                         companies=companies,
                          company=company,
                          service=service,
                          categories=available_categories,
@@ -659,6 +1045,16 @@ def delete_service(service_id):
         flash('You do not have permission to delete this service', 'error')
         return redirect(url_for('main.company_services', company_id=company_id))
     
+    # Check if service is in a pending proposal (locked)
+    pending_proposals = DealProposal.query.filter(
+        DealProposal.status == 'pending',
+        ((DealProposal.from_service_id == service_id) | (DealProposal.to_service_id == service_id))
+    ).first()
+    
+    if pending_proposals:
+        flash('Cannot delete service while it is part of a pending negotiation', 'warning')
+        return redirect(url_for('main.company_services', company_id=company_id))
+    
     # Delete the service
     db.session.delete(service)
     db.session.commit()
@@ -667,168 +1063,15 @@ def delete_service(service_id):
     return redirect(url_for('main.company_services', company_id=company_id))
 
 
-@main.route('/deals/browse')
-@main.route('/deals/browse/<uuid:company_id>')
-def browse_deals(company_id=None):
-    """Browse all active services from OTHER companies only."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    uid = uuid.UUID(session['user_id'])
-    
-    # Save company_id to session if provided
-    if company_id:
-        session['last_marketplace_company'] = str(company_id)
-    
-    # Get all company IDs where the user is a member
-    user_company_ids = db.session.query(CompanyMember.company_id).filter_by(user_id=uid).all()
-    user_company_ids = [cid[0] for cid in user_company_ids]  # Extract UUID from tuples
-    
-    # Get filter parameters
-    search_query = request.args.get('search', '').strip()
-    selected_categories = request.args.getlist('category')
-    
-    # Base query: active services from OTHER companies (NOT the user's own companies)
-    query = Service.query.filter(
-        Service.is_active == True,
-        ~Service.company_id.in_(user_company_ids)  # Exclude user's companies
-    )
-    
-    # Apply search filter
-    if search_query:
-        query = query.filter(
-            db.or_(
-                Service.title.ilike(f'%{search_query}%'),
-                Service.description.ilike(f'%{search_query}%')
-            )
-        )
-    
-    # Apply category filter
-    if selected_categories:
-        # Services can have multiple categories, check if any match
-        category_filters = []
-        for cat in selected_categories:
-            category_filters.append(Service.categories.ilike(f'%{cat}%'))
-        query = query.filter(db.or_(*category_filters))
-    
-    services = query.order_by(Service.created_at.desc()).all()
-    
-    # Calculate average ratings for companies
-    company_ratings = {}
-    for service in services:
-        if service.company_id not in company_ratings:
-            # Get all reviews for this company
-            reviews = db.session.query(Review).filter_by(reviewed_company_id=service.company_id).all()
-            if reviews:
-                avg_rating = sum(r.rating for r in reviews) / len(reviews)
-                company_ratings[service.company_id] = round(avg_rating, 1)
-            else:
-                company_ratings[service.company_id] = None
-    
-    available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
-                           'Design', 'Development', 'Consulting', 'Sales', 'HR', 
-                           'Operations', 'Customer Support']
-    
-    return render_template('browse_deals.html',
-                         services=services,
-                         categories=available_categories,
-                         selected_categories=selected_categories,
-                         search_query=search_query,
-                         company_ratings=company_ratings,
-                         selected_company_id=company_id)
+# OLD ROUTE - REPLACED BY marketplace()
+# @main.route('/deals/browse')
+# @main.route('/deals/browse/<uuid:company_id>')
+# def browse_deals(company_id=None):
 
 
-@main.route('/service/<uuid:service_id>')
-def service_detail(service_id):
-    """View full details of a service."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    uid = uuid.UUID(session['user_id'])
-    service = Service.query.get_or_404(service_id)
-    company = service.company
-    
-    # Check if user is member of this company
-    is_own_company = CompanyMember.query.filter_by(company_id=company.company_id, user_id=uid).first() is not None
-    
-    # Get user's companies for interest button
-    user_companies = CompanyMember.query.filter_by(user_id=uid).all()
-    
-    # Get the selected company from query parameter (from marketplace) or session
-    selected_company_id = request.args.get('company_id')
-    selected_company = None
-    if selected_company_id:
-        try:
-            selected_company = uuid.UUID(selected_company_id)
-        except:
-            selected_company = None
-    elif 'last_marketplace_company' in session:
-        # Use last company from session if no company_id in URL
-        try:
-            selected_company = uuid.UUID(session['last_marketplace_company'])
-        except:
-            selected_company = None
-    
-    # Check if user has already expressed interest from any of their companies
-    existing_interests = {}
-    for membership in user_companies:
-        interest = ServiceInterest.query.filter_by(
-            service_id=service_id,
-            company_id=membership.company_id
-        ).first()
-        if interest:
-            existing_interests[membership.company_id] = True
-    
-    # Get all reviews for this company
-    reviews = Review.query.filter_by(reviewed_company_id=company.company_id).all()
-    avg_rating = None
-    if reviews:
-        avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1)
-    
-    # Get interested companies (for service owner to see)
-    # Only show interests that don't have a completed deal
-    interests = []
-    if is_own_company:
-        all_interests = ServiceInterest.query.filter_by(service_id=service_id).all()
-        
-        for interest in all_interests:
-            # Check if there's a completed deal with this interest
-            completed_deal = db.session.query(ActiveDeal).join(DealProposal).filter(
-                db.or_(
-                    db.and_(
-                        DealProposal.from_company_id == interest.company_id,
-                        DealProposal.from_service_id == service_id,
-                        ActiveDeal.status == 'completed'
-                    ),
-                    db.and_(
-                        DealProposal.to_company_id == interest.company_id,
-                        DealProposal.to_service_id == service_id,
-                        ActiveDeal.status == 'completed'
-                    )
-                )
-            ).first()
-            
-            # Only add interest if there's no completed deal
-            if not completed_deal:
-                interests.append(interest)
-    
-    # Get user's services from their selected company (for offering in exchange)
-    my_services = []
-    if selected_company:
-        my_services = Service.query.filter_by(company_id=selected_company, is_active=True).all()
-    
-    return render_template('service_detail.html',
-                         service=service,
-                         company=company,
-                         is_own_company=is_own_company,
-                         user_companies=user_companies,
-                         existing_interests=existing_interests,
-                         reviews=reviews,
-                         avg_rating=avg_rating,
-                         total_reviews=len(reviews),
-                         interests=interests,
-                         selected_company_id=selected_company,
-                         my_services=my_services)
+# OLD ROUTE - REPLACED BY marketplace_service_view()
+# @main.route('/service/<uuid:service_id>')
+# def service_detail(service_id):
 
 
 @main.route('/service/<uuid:service_id>/interest', methods=['POST'])
@@ -1274,25 +1517,30 @@ def company_choice():
 @main.route('/select-company-marketplace')
 def select_company_for_marketplace():
     """
-    Select which company to use for browsing marketplace
+    Let the user pick which company to use for the marketplace.
     """
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
-    
-    user_id = uuid.UUID(session['user_id'])
-    
-    # Get all companies where user is a member
-    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+
+    uid = uuid.UUID(session['user_id'])
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+
     companies = []
     for membership in memberships:
-        company = Company.query.get(membership.company_id)
-        if company:
+        comp = Company.query.get(membership.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
             companies.append({
-                'company_id': company.company_id,
-                'name': company.name,
-                'description': getattr(company, 'description', None)
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'description': comp.description,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_admin': membership.is_admin
             })
-    
+
+    # If the user has no companies, show the empty state in the template
     return render_template('select_company_marketplace.html', companies=companies)
 
 
@@ -1356,15 +1604,44 @@ def company_requests(company_id):
             status='pending'  # Only show pending requests
         ).all()
         for prop in proposals:
-            target_service = Service.query.get(prop.to_service_id)
-            target_company = Company.query.get(target_service.company_id) if target_service else None
+            from_service = Service.query.get(prop.from_service_id)
+            to_service = Service.query.get(prop.to_service_id)
+            target_company = Company.query.get(to_service.company_id) if to_service else None
+            
+            # Get all messages for this proposal, including initial message if it exists
+            messages = Message.query.filter_by(proposal_id=prop.proposal_id).order_by(Message.created_at).all()
+            message_list = []
+            
+            # Add initial message first if it exists
+            if prop.message:
+                my_company = Company.query.get(prop.from_company_id)
+                message_list.append({
+                    'content': prop.message,
+                    'company_name': my_company.name if my_company else 'Unknown',
+                    'timestamp': prop.created_at.strftime('%Y-%m-%d %H:%M:%S') if prop.created_at else 'Unknown'
+                })
+            
+            # Then add all follow-up messages
+            for msg in messages:
+                msg_company = Company.query.get(msg.from_company_id)
+                message_list.append({
+                    'content': msg.content,
+                    'company_name': msg_company.name if msg_company else 'Unknown',
+                    'timestamp': msg.created_at.strftime('%Y-%m-%d %H:%M:%S') if msg.created_at else 'Unknown'
+                })
+            
             outgoing.append({
                 'proposal_id': prop.proposal_id,
-                'service_name': target_service.title if target_service else 'Unknown',
+                'my_service_id': from_service.service_id if from_service else None,
+                'my_service_name': from_service.title if from_service else 'Unknown',
+                'my_service_description': from_service.description if from_service else '',
+                'their_service_id': to_service.service_id if to_service else None,
+                'their_service_name': to_service.title if to_service else 'Unknown',
+                'their_service_description': to_service.description if to_service else '',
                 'company_name': target_company.name if target_company else 'Unknown',
-                'description': target_service.description if target_service else '',
                 'status': prop.status,
-                'status_display': prop.status.title()
+                'status_display': prop.status.title(),
+                'messages': message_list
             })
     
     # Incoming requests - only show pending requests
@@ -1375,17 +1652,46 @@ def company_requests(company_id):
             status='pending'  # Only show pending requests
         ).all()
         for prop in proposals:
-            offering_service = Service.query.get(prop.from_service_id)
-            offering_company = Company.query.get(offering_service.company_id) if offering_service else None
+            from_service = Service.query.get(prop.from_service_id)
+            to_service = Service.query.get(prop.to_service_id)
+            offering_company = Company.query.get(from_service.company_id) if from_service else None
+            
+            # Get all messages for this proposal, including initial message if it exists
+            messages = Message.query.filter_by(proposal_id=prop.proposal_id).order_by(Message.created_at).all()
+            message_list = []
+            
+            # Add initial message first if it exists
+            if prop.message:
+                message_list.append({
+                    'content': prop.message,
+                    'company_name': offering_company.name if offering_company else 'Unknown',
+                    'timestamp': prop.created_at.strftime('%Y-%m-%d %H:%M:%S') if prop.created_at else 'Unknown'
+                })
+            
+            # Then add all follow-up messages
+            for msg in messages:
+                msg_company = Company.query.get(msg.from_company_id)
+                message_list.append({
+                    'content': msg.content,
+                    'company_name': msg_company.name if msg_company else 'Unknown',
+                    'timestamp': msg.created_at.strftime('%Y-%m-%d %H:%M:%S') if msg.created_at else 'Unknown'
+                })
+            
             incoming.append({
                 'proposal_id': prop.proposal_id,
-                'service_name': offering_service.title if offering_service else 'Unknown',
+                'their_service_id': from_service.service_id if from_service else None,
+                'their_service_name': from_service.title if from_service else 'Unknown',
+                'their_service_description': from_service.description if from_service else '',
+                'my_service_id': to_service.service_id if to_service else None,
+                'my_service_name': to_service.title if to_service else 'Unknown',
+                'my_service_description': to_service.description if to_service else '',
                 'from_company': offering_company.name if offering_company else 'Unknown',
-                'description': offering_service.description if offering_service else '',
+                'from_company_id': offering_company.company_id if offering_company else None,
                 'status': prop.status,
                 'status_display': prop.status.title(),
                 'barter_coins_offered': prop.barter_coins_offered,
-                'message': prop.message
+                'message': prop.message,
+                'messages': message_list
             })
     
     # Barterdeal Overview (mutual interests)
@@ -1735,7 +2041,1015 @@ def mark_service_delivered(contract_id):
     return redirect(request.referrer or url_for('main.index'))
 
 
+@main.route('/proposal/<proposal_id>/message', methods=['POST'])
+def send_proposal_message(proposal_id):
+    """
+    Send a message on a proposal for negotiation
+    """
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    user_id = uuid.UUID(session['user_id'])
+    proposal = DealProposal.query.get(proposal_id)
+    
+    if not proposal:
+        flash('Proposal not found', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    # Find which company the user belongs to
+    membership_from = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=proposal.from_company_id
+    ).first()
+    membership_to = CompanyMember.query.filter_by(
+        user_id=user_id,
+        company_id=proposal.to_company_id
+    ).first()
+    
+    if not (membership_from or membership_to):
+        flash('You are not part of either company in this proposal', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    # Only allow admins to send messages
+    if not (membership_from and membership_from.is_admin) and not (membership_to and membership_to.is_admin):
+        flash('Only company admins can send messages', 'error')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    message_content = request.form.get('message_content', '').strip()
+    if not message_content:
+        flash('Message cannot be empty', 'warning')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    # Determine which company is sending the message
+    from_company_id = proposal.from_company_id if membership_from else proposal.to_company_id
+    
+    # Create and save message
+    message = Message(
+        message_id=uuid.uuid4(),
+        proposal_id=uuid.UUID(proposal_id),
+        from_company_id=from_company_id,
+        content=message_content,
+        created_at=datetime.datetime.now(datetime.timezone.utc)
+    )
+    
+    db.session.add(message)
+    db.session.commit()
+    
+    flash('Message sent', 'success')
+    return redirect(request.referrer or url_for('main.index'))
+
+
 @main.route('/contract/<contract_id>/write-review', methods=['GET', 'POST'])
 def write_review(contract_id):
     """Removed - use review_deal route instead"""
     return redirect(url_for('main.index'))
+
+
+# ===== NEW MARKETPLACE ROUTES =====
+
+@main.route('/marketplace')
+def marketplace():
+    """Main marketplace page for logged-in users with company selection."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.marketplace_public'))
+    
+    uid = uuid.UUID(session['user_id'])
+    
+    # Get user's companies
+    user_memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    user_companies = [membership.company for membership in user_memberships]
+    
+    if not user_companies:
+        flash('You need to join or create a company to use the marketplace', 'info')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get selected company from query parameter or session
+    selected_company_id = request.args.get('company_id')
+    if selected_company_id:
+        try:
+            selected_company_id = uuid.UUID(selected_company_id)
+            session['marketplace_company_id'] = str(selected_company_id)
+        except:
+            selected_company_id = None
+    elif 'marketplace_company_id' in session:
+        try:
+            selected_company_id = uuid.UUID(session['marketplace_company_id'])
+        except:
+            selected_company_id = None
+    
+    # Require an explicit company selection before entering the marketplace
+    if not selected_company_id:
+        return redirect(url_for('main.select_company_for_marketplace'))
+
+    # Ensure the selected company is one the user belongs to
+    selected_company = None
+    for company in user_companies:
+        if company.company_id == selected_company_id:
+            selected_company = company
+            break
+    if not selected_company:
+        flash('Select a valid company to browse the marketplace', 'warning')
+        return redirect(url_for('main.select_company_for_marketplace'))
+    
+    # Get all company IDs where user is a member (to exclude own services)
+    user_company_ids = [c.company_id for c in user_companies]
+    
+    # Get filter parameters
+    search_query = request.args.get('search', '').strip()
+    category_filter = request.args.get('category', '').strip()
+    
+    # Base query: active services from OTHER companies
+    query = Service.query.filter(
+        Service.is_active == True,
+        ~Service.company_id.in_(user_company_ids)
+    )
+    
+    # Apply search filter
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Service.title.ilike(f'%{search_query}%'),
+                Service.description.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # Apply category filter
+    if category_filter:
+        query = query.filter(Service.categories.ilike(f'%{category_filter}%'))
+    
+    services = query.order_by(Service.created_at.desc()).all()
+    
+    # Calculate average ratings for each service
+    service_ratings = {}
+    for service in services:
+        reviews = Review.query.filter_by(reviewed_service_id=service.service_id).all()
+        if reviews:
+            avg_rating = sum(r.rating for r in reviews) / len(reviews)
+            service_ratings[str(service.service_id)] = {
+                'avg': avg_rating,
+                'count': len(reviews)
+            }
+    
+    return render_template('marketplace.html',
+                         services=services,
+                         selected_company=selected_company,
+                         search_query=search_query,
+                         category_filter=category_filter,
+                         service_ratings=service_ratings)
+
+
+@main.route('/marketplace/public')
+def marketplace_public():
+    """Public marketplace page for non-logged-in users."""
+    # Get filter parameters
+    search_query = request.args.get('search', '').strip()
+    category_filter = request.args.get('category', '').strip()
+    
+    # Base query
+    query = Service.query.filter_by(is_active=True)
+    
+    # Apply search filter
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Service.title.ilike(f'%{search_query}%'),
+                Service.description.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # Apply category filter
+    if category_filter:
+        query = query.filter(Service.categories.ilike(f'%{category_filter}%'))
+    
+    services = query.order_by(Service.created_at.desc()).all()
+    
+    # Calculate average ratings for each service
+    service_ratings = {}
+    for service in services:
+        reviews = Review.query.filter_by(reviewed_service_id=service.service_id).all()
+        if reviews:
+            avg_rating = sum(r.rating for r in reviews) / len(reviews)
+            service_ratings[str(service.service_id)] = {
+                'avg': avg_rating,
+                'count': len(reviews)
+            }
+    
+    return render_template('marketplace-public.html',
+                         services=services,
+                         search_query=search_query,
+                         category_filter=category_filter,
+                         service_ratings=service_ratings)
+
+
+@main.route('/marketplace/service/<uuid:service_id>')
+def marketplace_service_view(service_id):
+    """Service detail page for logged-in users."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.marketplace_service_public', service_id=service_id))
+    
+    uid = uuid.UUID(session['user_id'])
+    service = Service.query.get_or_404(service_id)
+    
+    # Get user's companies
+    user_memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    user_companies = [membership.company for membership in user_memberships]
+    
+    if not user_companies:
+        flash('You need to join or create a company to request services', 'info')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get selected company from session
+    selected_company = None
+    if 'marketplace_company_id' in session:
+        try:
+            selected_company_id = uuid.UUID(session['marketplace_company_id'])
+            selected_company = Company.query.get(selected_company_id)
+        except:
+            pass
+    
+    # If no company selected, redirect to marketplace to select one
+    if not selected_company:
+        flash('Please select a company first to view service details', 'info')
+        return redirect(url_for('main.marketplace'))
+    
+    # Get reviews for this service
+    reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
+    
+    # Calculate average rating
+    avg_rating = 0
+    if reviews:
+        avg_rating = sum(r.rating for r in reviews) / len(reviews)
+    
+    return render_template('marketplace-trade-request.html',
+                         service=service,
+                         selected_company=selected_company,
+                         reviews=reviews,
+                         avg_rating=avg_rating)
+
+
+@main.route('/marketplace/service/<uuid:service_id>/public')
+def marketplace_service_public(service_id):
+    """Service detail page for non-logged-in users."""
+    service = Service.query.get_or_404(service_id)
+    
+    # Get reviews for this service
+    reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
+    
+    # Calculate average rating
+    avg_rating = 0
+    if reviews:
+        avg_rating = sum(r.rating for r in reviews) / len(reviews)
+    
+    return render_template('marketplace-trade-request-not-logged-in.html',
+                         service=service,
+                         reviews=reviews,
+                         avg_rating=avg_rating)
+
+
+@main.route('/marketplace/service/<uuid:service_id>/request', methods=['POST'])
+def marketplace_request_service(service_id):
+    """Handle trade request submission from marketplace."""
+    if 'user_id' not in session:
+        flash('You must be logged in to request services', 'error')
+        return redirect(url_for('main.login'))
+    
+    uid = uuid.UUID(session['user_id'])
+    service = Service.query.get_or_404(service_id)
+    
+    # Get selected company from session
+    if 'marketplace_company_id' not in session:
+        flash('Please select a company first', 'error')
+        return redirect(url_for('main.marketplace'))
+    
+    try:
+        company_id = uuid.UUID(session['marketplace_company_id'])
+    except:
+        flash('Invalid company selection', 'error')
+        return redirect(url_for('main.marketplace'))
+    
+    # Verify user is member of the company
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
+    if not membership:
+        flash('You are not a member of the selected company', 'error')
+        return redirect(url_for('main.marketplace'))
+    
+    company = Company.query.get(company_id)
+    
+    # Get validity days from form
+    try:
+        validity_days = int(request.form.get('validity_days', 14))
+        if validity_days not in [7, 14, 30, 60, 90]:
+            validity_days = 14
+    except:
+        validity_days = 14
+    
+    # Create TradeRequest
+    now = datetime.datetime.now(datetime.timezone.utc)
+    expires_at = now + datetime.timedelta(days=validity_days)
+    
+    trade_request = TradeRequest(
+        request_id=uuid.uuid4(),
+        requesting_company_id=company_id,
+        requested_service_id=service_id,
+        validity_days=validity_days,
+        status='active',
+        created_at=now,
+        expires_at=expires_at
+    )
+    
+    db.session.add(trade_request)
+    db.session.commit()
+    
+    flash('Trade request sent successfully!', 'success')
+    return redirect(url_for('main.select_company_for_marketplace'))
+# ========================================
+# TRADEFLOW ROUTES
+# ========================================
+
+@main.route('/tradeflow/<uuid:company_id>/incoming-requests', methods=['GET'])
+def tradeflow_incoming_requests(company_id):
+    """View incoming trade requests for this company"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    # Check user is member of this company
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get all active incoming requests (trade requests FOR this company's services)
+    incoming_requests = TradeRequest.query.join(Service).filter(
+        Service.company_id == company_id,
+        TradeRequest.status == 'active'
+    ).all()
+    
+    return render_template('tradeflow_incoming_requests.html', 
+                         company=company, 
+                         incoming_requests=incoming_requests)
+
+
+@main.route('/tradeflow/<uuid:company_id>/incoming-requests/<uuid:request_id>/select-return', methods=['GET', 'POST'])
+def tradeflow_select_return(company_id, request_id):
+    """Select a return service for an incoming trade request"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    incoming_request = TradeRequest.query.get_or_404(request_id)
+    
+    # Verify request is for this company's service
+    if incoming_request.requested_service.company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    if request.method == 'POST':
+        selected_service_id = request.form.get('selected_service_id')
+        if not selected_service_id:
+            flash('Please select a service', 'error')
+            return redirect(url_for('main.tradeflow_select_return', company_id=company_id, request_id=request_id))
+        
+        return_service = Service.query.get_or_404(selected_service_id)
+        
+        # Create a DealProposal to represent the match
+        # from_company is the one who requested (sent the trade request)
+        # to_company is the one responding (selecting the return service)
+        proposal = DealProposal(
+            proposal_id=uuid.uuid4(),
+            from_company_id=incoming_request.requesting_company_id,
+            to_company_id=company_id,
+            from_service_id=incoming_request.requested_service_id,
+            to_service_id=selected_service_id,
+            status='matched',
+            created_at=datetime.datetime.now(datetime.timezone.utc)
+        )
+        
+        db.session.add(proposal)
+        # Mark trade request as used
+        incoming_request.status = 'archived'
+        db.session.commit()
+        
+        flash('Match created! You can now make an offer.', 'success')
+        return redirect(url_for('main.tradeflow_match_made', company_id=company_id))
+    
+    # Get all services from THIS company (the one receiving the trade request)
+    services = Service.query.filter_by(company_id=company_id).all()
+    
+    return render_template('tradeflow_select_return.html',
+                         company=company,
+                         incoming_request=incoming_request,
+                         services=services,
+                         request_id=request_id)
+
+
+@main.route('/tradeflow/<uuid:company_id>/incoming-requests/<uuid:request_id>/select-return/<uuid:service_id>', methods=['GET'])
+def tradeflow_select_return_detail(company_id, request_id, service_id):
+    """View details of a service to select as return"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    incoming_request = TradeRequest.query.get_or_404(request_id)
+    service = Service.query.get_or_404(service_id)
+    
+    # Verify permissions
+    if incoming_request.requested_service.company_id != company_id or service.company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    return render_template('tradeflow_select_return_detail.html',
+                         company=company,
+                         incoming_request=incoming_request,
+                         service=service,
+                         request_id=request_id)
+
+
+@main.route('/tradeflow/<uuid:company_id>/decline-request/<uuid:request_id>', methods=['POST'])
+def tradeflow_decline_request(company_id, request_id):
+    """Decline an incoming trade request"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    trade_request = TradeRequest.query.get_or_404(request_id)
+    
+    # Verify this request is for this company
+    if trade_request.requested_service.company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Archive the request
+    trade_request.status = 'archived'
+    db.session.commit()
+    
+    flash('Request declined', 'info')
+    return redirect(url_for('main.tradeflow_incoming_requests', company_id=company_id))
+
+
+@main.route('/tradeflow/<uuid:company_id>/create-match', methods=['POST'])
+def tradeflow_create_match(company_id):
+    """Create a match when returning company selects a service"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    request_id = request.form.get('request_id')
+    service_id = request.form.get('service_id')
+    
+    trade_request = TradeRequest.query.get_or_404(request_id)
+    return_service = Service.query.get_or_404(service_id)
+    
+    # Create a DealProposal to represent the match
+    proposal = DealProposal(
+        proposal_id=uuid.uuid4(),
+        from_company_id=trade_request.requesting_company_id,
+        to_company_id=company_id,
+        from_service_id=trade_request.requested_service_id,
+        to_service_id=service_id,
+        status='pending',
+        created_at=datetime.datetime.now(datetime.timezone.utc)
+    )
+    
+    db.session.add(proposal)
+    # Mark trade request as used
+    trade_request.status = 'archived'
+    db.session.commit()
+    
+    flash('Match created! You can now create an offer.', 'success')
+    return redirect(url_for('main.tradeflow_match_made', company_id=company_id))
+
+
+@main.route('/tradeflow/<uuid:company_id>/you-requested', methods=['GET'])
+def tradeflow_you_requested(company_id):
+    """View trade requests sent by this company"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get all active requests sent by this company
+    your_requests = TradeRequest.query.filter_by(
+        requesting_company_id=company_id,
+        status='active'
+    ).all()
+    
+    return render_template('tradeflow_you_requested.html',
+                         company=company,
+                         your_requests=your_requests)
+
+
+@main.route('/tradeflow/<uuid:company_id>/you-requested/<uuid:request_id>', methods=['GET'])
+def tradeflow_you_requested_detail(company_id, request_id):
+    """View detail of one trade request sent by this company"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    trade_request = TradeRequest.query.get_or_404(request_id)
+    
+    if trade_request.requesting_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    return render_template('tradeflow_you_requested_detail.html',
+                         company=company,
+                         trade_request=trade_request,
+                         service=trade_request.requested_service)
+
+
+@main.route('/tradeflow/<uuid:company_id>/archived-requests', methods=['GET'])
+def tradeflow_archived_requests(company_id):
+    """View archived trade requests"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Archived requests sent by this company
+    archived_requests = TradeRequest.query.filter_by(
+        requesting_company_id=company_id,
+        status='archived'
+    ).all()
+    
+    return render_template('tradeflow_archived_requests.html',
+                         company=company,
+                         archived_requests=archived_requests)
+
+
+@main.route('/tradeflow/<uuid:company_id>/archived-requests/<uuid:request_id>', methods=['GET'])
+def tradeflow_archived_request_detail(company_id, request_id):
+    """View detail of an archived trade request"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    trade_request = TradeRequest.query.get_or_404(request_id)
+    
+    if trade_request.requesting_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    return render_template('tradeflow_archived_request_detail.html',
+                         company=company,
+                         trade_request=trade_request,
+                         service=trade_request.requested_service)
+
+
+@main.route('/tradeflow/<uuid:company_id>/match-made', methods=['GET'])
+def tradeflow_match_made(company_id):
+    """View all matches (where trade request was sent AND return service was selected)"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Delete expired matches (older than 7 days) - only if still in 'matched' status
+    cutoff_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+    expired = DealProposal.query.filter(
+        DealProposal.status == 'matched',
+        DealProposal.created_at < cutoff_date
+    ).all()
+    for proposal in expired:
+        db.session.delete(proposal)
+    db.session.commit()
+    
+    # Get all matched AND pending proposals where this company is involved
+    # Matches stay on this page until accepted (ActiveDeal created) or 7 days pass
+    matches = DealProposal.query.filter(
+        ((DealProposal.from_company_id == company_id) | (DealProposal.to_company_id == company_id)),
+        DealProposal.status.in_(['matched', 'pending'])
+    ).all()
+    
+    return render_template('tradeflow_match_made.html',
+                         company=company,
+                         matches=matches)
+
+
+@main.route('/tradeflow/<uuid:company_id>/match/<uuid:proposal_id>', methods=['GET', 'POST'])
+def tradeflow_match_detail(company_id, proposal_id):
+    """View detail of one match or create offer"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    proposal = DealProposal.query.get_or_404(proposal_id)
+    
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    if proposal.from_company_id != company_id and proposal.to_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    if request.method == 'POST':
+        # Get form data
+        barter_coins = request.form.get('barter_coins', 0)
+        message = request.form.get('message', '')
+        
+        try:
+            barter_coins = int(barter_coins) if barter_coins else 0
+        except ValueError:
+            barter_coins = 0
+        
+        # Update proposal with coins and message
+        proposal.barter_coins_offered = barter_coins
+        proposal.message = message if message.strip() else None
+        
+        # Change proposal status to 'pending' so it appears in "Awaiting Them"
+        proposal.status = 'pending'
+        
+        db.session.commit()
+        
+        flash('Offer sent! Waiting for the other party to respond.', 'success')
+        return redirect(url_for('main.tradeflow_awaiting_other_party', company_id=company_id))
+    
+    return render_template('tradeflow_match_detail.html',
+                         company=company,
+                         proposal=proposal)
+
+
+@main.route('/tradeflow/<uuid:company_id>/match/<uuid:proposal_id>/create-offer', methods=['GET', 'POST'])
+def tradeflow_create_offer(company_id, proposal_id):
+    """Create an offer/signature for a matched proposal"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    proposal = DealProposal.query.get_or_404(proposal_id)
+    
+    # Check if user is part of this company
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Check if company is part of this proposal
+    if proposal.from_company_id != company_id and proposal.to_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    if request.method == 'POST':
+        # Get form data
+        barter_coins = request.form.get('barter_coins', 0)
+        message = request.form.get('message', '')
+        
+        try:
+            barter_coins = int(barter_coins) if barter_coins else 0
+        except ValueError:
+            barter_coins = 0
+        
+        # Update proposal with coins and message
+        proposal.barter_coins_offered = barter_coins
+        proposal.message = message if message.strip() else None
+        
+        # Change proposal status to 'accepted' 
+        proposal.status = 'accepted'
+        
+        # Create an ActiveDeal from this proposal
+        active_deal = ActiveDeal(
+            active_deal_id=uuid.uuid4(),
+            proposal_id=proposal_id,
+            from_company_completed=False,
+            to_company_completed=False,
+            status='in_progress',
+            created_at=datetime.datetime.now(datetime.timezone.utc)
+        )
+        
+        db.session.add(active_deal)
+        db.session.commit()
+        
+        flash('Offer accepted! Deal is now active.', 'success')
+        return redirect(url_for('main.tradeflow_ongoing_deals', company_id=company_id))
+    
+    return render_template('tradeflow_create_offer.html',
+                         company=company,
+                         proposal=proposal)
+
+
+@main.route('/tradeflow/<uuid:company_id>/awaiting-signature', methods=['GET', 'POST'])
+def tradeflow_awaiting_signature(company_id):
+    """View offers from other parties awaiting this company's signature"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    if request.method == 'POST':
+        proposal_id = request.form.get('proposal_id')
+        action = request.form.get('action')
+        
+        proposal = DealProposal.query.get_or_404(proposal_id)
+        
+        # Verify this company is the recipient
+        if proposal.to_company_id != company_id:
+            flash('Access denied', 'error')
+            return redirect(url_for('main.my_companies'))
+        
+        if action == 'accept':
+            # Change status to accepted and create ActiveDeal
+            proposal.status = 'accepted'
+            
+            active_deal = ActiveDeal(
+                active_deal_id=uuid.uuid4(),
+                proposal_id=proposal_id,
+                from_company_completed=False,
+                to_company_completed=False,
+                status='in_progress',
+                created_at=datetime.datetime.now(datetime.timezone.utc)
+            )
+            
+            db.session.add(active_deal)
+            db.session.commit()
+            
+            flash('Deal accepted! Now active.', 'success')
+            return redirect(url_for('main.tradeflow_ongoing_deals', company_id=company_id))
+        
+        elif action == 'decline':
+            # Change status to rejected
+            proposal.status = 'rejected'
+            db.session.commit()
+            
+            flash('Offer declined.', 'info')
+            return redirect(url_for('main.tradeflow_awaiting_signature', company_id=company_id))
+    
+    # Get all proposals sent TO this company (awaiting our signature)
+    awaiting_signature = DealProposal.query.filter_by(
+        to_company_id=company_id,
+        status='pending'
+    ).all()
+    
+    return render_template('tradeflow_awaiting_signature.html',
+                         company=company,
+                         awaiting_signature=awaiting_signature)
+
+
+@main.route('/tradeflow/<uuid:company_id>/awaiting-signature/<uuid:proposal_id>', methods=['GET', 'POST'])
+def tradeflow_awaiting_signature_detail(company_id, proposal_id):
+    """View detail of offer awaiting signature with accept/decline options"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    proposal = DealProposal.query.get_or_404(proposal_id)
+    
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Verify this company is the recipient
+    if proposal.to_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'accept':
+            # Change status to accepted and create ActiveDeal
+            proposal.status = 'accepted'
+            
+            active_deal = ActiveDeal(
+                active_deal_id=uuid.uuid4(),
+                proposal_id=proposal_id,
+                from_company_completed=False,
+                to_company_completed=False,
+                status='in_progress',
+                created_at=datetime.datetime.now(datetime.timezone.utc)
+            )
+            
+            db.session.add(active_deal)
+            db.session.commit()
+            
+            flash('Deal accepted! Now active.', 'success')
+            return redirect(url_for('main.tradeflow_ongoing_deals', company_id=company_id))
+        
+        elif action == 'decline':
+            # Change status to rejected
+            proposal.status = 'rejected'
+            db.session.commit()
+            
+            flash('Offer declined.', 'info')
+            return redirect(url_for('main.tradeflow_awaiting_signature', company_id=company_id))
+    
+    return render_template('tradeflow_awaiting_signature_detail.html',
+                         company=company,
+                         proposal=proposal)
+
+
+@main.route('/tradeflow/<uuid:company_id>/awaiting-other-party', methods=['GET'])
+def tradeflow_awaiting_other_party(company_id):
+    """View offers sent by this company awaiting other party's response"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get all proposals sent FROM this company (awaiting their response)
+    awaiting_other_party = DealProposal.query.filter_by(
+        from_company_id=company_id,
+        status='pending'
+    ).all()
+    
+    return render_template('tradeflow_awaiting_other_party.html',
+                         company=company,
+                         awaiting_other_party=awaiting_other_party)
+
+
+@main.route('/tradeflow/<uuid:company_id>/ongoing-deals', methods=['GET'])
+def tradeflow_ongoing_deals(company_id):
+    """View ongoing deals for this company"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get active deals where this company is involved
+    ongoing_deals = ActiveDeal.query.join(DealProposal).filter(
+        ((DealProposal.from_company_id == company_id) | (DealProposal.to_company_id == company_id)),
+        ActiveDeal.status == 'in_progress'
+    ).all()
+    
+    return render_template('tradeflow_ongoing_deals.html',
+                         company=company,
+                         ongoing_deals=ongoing_deals)
+
+
+@main.route('/tradeflow/<uuid:company_id>/ongoing-deals/<uuid:deal_id>', methods=['GET', 'POST'])
+def tradeflow_ongoing_deal_detail(company_id, deal_id):
+    """View and manage an ongoing deal"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    active_deal = ActiveDeal.query.get_or_404(deal_id)
+    proposal = active_deal.proposal
+    
+    if proposal.from_company_id != company_id and proposal.to_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    if request.method == 'POST':
+        # Mark that the OTHER company has delivered their service
+        # If you are from_company, you confirm that to_company delivered
+        # If you are to_company, you confirm that from_company delivered
+        if proposal.from_company_id == company_id:
+            # You are from_company, so you confirm to_company delivered
+            active_deal.to_company_completed = True
+        else:
+            # You are to_company, so you confirm from_company delivered
+            active_deal.from_company_completed = True
+        
+        # Check if both sides have confirmed the other delivered
+        if active_deal.from_company_completed and active_deal.to_company_completed:
+            active_deal.status = 'completed'
+            active_deal.completed_at = datetime.datetime.now(datetime.timezone.utc)
+            db.session.commit()
+            flash('Deal completed! Both parties have confirmed delivery.', 'success')
+            return redirect(url_for('main.tradeflow_completed_deals', company_id=company_id))
+        else:
+            db.session.commit()
+            flash('Confirmed! Waiting for the other party to confirm delivery.', 'success')
+            return redirect(url_for('main.tradeflow_ongoing_deals', company_id=company_id))
+    
+    return render_template('tradeflow_ongoing_deal_detail.html',
+                         company=company,
+                         active_deal=active_deal,
+                         proposal=proposal)
+
+
+@main.route('/tradeflow/<uuid:company_id>/completed-deals', methods=['GET'])
+def tradeflow_completed_deals(company_id):
+    """View completed deals for this company"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    member = CompanyMember.query.filter_by(company_id=company_id, user_id=session['user_id']).first()
+    if not member:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get completed deals
+    completed_deals = ActiveDeal.query.join(DealProposal).filter(
+        ((DealProposal.from_company_id == company_id) | (DealProposal.to_company_id == company_id)),
+        ActiveDeal.status == 'completed'
+    ).all()
+    
+    return render_template('tradeflow_completed_deals.html',
+                         company=company,
+                         completed_deals=completed_deals)
+
+
+@main.route('/tradeflow/<uuid:company_id>/completed-deals/<uuid:deal_id>', methods=['GET'])
+def tradeflow_completed_deal_detail(company_id, deal_id):
+    """View detail of a completed deal with reviews"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    active_deal = ActiveDeal.query.get_or_404(deal_id)
+    proposal = active_deal.proposal
+    
+    if proposal.from_company_id != company_id and proposal.to_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    reviews = active_deal.reviews.all()
+    
+    return render_template('tradeflow_completed_deal_detail.html',
+                         company=company,
+                         active_deal=active_deal,
+                         proposal=proposal,
+                         reviews=reviews)
+
+
+@main.route('/tradeflow/<uuid:company_id>/completed-deals/<uuid:deal_id>/write-review', methods=['GET', 'POST'])
+def tradeflow_write_review(company_id, deal_id):
+    """Write a review for a completed deal"""
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    company = Company.query.get_or_404(company_id)
+    active_deal = ActiveDeal.query.get_or_404(deal_id)
+    proposal = active_deal.proposal
+    
+    if proposal.from_company_id != company_id and proposal.to_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Determine which company and service we're reviewing
+    if proposal.from_company_id == company_id:
+        reviewed_company_id = proposal.to_company_id
+        reviewed_service_id = proposal.to_service_id
+    else:
+        reviewed_company_id = proposal.from_company_id
+        reviewed_service_id = proposal.from_service_id
+    
+    # Check if already reviewed
+    existing_review = Review.query.filter_by(
+        deal_id=deal_id,
+        reviewer_id=session['user_id'],
+        reviewed_service_id=reviewed_service_id
+    ).first()
+    
+    if request.method == 'POST':
+        rating = int(request.form.get('rating', 5))
+        comment = request.form.get('comment', '')
+        
+        review = Review(
+            review_id=uuid.uuid4(),
+            deal_id=deal_id,
+            reviewer_id=session['user_id'],
+            rating=rating,
+            comment=comment,
+            reviewed_company_id=reviewed_company_id,
+            reviewed_service_id=reviewed_service_id,
+            created_at=datetime.datetime.now(datetime.timezone.utc)
+        )
+        
+        db.session.add(review)
+        db.session.commit()
+        
+        flash('Review submitted!', 'success')
+        return redirect(url_for('main.tradeflow_completed_deal_detail', company_id=company_id, deal_id=deal_id))
+    
+    # Get the service being reviewed
+    reviewed_service = Service.query.get(reviewed_service_id)
+    
+    return render_template('tradeflow_write_review.html',
+                         company=company,
+                         active_deal=active_deal,
+                         proposal=proposal,
+                         reviewed_service=reviewed_service,
+                         existing_review=existing_review)
+
+
+

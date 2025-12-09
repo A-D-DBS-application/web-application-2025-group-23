@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace - Barter.com</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='marketplace-public.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="{{ url_for('main.start') }}" class="nav-brand">Barter.com</a>
+            <div class="nav-links">
+                <a href="{{ url_for('main.start') }}">Home</a>
+                <a href="{{ url_for('main.marketplace_public') }}" class="active">Marketplace</a>
+                <a href="{{ url_for('main.login') }}">Login</a>
+                <a href="{{ url_for('main.register') }}">Register</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="marketplace-container">
+        <div class="marketplace-header">
+            <h1>Service Marketplace</h1>
+            <p class="header-subtitle">Browse available services - Login to request trades</p>
+        </div>
+
+        <div class="login-notice">
+            <div class="notice-content">
+                <span class="notice-icon">🔒</span>
+                <span class="notice-text">Want to trade services? <a href="{{ url_for('main.login') }}">Login</a> or <a href="{{ url_for('main.register') }}">Register</a> to get started!</span>
+            </div>
+        </div>
+
+        <div class="filters">
+            <form method="get" style="display: flex; gap: 1rem; width: 100%;">
+                <input type="text" name="search" placeholder="Search services..." class="search-bar" value="{{ search_query or '' }}">
+                <select name="category" class="category-filter" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    <option value="Marketing" {% if category_filter == 'Marketing' %}selected{% endif %}>Marketing</option>
+                    <option value="IT & Development" {% if category_filter == 'IT & Development' %}selected{% endif %}>IT & Development</option>
+                    <option value="Design" {% if category_filter == 'Design' %}selected{% endif %}>Design</option>
+                    <option value="Content Creation" {% if category_filter == 'Content Creation' %}selected{% endif %}>Content Creation</option>
+                    <option value="Consulting" {% if category_filter == 'Consulting' %}selected{% endif %}>Consulting</option>
+                    <option value="Legal" {% if category_filter == 'Legal' %}selected{% endif %}>Legal</option>
+                    <option value="Finance" {% if category_filter == 'Finance' %}selected{% endif %}>Finance</option>
+                </select>
+                <button type="submit" style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">Search</button>
+            </form>
+        </div>
+
+        <div class="services-grid">
+            {% for service in services %}
+            <div class="service-card" data-category="{{ service.categories }}">
+                <div class="service-header">
+                    <h3>{{ service.title }}</h3>
+                    <span class="service-company">by {{ service.company.name }}</span>
+                    {% set rating_key = service.service_id|string %}
+                    {% if rating_key in service_ratings %}
+                    <div style="color: #fbbf24; font-size: 14px; margin-top: 4px;">
+                        ★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }} reviews)
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="service-body">
+                    <p class="service-description">{{ service.description[:150] }}{% if service.description|length > 150 %}...{% endif %}</p>
+                    <div class="service-meta">
+                        <span class="category-badge">{{ service.categories }}</span>
+                        <span class="duration">{{ service.duration_hours }} hours</span>
+                    </div>
+                </div>
+                <div class="service-footer">
+                    <a href="{{ url_for('main.marketplace_service_public', service_id=service.service_id) }}" class="btn-view">View Details</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-services">
+                <p>No services available in the marketplace yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

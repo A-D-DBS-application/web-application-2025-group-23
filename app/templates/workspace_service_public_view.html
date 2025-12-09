@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ service.title }} | Barter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-page">
+        <div class="app-layout">
+            <!-- SIDEBAR -->
+            <aside class="app-sidebar">
+                <div class="app-sidebar-inner">
+                    <div class="app-sidebar-logo">
+                        <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
+                    </div>
+                    
+                    <div class="sidebar-profile sidebar-profile--compact">
+                        <div class="sidebar-avatar sidebar-avatar--small"></div>
+                        <div>
+                            <div class="sidebar-user-name sidebar-user-name--small">Hi, {{ username }}</div>
+                            <div class="sidebar-user-sub">My companies</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-companies">
+                        {% for comp in companies %}
+                        <button class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}"
+                                onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+                            <div class="sidebar-company-name">{{ comp.name }}</div>
+                            <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
+                            <span class="sidebar-company-role tag">{% if comp.is_admin %}Admin{% else %}Member{% endif %}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- MAIN CONTENT -->
+            <div class="app-main">
+                <header class="app-header">
+                    <div class="app-header-content">
+                        <div class="app-header-left">
+                            <button class="link-back" onclick="window.location.href='{{ url_for('main.workspace_services', company_id=company.company_id) }}'">
+                                ← Back to Services
+                            </button>
+                        </div>
+                        <nav class="app-nav">
+                            <a href="{{ url_for('main.marketplace') }}" class="app-nav-link">Marketplace</a>
+                            <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
+                            <a href="{{ url_for('main.profile_settings') }}" class="app-nav-link">Profile</a>
+                            <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
+                        </nav>
+                    </div>
+                </header>
+                
+                <main class="app-content">
+                    <div class="app-content-inner">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category,msg in messages %}
+                              <div class="alert alert-{{ category }}">{{ msg }}</div>
+                            {% endfor %}
+                          {% endif %}
+                        {% endwith %}
+                        
+                        <div class="service-view-header">
+                            <h1 class="service-view-title">{{ service.title }}</h1>
+                            <p class="service-view-company">{{ company.name }}</p>
+                        </div>
+                        
+                        <div class="service-view-content">
+                            <div class="service-view-section">
+                                <h2 class="service-view-section-title">Description</h2>
+                                <p class="service-view-text">{{ service.description }}</p>
+                            </div>
+                            
+                            <div class="service-view-section">
+                                <h2 class="service-view-section-title">Details</h2>
+                                <div class="service-view-details">
+                                    <div class="service-detail-item">
+                                        <span class="service-detail-label">Duration:</span>
+                                        <span class="service-detail-value">{{ service.duration_hours }} hours</span>
+                                    </div>
+                                    <div class="service-detail-item">
+                                        <span class="service-detail-label">Status:</span>
+                                        <span class="service-detail-value">{% if service.is_active %}Active{% else %}Inactive{% endif %}</span>
+                                    </div>
+                                </div>
+                                
+                                {% if service.categories %}
+                                <div style="margin-top: 16px;">
+                                    <span class="service-detail-label">Categories:</span>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                                        {% for cat in service.categories.split(',') %}
+                                            <span class="tag">{{ cat.strip() }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if is_admin %}
+                            <div class="service-view-actions">
+                                <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" 
+                                   class="btn btn-primary">Edit Service</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Services – {{ company.name }} – Barter.com</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body class="app-page">
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-inner">
+        <div class="app-sidebar-logo">
+          <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
+        </div>
+
+        <div class="sidebar-profile sidebar-profile--compact">
+          <div class="sidebar-avatar sidebar-avatar--small"></div>
+          <div>
+            <div class="sidebar-user-name sidebar-user-name--small">Hi, {{ username }}</div>
+            <div class="sidebar-user-sub">My companies</div>
+          </div>
+        </div>
+
+        <div class="sidebar-companies">
+          {% for comp in companies %}
+          <button class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}"
+                  onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+            <div class="sidebar-company-name">{{ comp.name }}</div>
+            <div class="sidebar-company-meta">{{ comp.member_count }} members • {{ comp.service_count }} services</div>
+            <span class="sidebar-company-role tag">{{ comp.role }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="app-header">
+        <div class="app-header-content">
+          <div class="app-header-left">
+            <button class="link-back" onclick="window.location.href='{{ url_for('main.my_companies') }}'">
+              ← Back to My companies
+            </button>
+          </div>
+
+          <nav class="app-nav">
+            <a href="{{ url_for('main.marketplace', company_id=company.company_id) }}" class="app-nav-link">Marketplace</a>
+            <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
+            <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <div class="app-content-inner">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category,msg in messages %}
+                <div class="alert alert-{{ category }}">{{ msg }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <section class="workspace-header">
+            <div class="workspace-header-left">
+              <div class="company-logo-placeholder"></div>
+              <div>
+                <h1 class="workspace-company-name">{{ company.name }}</h1>
+                <p class="workspace-company-description">
+                  {{ company.description if company.description else 'No description provided' }}
+                </p>
+                <div class="workspace-company-stats">
+                  <span>{{ member_count }} members • {{ service_count }} services</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <nav class="workspace-tabs">
+            <div class="tabs-left">
+              <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
+                 class="tab-link">Overview</a>
+              <a href="{{ url_for('main.workspace_members', company_id=company.company_id) }}" 
+                 class="tab-link">Members</a>
+              <a href="{{ url_for('main.workspace_services', company_id=company.company_id) }}" 
+                 class="tab-link tab-link--active">Services</a>
+            </div>
+          </nav>
+
+          <a href="{{ url_for('main.add_service', company_id=company.company_id) }}" 
+             class="add-service-btn">Add new service</a>
+
+          <section class="services-grid">
+            {% if services %}
+              {% for service in services %}
+              <article class="service-card">
+                <h3 class="service-card__title">{{ service.title }}</h3>
+                <div class="service-card__company">{{ company.name }}</div>
+                <div class="service-card__description">
+                  {{ service.description[:100] }}{% if service.description|length > 100 %}...{% endif %}
+                </div>
+
+                {% if service.categories %}
+                <div class="service-card__tags">
+                  {% for category in service.categories.split(',') %}
+                  <span class="tag">{{ category }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="service-card__footer">
+                  <a href="{{ url_for('main.workspace_service_view', company_id=company.company_id, service_id=service.service_id) }}" 
+                     class="btn btn-secondary">View</a>
+                  <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" 
+                     class="btn btn-primary">Manage</a>
+                </div>
+              </article>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state">
+                <p class="empty-state__text">No services yet. Add your first service to get started!</p>
+              </div>
+            {% endif %}
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

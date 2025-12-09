@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Members – {{ company.name }} – Barter.com</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body class="app-page">
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-inner">
+        <div class="app-sidebar-logo">
+          <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
+        </div>
+
+        <div class="sidebar-profile sidebar-profile--compact">
+          <div class="sidebar-avatar sidebar-avatar--small"></div>
+          <div>
+            <div class="sidebar-user-name sidebar-user-name--small">Hi, {{ username }}</div>
+            <div class="sidebar-user-sub">My companies</div>
+          </div>
+        </div>
+
+        <div class="sidebar-companies">
+          {% for comp in companies %}
+          <button class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}"
+                  onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+            <div class="sidebar-company-name">{{ comp.name }}</div>
+            <div class="sidebar-company-meta">{{ comp.member_count }} members • {{ comp.service_count }} services</div>
+            <span class="sidebar-company-role tag">{{ comp.role }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="app-header">
+        <div class="app-header-content">
+          <div class="app-header-left">
+            <button class="link-back" onclick="window.location.href='{{ url_for('main.my_companies') }}'">
+              ← Back to My companies
+            </button>
+          </div>
+
+          <nav class="app-nav">
+            <a href="{{ url_for('main.marketplace', company_id=company.company_id) }}" class="app-nav-link">Marketplace</a>
+            <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
+            <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <div class="app-content-inner">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category,msg in messages %}
+                <div class="alert alert-{{ category }}">{{ msg }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <section class="workspace-header">
+            <div class="workspace-header-left">
+              <div class="company-logo-placeholder"></div>
+              <div>
+                <h1 class="workspace-company-name">{{ company.name }}</h1>
+                <p class="workspace-company-description">
+                  {{ company.description if company.description else 'No description provided' }}
+                </p>
+                <div class="workspace-company-stats">
+                  <span>{{ member_count }} members • {{ service_count }} services</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <nav class="workspace-tabs">
+            <div class="tabs-left">
+              <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
+                 class="tab-link">Overview</a>
+              <a href="{{ url_for('main.workspace_members', company_id=company.company_id) }}" 
+                 class="tab-link tab-link--active">Members</a>
+              <a href="{{ url_for('main.workspace_services', company_id=company.company_id) }}" 
+                 class="tab-link">Services</a>
+            </div>
+          </nav>
+
+          <div class="layout-2col">
+            <section class="members">
+              <h2 class="members__title">Members</h2>
+              
+              {% if is_admin %}
+              <p class="members__note">
+                You are the company admin, only you can invite new members or remove existing members.
+              </p>
+              {% endif %}
+
+              <ul class="member-list">
+                {% for member in members %}
+                <li class="member-card {% if member.user_id == current_user_id %}member-card--you{% endif %}">
+                  <div class="member-card__left">
+                    <div class="avatar avatar--medium {% if member.is_admin %}avatar--admin{% endif %}"></div>
+                    <div>
+                      <div class="member-card__name">
+                        {% if member.user_id == current_user_id %}You{% else %}{{ member.user_obj.username if member.user_obj else 'Unknown' }}{% endif %}
+                      </div>
+                      <div class="member-card__role {% if member.is_admin %}member-card__role--admin{% endif %}">
+                        {{ 'Admin' if member.is_admin else 'Member' }}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {% if is_admin and member.user_id != current_user_id %}
+                    {% if not member.is_admin %}
+                    <div class="member-actions">
+                      <form method="post" action="{{ url_for('main.transfer_admin', company_id=company.company_id, member_id=member.member_id) }}" style="display: inline;">
+                        <button type="submit" class="member-card__action" 
+                                onclick="return confirm('Promote this member to admin? You will become a regular member.');">
+                          Promote to Admin
+                        </button>
+                      </form>
+                      <form method="post" action="{{ url_for('main.remove_member', company_id=company.company_id, member_id=member.member_id) }}" style="display: inline;">
+                        <button type="submit" class="member-card__action member-card__action--danger"
+                                onclick="return confirm('Remove this member from the company?');">
+                          Remove member
+                        </button>
+                      </form>
+                    </div>
+                    {% endif %}
+                  {% endif %}
+                  
+                  {% if member.user_id == current_user_id and not is_admin %}
+                  <form method="post" action="{{ url_for('main.leave_company', company_id=company.company_id) }}" style="display: inline;">
+                    <button type="submit" class="member-card__action member-card__action--danger"
+                            onclick="return confirm('Are you sure you want to leave this company?');">
+                      Leave company
+                    </button>
+                  </form>
+                  {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+              
+              {% if pending and is_admin %}
+              <h3 class="members__subtitle">Pending Requests</h3>
+              <ul class="member-list">
+                {% for req in pending %}
+                <li class="member-card">
+                  <div class="member-card__left">
+                    <div class="avatar avatar--medium"></div>
+                    <div>
+                      <div class="member-card__name">{{ req.user_obj.username if req.user_obj else 'Unknown' }}</div>
+                      <div class="member-card__role">Pending</div>
+                    </div>
+                  </div>
+                  <form method="post" action="{{ url_for('main.accept_join_request', company_id=company.company_id, request_id=req.request_id) }}">
+                    <button type="submit" class="member-card__action">Accept</button>
+                  </form>
+                </li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </section>
+
+            {% if is_admin %}
+            <aside class="invite-card">
+              <header class="invite-card__header">
+                <h3>Invite new member</h3>
+              </header>
+              <p class="invite-card__text">
+                Share this code with someone to invite them to the company.
+              </p>
+
+              <div class="invite-card__code-box">
+                <span class="invite-card__code">{{ company.join_code }}</span>
+              </div>
+
+              <button class="invite-card__copy" onclick="copyCode()">
+                Copy
+              </button>
+            </aside>
+            {% endif %}
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  
+  <script>
+  function copyCode() {
+    const code = "{{ company.join_code }}";
+    navigator.clipboard.writeText(code).then(() => {
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = "Successfully copied!";
+      setTimeout(() => {
+        btn.textContent = originalText;
+      }, 2000);
+    });
+  }
+  </script>
+</body>
+</html>

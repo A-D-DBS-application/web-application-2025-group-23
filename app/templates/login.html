@@ -3,133 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Barter</title>
+    <title>Login – Barter.com</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5;
-            display: flex;
-            min-height: 100vh;
-        }
-        .login-container {
-            display: flex;
-            width: 100%;
-            min-height: 100vh;
-        }
-        .left-panel {
-            flex: 0.6;
-            background-color: #e8f0fe;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-        .left-panel h1 {
-            font-size: 64px;
-            color: #1a73e8;
-            margin: 0;
-            font-weight: 500;
-        }
-        .right-panel {
-            flex: 1.4;
-            background-color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-        .login-box {
-            width: 100%;
-            max-width: 350px;
-        }
-        .login-box h2 {
-            font-size: 28px;
-            margin-bottom: 25px;
-            color: #333;
-            font-weight: 500;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 13px;
-            box-sizing: border-box;
-            background-color: #f8f9fa;
-        }
-        .form-group input::placeholder {
-            color: #999;
-        }
-        .btn-login {
-            width: 100%;
-            padding: 10px;
-            background-color: #1a73e8;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-        .btn-login:hover {
-            background-color: #1557b0;
-        }
-        .form-footer {
-            text-align: center;
-            margin-top: 15px;
-            color: #666;
-            font-size: 13px;
-        }
-        .form-footer a {
-            color: #1a73e8;
-            text-decoration: none;
-        }
-        .form-footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
 </head>
-<body>
-    <div class="login-container">
-        <div class="left-panel">
-            <h1>Barter.com</h1>
-        </div>
-        <div class="right-panel">
-            <div class="login-box">
-                <h2>Welcome back</h2>
+
+<body class="auth-page">
+    <div class="auth-layout">
+      
+        <!-- LEFT PANEL -->
+        <aside class="auth-left">
+            <div class="auth-left-inner">
+                <div class="auth-brand-block">
+                    <div class="auth-brand-name">Barter.com</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT PANEL: LOGIN -->
+        <main class="auth-right">
+            <div class="auth-card">
+          
+                <h1 class="auth-title">Welcome back</h1>
+                <p class="auth-subtitle">
+                    Log in to your account to continue exchanging services
+                </p>
+
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div style="color: red; margin-bottom: 10px; font-size: 13px;">{{ message }}</div>
+                            <div class="error-message">{{ message }}</div>
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
-                <form method="post">
+
+                <form class="auth-form" method="post">
+
                     <div class="form-group">
-                        <input type="text" name="username" placeholder="Username" required>
+                        <label for="username">Username</label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Username"
+                            required
+                        />
                     </div>
+
                     <div class="form-group">
-                        <input type="password" name="password" placeholder="Password" required>
+                        <label for="password">Password</label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Password"
+                            required
+                        />
                     </div>
-                    <button type="submit" class="btn-login">Log in</button>
+
+                    <button type="submit" class="btn btn-primary auth-submit">
+                        Log in
+                    </button>
                 </form>
-                <div class="form-footer">
-                    Don't have an account?<br>
-                    <a href="{{ url_for('main.register') }}">Register</a>
+
+                <div class="auth-footer-text">
+                    <span>Don't have an account?</span>
+                    <a href="{{ url_for('main.register') }}" class="auth-link">Register</a>
                 </div>
             </div>
-        </div>
+        </main>
+
     </div>
+    <script src="{{ url_for('static', filename='device-detection.js') }}"></script>
 </body>
 </html>

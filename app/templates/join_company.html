@@ -7,41 +7,88 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- HEADER -->
-    <header class="header">
-        <div class="logo">www.barter.com</div>
-        <nav class="nav">
-            <a href="{{ url_for('main.index') }}">Dashboard</a>
-            <a href="{{ url_for('main.index') }}">My Companies</a>
-        </nav>
-    </header>
-
-    <section class="form-container">
-        <div class="form-card">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category,msg in messages %}
-                  <div class="alert alert-{{ category }}">{{ msg }}</div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-            <h1>Join Company</h1>
-            <form method="post">
-                <label>Company Invite Code</label>
-                <input name="code" placeholder="Enter invite code" required>
-                <button type="submit" class="btn-primary large">Send Join Request</button>
-            </form>
-            <div class="form-links">
-                <a href="{{ url_for('main.index') }}">Back to Dashboard</a>
-            </div>
+    <div class="workspace-page">
+        <div class="workspace-layout">
+            <!-- SIDEBAR -->
+            <aside class="workspace-sidebar">
+                <div class="sidebar-content">
+                    <div class="sidebar-logo">
+                        <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
+                    </div>
+                    
+                    <div class="sidebar-profile sidebar-profile--compact">
+                        <div class="sidebar-avatar sidebar-avatar--small"></div>
+                        <div>
+                            <div class="sidebar-user-name sidebar-user-name--small">Hi, {{ username }}</div>
+                            <div class="sidebar-user-sub">My companies</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-companies">
+                        {% if companies %}
+                            {% for comp in companies %}
+                            <button class="sidebar-company-card"
+                                    onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+                                <div class="sidebar-company-name">{{ comp.name }}</div>
+                                <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
+                                <div class="sidebar-company-role">{{ comp.role }}</div>
+                            </button>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- MAIN CONTENT -->
+            <main class="workspace-main-content">
+                <header class="workspace-header-bar">
+                    <div class="workspace-header-content">
+                        <div class="workspace-header-left">
+                            <button class="link-back" onclick="window.location.href='{{ url_for('main.my_companies') }}'">
+                                ← Back to My companies
+                            </button>
+                        </div>
+                        <nav class="workspace-nav">
+                            <a href="{{ url_for('main.marketplace') }}" class="nav-link">Marketplace</a>
+                            <a href="{{ url_for('main.my_companies') }}" class="nav-link">My companies</a>
+                            <a href="{{ url_for('main.profile_settings') }}" class="nav-link">Profile</a>
+                            <a href="{{ url_for('main.logout') }}" class="nav-link">Log out</a>
+                        </nav>
+                    </div>
+                </header>
+                
+                <div class="workspace-content">
+                    <div class="workspace-content-inner">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category,msg in messages %}
+                              <div class="alert alert-{{ category }}">{{ msg }}</div>
+                            {% endfor %}
+                          {% endif %}
+                        {% endwith %}
+                        
+                        <div class="page-header">
+                            <h1 class="page-title">Join a company</h1>
+                            <p class="page-subtitle page-subtitle--bold">As a member, you'll be able to view company services but cannot edit company information or manage members.</p>
+                        </div>
+                        
+                        <form method="post" class="join-form">
+                            <div class="form-field form-field--full">
+                                <label for="code">Invite Code *</label>
+                                <input type="text" id="code" name="code" required placeholder="Enter 6-character code" maxlength="6" style="max-width: 400px; text-transform: uppercase; letter-spacing: 4px; font-size: 24px; text-align: center;">
+                            </div>
+                            
+                            <p class="helper-text">Don't have an invite code? Ask an admin of the company you want to join.</p>
+                            
+                            <button type="submit" class="btn btn-primary btn-join">Join company</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
         </div>
-    </section>
-
-    <footer class="footer">
-        © 2025 Barter.com. Building partnerships through service exchange.
-    </footer>
+    </div>
 </body>
 </html>
