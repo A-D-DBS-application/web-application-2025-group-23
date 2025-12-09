@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ service.title }} - Barter.com</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body { background: #f6f8fb; margin: 0; font-family: 'Roboto', sans-serif; }
+        .page-container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .back-link { display: inline-block; color: #667eea; text-decoration: none; margin-bottom: 16px; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        .content-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+        .main-content { background: white; padding: 32px; border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+        .service-title { font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 8px 0; }
+        .service-company { font-size: 16px; color: #6b7280; margin-bottom: 24px; }
+        .info-row { display: flex; gap: 24px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #e5e7eb; }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+        .info-value { font-size: 15px; font-weight: 600; color: #111827; }
+        .section-title { font-size: 18px; font-weight: 600; color: #111827; margin: 24px 0 12px 0; }
+        .service-description { font-size: 15px; line-height: 1.6; color: #4b5563; margin-bottom: 24px; }
+        .login-notice { background: #f3f4f6; padding: 24px; border-radius: 8px; text-align: center; margin-top: 24px; }
+        .login-notice h3 { margin: 0 0 8px 0; font-size: 18px; color: #111827; }
+        .login-notice p { margin: 0 0 16px 0; font-size: 14px; color: #6b7280; }
+        .notice-actions { display: flex; gap: 12px; justify-content: center; }
+        .btn-login, .btn-register { padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; text-decoration: none; }
+        .btn-login { background: #4f46e5; color: white; }
+        .btn-login:hover { background: #4338ca; }
+        .btn-register { background: white; color: #4f46e5; border: 1px solid #4f46e5; }
+        .btn-register:hover { background: #eef2ff; }
+        .reviews-section { margin-top: 32px; }
+        .review-card { background: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 12px; }
+        .review-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .reviewer-name { font-weight: 600; font-size: 14px; color: #111827; }
+        .review-date { font-size: 13px; color: #6b7280; }
+        .review-rating { color: #fbbf24; margin-bottom: 8px; font-size: 16px; }
+        .review-text { font-size: 14px; color: #4b5563; margin: 0; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <nav class="navbar" style="background: white; padding: 16px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div class="nav-content" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <a href="{{ url_for('main.start') }}" class="nav-brand" style="font-size: 20px; font-weight: 700; color: #4f46e5; text-decoration: none;">Barter.com</a>
+            <div class="nav-links" style="display: flex; gap: 20px;">
+                <a href="{{ url_for('main.marketplace_public') }}" style="color: #4b5563; text-decoration: none; font-size: 14px;">Marketplace</a>
+                <a href="{{ url_for('main.login') }}" style="color: #4b5563; text-decoration: none; font-size: 14px;">Log in</a>
+                <a href="{{ url_for('main.register') }}" style="background: #4f46e5; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Create account</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <a href="{{ url_for('main.marketplace_public') }}" class="back-link">← Back to marketplace</a>
+
+        <div class="content-grid">
+            <main class="main-content">
+                <h1 class="service-title">{{ service.title }}</h1>
+                <div class="service-company">Company {{ service.company.name }}</div>
+                
+                <div class="info-row" style="flex-wrap: wrap;">
+                    <div class="info-item">
+                        <span class="info-label">Service description</span>
+                        <span class="info-value">
+                            {% if service.description %}
+                                {{ service.description[:90] }}{% if service.description|length > 90 %}...{% endif %}
+                            {% else %}
+                                No description provided yet
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Category</span>
+                        <span class="info-value">{{ service.categories or 'Not specified' }}</span>
+                    </div>
+                    {% if reviews and reviews|length > 0 %}
+                    <div class="info-item">
+                        <span class="info-label">Reviews</span>
+                        <span class="info-value">★ {{ reviews|length }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="login-notice">
+                    <h3>Log in to trade</h3>
+                    <p>You must be logged in to send a trade request.</p>
+                    <p>Log in or create an account to start trading services on Barter.</p>
+                    <div class="notice-actions">
+                        <a href="{{ url_for('main.login') }}" class="btn-login">Log in</a>
+                        <a href="{{ url_for('main.register') }}" class="btn-register">Create account</a>
+                    </div>
+                </div>
+
+                {% if reviews %}
+                <div class="reviews-section">
+                    <h2 class="section-title">Reviews</h2>
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-card">
+                            <div class="review-header">
+                                <span class="reviewer-name">{{ review.reviewer.username }}</span>
+                                <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</span>
+                            </div>
+                            <div class="review-rating">
+                                {% for i in range(review.rating) %}★{% endfor %}
+                                {% for i in range(5 - review.rating) %}☆{% endfor %}
+                            </div>
+                            <p class="review-text">{{ review.comment }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

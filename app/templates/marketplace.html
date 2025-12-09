@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace - Barter.com</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='marketplace.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="{{ url_for('main.start') }}" class="nav-brand">Barter.com</a>
+            <div class="nav-links">
+                <a href="{{ url_for('main.marketplace') }}" class="active">Marketplace</a>
+                <a href="{{ url_for('main.my_companies') }}">My Companies</a>
+                <a href="{{ url_for('main.profile_settings') }}">Profile</a>
+                <a href="{{ url_for('main.logout') }}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="marketplace-container">
+        <div class="marketplace-header">
+            <h1>Service Marketplace</h1>
+            <div class="company-selector" style="gap: 0.5rem; align-items: center;">
+                <span style="font-size: 14px; color: #4a5568;">Browsing as <strong>{{ selected_company.name }}</strong></span>
+                <a href="{{ url_for('main.select_company_for_marketplace') }}" style="font-size: 14px; color: #667eea; text-decoration: none;">Switch company</a>
+            </div>
+        </div>
+
+        <div class="filters">
+            <form method="get" style="display: flex; gap: 1rem; width: 100%;">
+                <input type="hidden" name="company_id" value="{{ selected_company.company_id }}">
+                <input type="text" name="search" placeholder="Search services..." class="search-bar" value="{{ search_query or '' }}">
+                <select name="category" class="category-filter" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    <option value="Marketing" {% if category_filter == 'Marketing' %}selected{% endif %}>Marketing</option>
+                    <option value="IT & Development" {% if category_filter == 'IT & Development' %}selected{% endif %}>IT & Development</option>
+                    <option value="Design" {% if category_filter == 'Design' %}selected{% endif %}>Design</option>
+                    <option value="Content Creation" {% if category_filter == 'Content Creation' %}selected{% endif %}>Content Creation</option>
+                    <option value="Consulting" {% if category_filter == 'Consulting' %}selected{% endif %}>Consulting</option>
+                    <option value="Legal" {% if category_filter == 'Legal' %}selected{% endif %}>Legal</option>
+                    <option value="Finance" {% if category_filter == 'Finance' %}selected{% endif %}>Finance</option>
+                </select>
+                <button type="submit" style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">Search</button>
+            </form>
+        </div>
+
+        <div class="services-grid">
+            {% for service in services %}
+            <div class="service-card" data-category="{{ service.categories }}">
+                <div class="service-header">
+                    <h3>{{ service.title }}</h3>
+                    <span class="service-company">by {{ service.company.name }}</span>
+                </div>
+                <div class="service-body">
+                    <p class="service-description">{{ service.description[:150] }}{% if service.description|length > 150 %}...{% endif %}</p>
+                    <div class="service-meta">
+                        <span class="category-badge">{{ service.categories }}</span>
+                        <span class="duration">{{ service.duration_hours }} hours</span>
+                    </div>
+                </div>
+                <div class="service-footer">
+                    <a href="{{ url_for('main.marketplace_service_view', service_id=service.service_id) }}" class="btn-view">View Details</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-services">
+                <p>No services available in the marketplace yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

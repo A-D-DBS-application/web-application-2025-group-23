@@ -17,6 +17,13 @@ def index():
     # Anonymous users see the start page
     return render_template('start.html')
 
+@main.route('/start')
+def start():
+    """
+    Start page route (alias for index)
+    """
+    return index()
+
 @main.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -1056,175 +1063,15 @@ def delete_service(service_id):
     return redirect(url_for('main.company_services', company_id=company_id))
 
 
-@main.route('/deals/browse')
-@main.route('/deals/browse/<uuid:company_id>')
-def browse_deals(company_id=None):
-    """Browse all active services from OTHER companies only."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    uid = uuid.UUID(session['user_id'])
-    
-    # Save company_id to session if provided
-    if company_id:
-        session['last_marketplace_company'] = str(company_id)
-    
-    # Get all company IDs where the user is a member
-    user_company_ids = db.session.query(CompanyMember.company_id).filter_by(user_id=uid).all()
-    user_company_ids = [cid[0] for cid in user_company_ids]  # Extract UUID from tuples
-    
-    # Get filter parameters
-    search_query = request.args.get('search', '').strip()
-    selected_categories = request.args.getlist('category')
-    
-    # Base query: active services from OTHER companies (NOT the user's own companies)
-    query = Service.query.filter(
-        Service.is_active == True,
-        ~Service.company_id.in_(user_company_ids)  # Exclude user's companies
-    )
-    
-    # Apply search filter
-    if search_query:
-        query = query.filter(
-            db.or_(
-                Service.title.ilike(f'%{search_query}%'),
-                Service.description.ilike(f'%{search_query}%')
-            )
-        )
-    
-    # Apply category filter
-    if selected_categories:
-        # Services can have multiple categories, check if any match
-        category_filters = []
-        for cat in selected_categories:
-            category_filters.append(Service.categories.ilike(f'%{cat}%'))
-        query = query.filter(db.or_(*category_filters))
-    
-    services = query.order_by(Service.created_at.desc()).all()
-    
-    # Calculate average ratings for companies
-    company_ratings = {}
-    for service in services:
-        if service.company_id not in company_ratings:
-            # Get all reviews for this company
-            reviews = db.session.query(Review).filter_by(reviewed_company_id=service.company_id).all()
-            if reviews:
-                avg_rating = sum(r.rating for r in reviews) / len(reviews)
-                company_ratings[service.company_id] = round(avg_rating, 1)
-            else:
-                company_ratings[service.company_id] = None
-    
-    available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
-                           'Design', 'Development', 'Consulting', 'Sales', 'HR', 
-                           'Operations', 'Customer Support']
-    
-    return render_template('browse_deals.html',
-                         services=services,
-                         categories=available_categories,
-                         selected_categories=selected_categories,
-                         search_query=search_query,
-                         company_ratings=company_ratings,
-                         selected_company_id=company_id)
+# OLD ROUTE - REPLACED BY marketplace()
+# @main.route('/deals/browse')
+# @main.route('/deals/browse/<uuid:company_id>')
+# def browse_deals(company_id=None):
 
 
-@main.route('/service/<uuid:service_id>')
-def service_detail(service_id):
-    """View full details of a service."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    uid = uuid.UUID(session['user_id'])
-    service = Service.query.get_or_404(service_id)
-    company = service.company
-    
-    # Check if user is member of this company
-    is_own_company = CompanyMember.query.filter_by(company_id=company.company_id, user_id=uid).first() is not None
-    
-    # Get user's companies for interest button
-    user_companies = CompanyMember.query.filter_by(user_id=uid).all()
-    
-    # Get the selected company from query parameter (from marketplace) or session
-    selected_company_id = request.args.get('company_id')
-    selected_company = None
-    if selected_company_id:
-        try:
-            selected_company = uuid.UUID(selected_company_id)
-        except:
-            selected_company = None
-    elif 'last_marketplace_company' in session:
-        # Use last company from session if no company_id in URL
-        try:
-            selected_company = uuid.UUID(session['last_marketplace_company'])
-        except:
-            selected_company = None
-    
-    # Check if user has already expressed interest from any of their companies
-    existing_interests = {}
-    for membership in user_companies:
-        interest = ServiceInterest.query.filter_by(
-            service_id=service_id,
-            company_id=membership.company_id
-        ).first()
-        if interest:
-            existing_interests[membership.company_id] = True
-    
-    # Get all reviews for this company
-    reviews = Review.query.filter_by(reviewed_company_id=company.company_id).all()
-    avg_rating = None
-    if reviews:
-        avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1)
-    
-    # Get interested companies (for service owner to see)
-    # Only show interests that don't have a completed deal
-    interests = []
-    if is_own_company:
-        all_interests = ServiceInterest.query.filter_by(service_id=service_id).all()
-        
-        for interest in all_interests:
-            # Check if there's a completed deal with this interest
-            completed_deal = db.session.query(ActiveDeal).join(DealProposal).filter(
-                db.or_(
-                    db.and_(
-                        DealProposal.from_company_id == interest.company_id,
-                        DealProposal.from_service_id == service_id,
-                        ActiveDeal.status == 'completed'
-                    ),
-                    db.and_(
-                        DealProposal.to_company_id == interest.company_id,
-                        DealProposal.to_service_id == service_id,
-                        ActiveDeal.status == 'completed'
-                    )
-                )
-            ).first()
-            
-            # Only add interest if there's no completed deal
-            if not completed_deal:
-                interests.append(interest)
-    
-    # Get user's services from their selected company (for offering in exchange)
-    my_services = []
-    if selected_company:
-        my_services = Service.query.filter_by(company_id=selected_company, is_active=True).all()
-    
-    # Get referrer information (where user came from)
-    referrer = request.args.get('referrer')
-    back_link = None
-    if referrer == 'requests' and selected_company_id:
-        back_link = url_for('main.company_requests', company_id=selected_company_id)
-    
-    return render_template('service_detail.html',
-                         service=service,
-                         company=company,
-                         is_own_company=is_own_company,
-                         user_companies=user_companies,
-                         existing_interests=existing_interests,
-                         reviews=reviews,
-                         avg_rating=avg_rating,
-                         total_reviews=len(reviews),
-                         interests=interests,
-                         selected_company_id=selected_company,
-                         my_services=my_services,
-                         back_link=back_link)
+# OLD ROUTE - REPLACED BY marketplace_service_view()
+# @main.route('/service/<uuid:service_id>')
+# def service_detail(service_id):
 
 
 @main.route('/service/<uuid:service_id>/interest', methods=['POST'])
@@ -1670,25 +1517,30 @@ def company_choice():
 @main.route('/select-company-marketplace')
 def select_company_for_marketplace():
     """
-    Select which company to use for browsing marketplace
+    Let the user pick which company to use for the marketplace.
     """
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
-    
-    user_id = uuid.UUID(session['user_id'])
-    
-    # Get all companies where user is a member
-    memberships = CompanyMember.query.filter_by(user_id=user_id).all()
+
+    uid = uuid.UUID(session['user_id'])
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+
     companies = []
     for membership in memberships:
-        company = Company.query.get(membership.company_id)
-        if company:
+        comp = Company.query.get(membership.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
             companies.append({
-                'company_id': company.company_id,
-                'name': company.name,
-                'description': getattr(company, 'description', None)
+                'company_id': comp.company_id,
+                'name': comp.name,
+                'description': comp.description,
+                'member_count': member_count,
+                'service_count': service_count,
+                'is_admin': membership.is_admin
             })
-    
+
+    # If the user has no companies, show the empty state in the template
     return render_template('select_company_marketplace.html', companies=companies)
 
 
@@ -2251,5 +2103,224 @@ def send_proposal_message(proposal_id):
 def write_review(contract_id):
     """Removed - use review_deal route instead"""
     return redirect(url_for('main.index'))
+
+
+# ===== NEW MARKETPLACE ROUTES =====
+
+@main.route('/marketplace')
+def marketplace():
+    """Main marketplace page for logged-in users with company selection."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.marketplace_public'))
+    
+    uid = uuid.UUID(session['user_id'])
+    
+    # Get user's companies
+    user_memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    user_companies = [membership.company for membership in user_memberships]
+    
+    if not user_companies:
+        flash('You need to join or create a company to use the marketplace', 'info')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get selected company from query parameter or session
+    selected_company_id = request.args.get('company_id')
+    if selected_company_id:
+        try:
+            selected_company_id = uuid.UUID(selected_company_id)
+            session['marketplace_company_id'] = str(selected_company_id)
+        except:
+            selected_company_id = None
+    elif 'marketplace_company_id' in session:
+        try:
+            selected_company_id = uuid.UUID(session['marketplace_company_id'])
+        except:
+            selected_company_id = None
+    
+    # Require an explicit company selection before entering the marketplace
+    if not selected_company_id:
+        return redirect(url_for('main.select_company_for_marketplace'))
+
+    # Ensure the selected company is one the user belongs to
+    selected_company = None
+    for company in user_companies:
+        if company.company_id == selected_company_id:
+            selected_company = company
+            break
+    if not selected_company:
+        flash('Select a valid company to browse the marketplace', 'warning')
+        return redirect(url_for('main.select_company_for_marketplace'))
+    
+    # Get all company IDs where user is a member (to exclude own services)
+    user_company_ids = [c.company_id for c in user_companies]
+    
+    # Get filter parameters
+    search_query = request.args.get('search', '').strip()
+    category_filter = request.args.get('category', '').strip()
+    
+    # Base query: active services from OTHER companies
+    query = Service.query.filter(
+        Service.is_active == True,
+        ~Service.company_id.in_(user_company_ids)
+    )
+    
+    # Apply search filter
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Service.title.ilike(f'%{search_query}%'),
+                Service.description.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # Apply category filter
+    if category_filter:
+        query = query.filter(Service.categories.ilike(f'%{category_filter}%'))
+    
+    services = query.order_by(Service.created_at.desc()).all()
+    
+    return render_template('marketplace.html',
+                         services=services,
+                         selected_company=selected_company,
+                         search_query=search_query,
+                         category_filter=category_filter)
+
+
+@main.route('/marketplace/public')
+def marketplace_public():
+    """Public marketplace page for non-logged-in users."""
+    # Get filter parameters
+    search_query = request.args.get('search', '').strip()
+    category_filter = request.args.get('category', '').strip()
+    
+    # Base query
+    query = Service.query.filter_by(is_active=True)
+    
+    # Apply search filter
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Service.title.ilike(f'%{search_query}%'),
+                Service.description.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # Apply category filter
+    if category_filter:
+        query = query.filter(Service.categories.ilike(f'%{category_filter}%'))
+    
+    services = query.order_by(Service.created_at.desc()).all()
+    
+    return render_template('marketplace-public.html',
+                         services=services,
+                         search_query=search_query,
+                         category_filter=category_filter)
+
+
+@main.route('/marketplace/service/<uuid:service_id>')
+def marketplace_service_view(service_id):
+    """Service detail page for logged-in users."""
+    if 'user_id' not in session:
+        return redirect(url_for('main.marketplace_service_public', service_id=service_id))
+    
+    uid = uuid.UUID(session['user_id'])
+    service = Service.query.get_or_404(service_id)
+    
+    # Get user's companies
+    user_memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    user_companies = [membership.company for membership in user_memberships]
+    
+    if not user_companies:
+        flash('You need to join or create a company to request services', 'info')
+        return redirect(url_for('main.my_companies'))
+    
+    # Get selected company from session
+    selected_company = None
+    if 'marketplace_company_id' in session:
+        try:
+            selected_company_id = uuid.UUID(session['marketplace_company_id'])
+            selected_company = Company.query.get(selected_company_id)
+        except:
+            pass
+    
+    # If no company selected, redirect to marketplace to select one
+    if not selected_company:
+        flash('Please select a company first to view service details', 'info')
+        return redirect(url_for('main.marketplace'))
+    
+    # Get reviews (placeholder - you can add Review model queries here)
+    reviews = []
+    
+    return render_template('marketplace-trade-request.html',
+                         service=service,
+                         selected_company=selected_company,
+                         reviews=reviews)
+
+
+@main.route('/marketplace/service/<uuid:service_id>/public')
+def marketplace_service_public(service_id):
+    """Service detail page for non-logged-in users."""
+    service = Service.query.get_or_404(service_id)
+    
+    # Get reviews (placeholder)
+    reviews = []
+    
+    return render_template('marketplace-trade-request-not-logged-in.html',
+                         service=service,
+                         reviews=reviews)
+
+
+@main.route('/marketplace/service/<uuid:service_id>/request', methods=['POST'])
+def marketplace_request_service(service_id):
+    """Handle trade request submission from marketplace."""
+    if 'user_id' not in session:
+        flash('You must be logged in to request services', 'error')
+        return redirect(url_for('main.login'))
+    
+    uid = uuid.UUID(session['user_id'])
+    service = Service.query.get_or_404(service_id)
+    
+    # Get selected company from session
+    if 'marketplace_company_id' not in session:
+        flash('Please select a company first', 'error')
+        return redirect(url_for('main.marketplace'))
+    
+    try:
+        company_id = uuid.UUID(session['marketplace_company_id'])
+    except:
+        flash('Invalid company selection', 'error')
+        return redirect(url_for('main.marketplace'))
+    
+    # Verify user is member of the company
+    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
+    if not membership:
+        flash('You are not a member of the selected company', 'error')
+        return redirect(url_for('main.marketplace'))
+    
+    company = Company.query.get(company_id)
+    
+    # Check if company has enough coins
+    if company.barter_coins < service.barter_coins:
+        flash('Your company does not have enough barter coins for this service', 'error')
+        return redirect(url_for('main.marketplace_service_view', service_id=service_id))
+    
+    # Get optional message
+    message = request.form.get('message', '')
+    
+    # Create service interest (reusing existing model)
+    interest = ServiceInterest(
+        interest_id=uuid.uuid4(),
+        service_id=service_id,
+        company_id=company_id,
+        message=message if hasattr(ServiceInterest, 'message') else None,
+        created_at=datetime.datetime.now(datetime.timezone.utc)
+    )
+    
+    db.session.add(interest)
+    db.session.commit()
+    
+    flash('Trade request sent successfully!', 'success')
+    return redirect(url_for('main.marketplace'))
+
 
 

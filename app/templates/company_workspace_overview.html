@@ -45,7 +45,7 @@
           </div>
 
           <nav class="app-nav">
-            <a href="#" class="app-nav-link">Marketplace</a>
+            <a href="{{ url_for('main.marketplace', company_id=company.company_id) }}" class="app-nav-link">Marketplace</a>
             <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
             <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
           </nav>

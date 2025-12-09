@@ -193,7 +193,6 @@ class Service(db.Model):
     is_offered = db.Column(db.Boolean, nullable=False, default=True)  # True = offering service
     is_active = db.Column(db.Boolean, nullable=False, default=True)  # Can be deactivated
 
-    estimated_time_min = db.Column(db.Integer)          # int4, mag NULL (legacy)
     value_estimate = db.Column(db.Numeric)              # numeric, mag NULL
     availability = db.Column(JSONB)                     # jsonb, bv. {"mon": ["evening"]}
 
