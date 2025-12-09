@@ -209,7 +209,42 @@ class Service(db.Model):
 
 
 # ==========================
-# SERVICE INTEREST
+# TRADE REQUEST
+# ==========================
+class TradeRequest(db.Model):
+    """
+    A trade request sent by one company expressing interest in another company's service.
+    Includes validity in days (7/14/30/60/90).
+    Status: active (sent but no match yet), archived (expired or declined).
+    """
+    __tablename__ = "trade_request"
+
+    request_id = db.Column(UUID(as_uuid=True), primary_key=True)
+    requesting_company_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("company.company_id"),
+        nullable=False
+    )
+    requested_service_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("service.service_id"),
+        nullable=False
+    )
+    validity_days = db.Column(db.Integer, nullable=False, default=14)  # 7, 14, 30, 60, 90
+    status = db.Column(db.Text, nullable=False, default='active')  # active, archived (expired/no match)
+    created_at = db.Column(DateTime(timezone=True), nullable=False)
+    expires_at = db.Column(DateTime(timezone=True), nullable=False)
+
+    # Relationships
+    requesting_company = db.relationship("Company", foreign_keys=[requesting_company_id], backref="trade_requests_sent")
+    requested_service = db.relationship("Service", backref="trade_requests")
+
+    def __repr__(self) -> str:
+        return f"<TradeRequest {self.request_id} ({self.status})>"
+
+
+# ==========================
+# SERVICE INTEREST (DEPRECATED - KEPT FOR BACKWARDS COMPATIBILITY)
 # ==========================
 class ServiceInterest(db.Model):
     """
