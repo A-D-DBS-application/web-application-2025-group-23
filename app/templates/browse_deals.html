@@ -92,17 +92,31 @@
             margin-bottom: 12px;
         }
         .service-categories {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 12px;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+            margin-bottom: 12px !important;
+            margin-top: 8px !important;
         }
         .category-tag {
-            background: #e3f2fd;
-            color: var(--blue);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
+            background: #f0f0f0 !important;
+            color: #667eea !important;
+            padding: 6px 14px !important;
+            border-radius: 20px !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            border: none !important;
+            white-space: nowrap !important;
+            display: inline-block !important;
+            margin: 0 !important;
+            vertical-align: middle !important;
+        }
+        .service-body {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .service-meta {
+            margin-top: auto !important;
         }
     </style>
 </head>
@@ -175,7 +189,7 @@
                             {% if service.categories %}
                                 <div class="service-categories">
                                     {% for cat in service.categories.split(',') %}
-                                        <span class="category-tag">{{ cat }}</span>
+                                        <span class="category-tag">{{ cat.strip() }}</span>
                                     {% endfor %}
                                 </div>
                             {% endif %}

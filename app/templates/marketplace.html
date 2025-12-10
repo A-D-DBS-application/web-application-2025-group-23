@@ -52,21 +52,27 @@
                 <div class="service-header">
                     <h3>{{ service.title }}</h3>
                     <span class="service-company">by {{ service.company.name }}</span>
-                    {% set rating_key = service.service_id|string %}
-                    {% if rating_key in service_ratings %}
-                    <div style="color: #fbbf24; font-size: 14px; margin-top: 4px;">
-                        ★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }} reviews)
-                    </div>
-                    {% endif %}
                 </div>
                 <div class="service-body">
                     <p class="service-description">{{ service.description[:150] }}{% if service.description|length > 150 %}...{% endif %}</p>
-                    <div class="service-meta">
-                        <span class="category-badge">{{ service.categories }}</span>
-                        <span class="duration">{{ service.duration_hours }} hours</span>
-                    </div>
+                    {% if service.categories %}
+                        <div class="service-categories">
+                            {% for cat in service.categories.split(',') %}
+                                <span class="category-tag">{{ cat.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="service-footer">
+                    <div class="service-meta">
+                        {% set rating_key = service.service_id|string %}
+                        {% if rating_key in service_ratings %}
+                        <div style="color: #fbbf24; font-size: 14px;">
+                            ★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }} reviews)
+                        </div>
+                        {% endif %}
+                        <span class="duration">{{ service.duration_hours }} hours</span>
+                    </div>
                     <a href="{{ url_for('main.marketplace_service_view', service_id=service.service_id) }}" class="btn-view">View Details</a>
                 </div>
             </div>

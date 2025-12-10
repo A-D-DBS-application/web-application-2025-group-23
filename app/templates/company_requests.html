@@ -280,7 +280,11 @@
                         {% if req.messages %}
                         <div class="chat-container" id="chat-{{ req.proposal_id }}" style="max-height: 300px; overflow-y: auto; margin-bottom: 12px; padding: 10px; background-color: white; border-radius: 4px; display: flex; flex-direction: column;">
                             {% for msg in req.messages %}
-                            <div style="margin-bottom: 10px; padding: 8px; background-color: {% if msg.company_name == company.name %}#e3f2fd{% else %}#f0f0f0{% endif %}; border-radius: 4px; border-left: 3px solid {% if msg.company_name == company.name %}#2196f3{% else %}#ccc{% endif %};">
+                            {% if msg.company_name == company.name %}
+                            <div style="margin-bottom: 10px; padding: 8px; background-color: #e3f2fd; border-left: 3px solid #2196f3; border-radius: 4px;">
+                            {% else %}
+                            <div style="margin-bottom: 10px; padding: 8px; background-color: #f0f0f0; border-left: 3px solid #ccc; border-radius: 4px;">
+                            {% endif %}
                                 <div style="font-size: 12px; color: #666; margin-bottom: 4px;">
                                     <strong>{{ msg.company_name }}</strong> • {{ msg.timestamp }}
                                 </div>
@@ -377,7 +381,11 @@
                         {% if req.messages %}
                         <div class="chat-container" id="chat-{{ req.proposal_id }}" style="max-height: 300px; overflow-y: auto; margin-bottom: 12px; padding: 10px; background-color: white; border-radius: 4px; display: flex; flex-direction: column;">
                             {% for msg in req.messages %}
-                            <div style="margin-bottom: 10px; padding: 8px; background-color: {% if msg.company_name == company.name %}#e3f2fd{% else %}#f0f0f0{% endif %}; border-radius: 4px; border-left: 3px solid {% if msg.company_name == company.name %}#2196f3{% else %}#ccc{% endif %};">
+                            {% if msg.company_name == company.name %}
+                            <div style="margin-bottom: 10px; padding: 8px; background-color: #e3f2fd; border-left: 3px solid #2196f3; border-radius: 4px;">
+                            {% else %}
+                            <div style="margin-bottom: 10px; padding: 8px; background-color: #f0f0f0; border-left: 3px solid #ccc; border-radius: 4px;">
+                            {% endif %}
                                 <div style="font-size: 12px; color: #666; margin-bottom: 4px;">
                                     <strong>{{ msg.company_name }}</strong> • {{ msg.timestamp }}
                                 </div>

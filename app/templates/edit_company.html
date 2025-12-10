@@ -30,12 +30,13 @@
                     <div class="sidebar-companies">
                         {% if companies %}
                             {% for comp in companies %}
-                            <button class="sidebar-company-card {% if comp.company_id == company.company_id %}sidebar-company-card--active{% endif %}"
-                                    onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+                            <a href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}" 
+                               class="sidebar-company-card {% if comp.company_id == company.company_id %}sidebar-company-card--active{% endif %}" 
+                               style="text-decoration: none; display: block;">
                                 <div class="sidebar-company-name">{{ comp.name }}</div>
                                 <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
                                 <div class="sidebar-company-role">{{ comp.role }}</div>
-                            </button>
+                            </a>
                             {% endfor %}
                         {% endif %}
                     </div>
@@ -47,9 +48,9 @@
                 <header class="workspace-header-bar">
                     <div class="workspace-header-content">
                         <div class="workspace-header-left">
-                            <button class="link-back" onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=company.company_id) }}'">
+                            <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" class="link-back" style="text-decoration: none;">
                                 ← Back to Workspace
-                            </button>
+                            </a>
                         </div>
                         <nav class="workspace-nav">
                             <a href="{{ url_for('main.marketplace') }}" class="nav-link">Marketplace</a>

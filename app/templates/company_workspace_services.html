@@ -24,12 +24,11 @@
 
         <div class="sidebar-companies">
           {% for comp in companies %}
-          <button class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}"
-                  onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+          <a href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}" class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}" style="text-decoration: none; display: block;">
             <div class="sidebar-company-name">{{ comp.name }}</div>
             <div class="sidebar-company-meta">{{ comp.member_count }} members • {{ comp.service_count }} services</div>
             <span class="sidebar-company-role tag">{{ comp.role }}</span>
-          </button>
+          </a>
           {% endfor %}
         </div>
       </div>
@@ -39,9 +38,9 @@
       <header class="app-header">
         <div class="app-header-content">
           <div class="app-header-left">
-            <button class="link-back" onclick="window.location.href='{{ url_for('main.my_companies') }}'">
+            <a href="{{ url_for('main.my_companies') }}" class="link-back" style="text-decoration: none;">
               ← Back to My companies
-            </button>
+            </a>
           </div>
 
           <nav class="app-nav">
