@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Started | Barter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="onboarding-page">
+{% extends "base.html" %}
+{% block title %}Get Started | Barter{% endblock %}
+
+{% block content %}
+<div class="onboarding-page">
         <header class="onboarding-header">
             <div class="onboarding-header-content">
                 <a href="{{ url_for('main.my_companies') }}" class="onboarding-logo">Barter.com</a>
@@ -55,5 +47,4 @@
             </div>
         </main>
     </div>
-</body>
-</html>
+{% endblock %}

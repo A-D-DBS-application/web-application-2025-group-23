@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login – Barter.com</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
+{% extends "base.html" %}
+{% block title %}Login – Barter.com{% endblock %}
+{% block body_class %}auth-page{% endblock %}
 
-<body class="auth-page">
+{% block content %}
     <div class="auth-layout">
       
         <!-- LEFT PANEL -->
@@ -27,14 +22,6 @@
                 <p class="auth-subtitle">
                     Log in to your account to continue exchanging services
                 </p>
-
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="error-message">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
 
                 <form class="auth-form" method="post">
 
@@ -74,5 +61,4 @@
 
     </div>
     <script src="{{ url_for('static', filename='device-detection.js') }}"></script>
-</body>
-</html>
+{% endblock %}

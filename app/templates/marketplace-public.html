@@ -1,25 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketplace - Barter.com</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='marketplace-public.css') }}">
-</head>
-<body>
-    <nav class="navbar">
-        <div class="nav-content">
-            <a href="{{ url_for('main.start') }}" class="nav-brand">Barter.com</a>
-            <div class="nav-links">
-                <a href="{{ url_for('main.start') }}">Home</a>
-                <a href="{{ url_for('main.marketplace_public') }}" class="active">Marketplace</a>
-                <a href="{{ url_for('main.login') }}">Login</a>
-                <a href="{{ url_for('main.register') }}">Register</a>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
+{% block title %}Marketplace | Barter.com{% endblock %}
+{% block nav_marketplace_active %}class="active"{% endblock %}
 
-    <div class="marketplace-container">
+{% block content %}
+<div class="marketplace-container">
         <div class="marketplace-header">
             <h1>Service Marketplace</h1>
             <p class="header-subtitle">Browse available services - Login to request trades</p>
@@ -86,5 +70,4 @@
             {% endfor %}
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

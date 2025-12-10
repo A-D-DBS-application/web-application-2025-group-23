@@ -1,24 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketplace - Barter.com</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='marketplace.css') }}">
-</head>
-<body>
-    <nav class="navbar">
-        <div class="nav-content">
-            <a href="{{ url_for('main.start') }}" class="nav-brand">Barter.com</a>
-            <div class="nav-links">
-                <a href="{{ url_for('main.marketplace') }}" class="active">Marketplace</a>
-                <a href="{{ url_for('main.my_companies') }}">My Companies</a>
-                <a href="{{ url_for('main.profile_settings') }}">Profile</a>
-                <a href="{{ url_for('main.logout') }}">Logout</a>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
+{% block title %}Marketplace | Barter.com{% endblock %}
+{% block nav_marketplace_active %}class="active"{% endblock %}
 
+{% block content %}
     <div class="marketplace-container">
         <div class="marketplace-header">
             <h1>Service Marketplace</h1>
@@ -34,13 +18,18 @@
                 <input type="text" name="search" placeholder="Search services..." class="search-bar" value="{{ search_query or '' }}">
                 <select name="category" class="category-filter" onchange="this.form.submit()">
                     <option value="">All Categories</option>
-                    <option value="Marketing" {% if category_filter == 'Marketing' %}selected{% endif %}>Marketing</option>
-                    <option value="IT & Development" {% if category_filter == 'IT & Development' %}selected{% endif %}>IT & Development</option>
-                    <option value="Design" {% if category_filter == 'Design' %}selected{% endif %}>Design</option>
-                    <option value="Content Creation" {% if category_filter == 'Content Creation' %}selected{% endif %}>Content Creation</option>
-                    <option value="Consulting" {% if category_filter == 'Consulting' %}selected{% endif %}>Consulting</option>
-                    <option value="Legal" {% if category_filter == 'Legal' %}selected{% endif %}>Legal</option>
                     <option value="Finance" {% if category_filter == 'Finance' %}selected{% endif %}>Finance</option>
+                    <option value="Accounting" {% if category_filter == 'Accounting' %}selected{% endif %}>Accounting</option>
+                    <option value="IT" {% if category_filter == 'IT' %}selected{% endif %}>IT</option>
+                    <option value="Marketing" {% if category_filter == 'Marketing' %}selected{% endif %}>Marketing</option>
+                    <option value="Legal" {% if category_filter == 'Legal' %}selected{% endif %}>Legal</option>
+                    <option value="Design" {% if category_filter == 'Design' %}selected{% endif %}>Design</option>
+                    <option value="Development" {% if category_filter == 'Development' %}selected{% endif %}>Development</option>
+                    <option value="Consulting" {% if category_filter == 'Consulting' %}selected{% endif %}>Consulting</option>
+                    <option value="Sales" {% if category_filter == 'Sales' %}selected{% endif %}>Sales</option>
+                    <option value="HR" {% if category_filter == 'HR' %}selected{% endif %}>HR</option>
+                    <option value="Operations" {% if category_filter == 'Operations' %}selected{% endif %}>Operations</option>
+                    <option value="Customer Support" {% if category_filter == 'Customer Support' %}selected{% endif %}>Customer Support</option>
                 </select>
                 <button type="submit" style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">Search</button>
             </form>
@@ -83,5 +72,4 @@
             {% endfor %}
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

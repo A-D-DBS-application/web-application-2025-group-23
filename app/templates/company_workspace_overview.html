@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Company workspace – {{ company.name }} – Barter.com</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-</head>
-<body class="app-page">
+{% extends "base.html" %}
+{% block title %}Company workspace – {{ company.name }} – Barter.com{% endblock %}
+{% block body_class %} class="app-page"{% endblock %}
+{% block nav_companies_active %}class="active"{% endblock %}
+
+{% block content %}
   <div class="app-layout">
     <aside class="app-sidebar">
       <div class="app-sidebar-inner">
-        <div class="app-sidebar-logo">
-          <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
-        </div>
-
         <div class="sidebar-profile sidebar-profile--compact">
           <div class="sidebar-avatar sidebar-avatar--small"></div>
           <div>
@@ -35,31 +28,13 @@
     </aside>
 
     <div class="app-main">
-      <header class="app-header">
-        <div class="app-header-content">
-          <div class="app-header-left">
+      <main class="app-content">
+        <div class="app-content-inner">
+          <div class="workspace-header-left" style="margin-bottom: 24px;">
             <a href="{{ url_for('main.my_companies') }}" class="link-back" style="text-decoration: none;">
               ← Back to My companies
             </a>
           </div>
-
-          <nav class="app-nav">
-            <a href="{{ url_for('main.marketplace', company_id=company.company_id) }}" class="app-nav-link">Marketplace</a>
-            <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
-            <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
-          </nav>
-        </div>
-      </header>
-
-      <main class="app-content">
-        <div class="app-content-inner">
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              {% for category,msg in messages %}
-                <div class="alert alert-{{ category }}">{{ msg }}</div>
-              {% endfor %}
-            {% endif %}
-          {% endwith %}
           
           <section class="workspace-header">
             <div class="workspace-header-left">
@@ -131,5 +106,4 @@
       </main>
     </div>
   </div>
-</body>
-</html>
+{% endblock %}

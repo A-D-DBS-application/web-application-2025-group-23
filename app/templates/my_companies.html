@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Companies | Barter.com</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="my-companies-layout">
+{% extends "base.html" %}
+{% block title %}My Companies | Barter.com{% endblock %}
+{% block nav_companies_active %}class="active"{% endblock %}
+
+{% block content %}
+<div class="my-companies-layout">
         <!-- LEFT SIDEBAR -->
         <aside class="my-companies-sidebar">
             <div class="sidebar-content">
-                <div class="sidebar-logo">
-                    <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
-                </div>
-                
                 <!-- User Profile -->
                 <div class="sidebar-profile-section">
                     <div class="profile-avatar">
@@ -50,24 +39,8 @@
         
         <!-- MAIN CONTENT -->
         <main class="my-companies-main-content">
-            <header class="my-companies-header">
-                <div class="my-companies-header-inner">
-                    <nav class="my-companies-nav">
-                        <a href="{{ url_for('main.select_company_for_marketplace') }}" class="nav-link">Marketplace</a>
-                        <a href="{{ url_for('main.my_companies') }}" class="nav-link nav-link--active">My companies</a>
-                        <a href="{{ url_for('main.logout') }}" class="nav-link">Log out</a>
-                    </nav>
-                </div>
-            </header>
-            
             <div class="my-companies-content">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% if messages %}
-                    {% for category,msg in messages %}
-                      <div class="alert alert-{{ category }}">{{ msg }}</div>
-                    {% endfor %}
-                  {% endif %}
-                {% endwith %}
+                
                 
                 <h1 class="page-heading">Your companies</h1>
                 
@@ -102,5 +75,4 @@
             </div>
         </main>
     </div>
-</body>
-</html>
+{% endblock %}

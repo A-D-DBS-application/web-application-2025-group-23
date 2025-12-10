@@ -1,55 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Awaiting Their Signature – Barter.com</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Roboto', sans-serif; background: #f5f7fa; color: #1a1a1a; }
-    .header { background: white; border-bottom: 1px solid #e8eaed; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-    .logo { font-size: 26px; font-weight: 700; color: #1A73E8; }
-    .nav-links { display: flex; gap: 32px; }
-    .nav-link { color: #1a1a1a; text-decoration: none; font-weight: 500; font-size: 15px; transition: color 0.2s; }
-    .nav-link:hover { color: #1A73E8; }
-    .container { display: flex; min-height: calc(100vh - 60px); }
-    .sidebar { width: 340px; background: white; border-right: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; }
-    .company-badge { background: rgba(26, 115, 232, 0.08); padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #1A73E8; margin-bottom: 28px; border: 1px solid rgba(26, 115, 232, 0.15); }
-    .sidebar-section { margin-bottom: 32px; }
-    .sidebar-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #9aa0a6; margin-bottom: 14px; letter-spacing: 0.6px; }
-    .sidebar-link { display: block; padding: 10px 12px; margin: 4px 0; border-radius: 6px; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: all 0.15s; }
-    .sidebar-link:hover { background: rgba(26, 115, 232, 0.08); color: #1A73E8; }
-    .sidebar-link.active { background: rgba(26, 115, 232, 0.12); color: #1A73E8; font-weight: 600; }
-    .main { flex: 1; padding: 40px 48px; overflow-y: auto; }
-    .page-header { margin-bottom: 36px; }
-    .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
-    .page-desc { font-size: 15px; color: #5f6368; line-height: 1.6; max-width: 600px; }
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-    .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 24px; transition: all 0.2s; }
-    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #1A73E8; }
-    .card-header { background: #e8f0fe; border-left: 4px solid #1A73E8; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
-    .card-header-label { font-size: 12px; font-weight: 600; color: #1A73E8; }
-    .card-pair { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
-    .card-side { flex: 1; }
-    .card-side-label { font-size: 11px; color: #9aa0a6; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
-    .card-side-title { font-size: 16px; font-weight: 600; }
-    .arrows { color: #1A73E8; font-size: 18px; font-weight: 700; }
-    .empty { text-align: center; padding: 60px 20px; }
-    .empty-icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-text { color: #5f6368; font-size: 16px; }
-  </style>
-</head>
-<body>
-  <header class="header">
-    <div class="logo">Barter.com</div>
-    <nav class="nav-links">
-      <a href="{{ url_for('main.select_company_for_marketplace') }}" class="nav-link">Marketplace</a>
-      <a href="{{ url_for('main.my_companies') }}" class="nav-link">My companies</a>
-      <a href="{{ url_for('main.logout') }}" class="nav-link">Log out</a>
-    </nav>
-  </header>
-  <div class="container">
+{% extends "base.html" %}
+{% block title %}Awaiting Their Signature – Barter.com{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Roboto', sans-serif; background: #f5f7fa; color: #1a1a1a; }
+  .container { display: flex; min-height: calc(100vh - 60px); }
+  .sidebar { width: 340px; background: white; border-right: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; }
+  .company-badge { background: rgba(26, 115, 232, 0.08); padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #1A73E8; margin-bottom: 28px; border: 1px solid rgba(26, 115, 232, 0.15); }
+  .sidebar-section { margin-bottom: 32px; }
+  .sidebar-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #9aa0a6; margin-bottom: 14px; letter-spacing: 0.6px; }
+  .sidebar-link { display: block; padding: 10px 12px; margin: 4px 0; border-radius: 6px; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: all 0.15s; }
+  .sidebar-link:hover { background: rgba(26, 115, 232, 0.08); color: #1A73E8; }
+  .sidebar-link.active { background: rgba(26, 115, 232, 0.12); color: #1A73E8; font-weight: 600; }
+  .main { flex: 1; padding: 40px 48px; overflow-y: auto; }
+  .page-header { margin-bottom: 36px; }
+  .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .page-desc { font-size: 15px; color: #5f6368; line-height: 1.6; max-width: 600px; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+  .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 24px; transition: all 0.2s; }
+  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #1A73E8; }
+  .card-header { background: #e8f0fe; border-left: 4px solid #1A73E8; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+  .card-header-label { font-size: 12px; font-weight: 600; color: #1A73E8; }
+  .card-pair { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+  .card-side { flex: 1; }
+  .card-side-label { font-size: 11px; color: #9aa0a6; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+  .card-side-title { font-size: 16px; font-weight: 600; }
+  .arrows { color: #1A73E8; font-size: 18px; font-weight: 700; }
+  .empty { text-align: center; padding: 60px 20px; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { color: #5f6368; font-size: 16px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
     <aside class="sidebar">
       <div class="company-badge">{{ company.name }}</div>
       
@@ -108,5 +94,4 @@
       {% endif %}
     </main>
   </div>
-</body>
-</html>
+{% endblock %}

@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ service.title }} | Barter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="app-page">
+{% extends "base.html" %}
+{% block title %}{{ service.title }} | Barter{% endblock %}
+
+{% block content %}
+<div class="app-page">
         <div class="app-layout">
             <!-- SIDEBAR -->
             <aside class="app-sidebar">
@@ -60,13 +52,7 @@
                 
                 <main class="app-content">
                     <div class="app-content-inner">
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                          {% if messages %}
-                            {% for category,msg in messages %}
-                              <div class="alert alert-{{ category }}">{{ msg }}</div>
-                            {% endfor %}
-                          {% endif %}
-                        {% endwith %}
+                        
                         
                         <div class="service-view-header">
                             <h1 class="service-view-title">{{ service.title }}</h1>
@@ -116,5 +102,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

@@ -6,6 +6,25 @@ import datetime
 
 main = Blueprint('main', __name__)
 
+def get_current_user():
+    """Helper function to get current user from session. Returns None if not logged in or user doesn't exist."""
+    if 'user_id' not in session:
+        return None
+    try:
+        user_id = uuid.UUID(session['user_id'])
+        return User.query.get(user_id)
+    except:
+        return None
+
+def require_valid_user():
+    """Check if user exists, if not clear session and redirect to login."""
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash('Your session has expired. Please log in again.', 'info')
+        return redirect(url_for('main.login'))
+    return None  # Return None if user is valid
+
 @main.route('/')
 def index():
     """
@@ -104,6 +123,11 @@ def my_companies():
     """Landing page after login showing user's companies."""
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
+    
+    # Check if user still exists in database
+    redirect_response = require_valid_user()
+    if redirect_response:
+        return redirect_response
     
     user_id = uuid.UUID(session['user_id'])
     usr = User.query.get(user_id)
@@ -2164,12 +2188,13 @@ def marketplace():
         ~Service.company_id.in_(user_company_ids)
     )
     
-    # Apply search filter
+    # Apply search filter (including category search)
     if search_query:
         query = query.filter(
             db.or_(
                 Service.title.ilike(f'%{search_query}%'),
-                Service.description.ilike(f'%{search_query}%')
+                Service.description.ilike(f'%{search_query}%'),
+                Service.categories.ilike(f'%{search_query}%')
             )
         )
     
@@ -2361,7 +2386,7 @@ def marketplace_request_service(service_id):
     db.session.commit()
     
     flash('Trade request sent successfully!', 'success')
-    return redirect(url_for('main.select_company_for_marketplace'))
+    return redirect(url_for('main.marketplace'))
 # ========================================
 # TRADEFLOW ROUTES
 # ========================================

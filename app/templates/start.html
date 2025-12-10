@@ -1,64 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barter.com - Service Exchange Platform</title>
+{% extends "base.html" %}
+{% block title %}Barter.com - Service Exchange Platform{% endblock %}
+
+{% block extra_css %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #f5f7fa;
-            color: #1a202c;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            background: #f5f7fa !important;
+            background-color: #f5f7fa !important;
+            color: #1a202c !important;
+            min-height: 100vh !important;
         }
-        .header {
-            background-color: white;
-            padding: 20px 80px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        /* Override navbar styling for start page */
+        .navbar {
+            background-color: white !important;
+            background: white !important;
+            padding: 20px 80px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+            position: static !important;
         }
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2563eb;
+        .nav-content {
+            max-width: none !important;
+            padding: 0 !important;
         }
-        .header nav {
-            display: flex;
-            gap: 40px;
-            align-items: center;
+        .nav-brand {
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            color: #2563eb !important;
         }
-        .header nav a {
-            color: #4a5568;
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
-            transition: color 0.2s;
+        .nav-links a {
+            color: #4a5568 !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
         }
-        .header nav a:hover {
-            color: #2563eb;
-        }
-        .btn-login-header {
-            background-color: white;
-            color: #2563eb;
-            padding: 10px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            border: 2px solid #2563eb;
-            transition: all 0.2s;
-        }
-        .btn-login-header:hover {
-            background-color: #2563eb;
-            color: white;
+        .nav-links a:hover {
+            color: #2563eb !important;
         }
         .hero {
             max-width: 1200px;
@@ -134,7 +112,7 @@
             line-height: 1.6;
         }
         @media (max-width: 968px) {
-            .header, .hero, .features {
+            .navbar, .hero, .features {
                 padding-left: 40px;
                 padding-right: 40px;
             }
@@ -146,18 +124,9 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="header">
-        <div class="logo">Barter.com</div>
-        <nav>
-            <a href="{{ url_for('main.marketplace_public') }}">Marketplace</a>
-            <a href="{{ url_for('main.support') }}">Support</a>
-            <a href="{{ url_for('main.about_us') }}">About Us</a>
-            <a href="{{ url_for('main.login') }}" class="btn-login-header">Log in</a>
-        </nav>
-    </div>
+{% endblock %}
 
+{% block content %}
     <div class="hero">
         <h1>Trade what you do best,<br>Gain what you need most</h1>
         <p>A marketplace where entrepreneurs and startups exchange services without monetary transactions. Collaborate, grow, and succeed together.</p>
@@ -182,6 +151,4 @@
             <p>Create private spaces for your teams to collaborate on trades efficiently.</p>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='device-detection.js') }}"></script>
-</body>
-</html>
+{% endblock %}

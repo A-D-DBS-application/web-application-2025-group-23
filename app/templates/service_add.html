@@ -1,83 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Service - {{ company.name }} | Barter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 12px;
-            margin: 12px 0;
-        }
-        .category-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .category-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-        .category-item label {
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .category-item.other-item {
-            grid-column: 1 / -1;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .custom-category-wrapper {
-            width: 100%;
-            position: relative;
-            margin-top: 8px;
-        }
-        .custom-category-wrapper .error-message {
-            position: absolute;
-            background-color: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            white-space: nowrap;
-            top: -35px;
-            left: 0;
-            display: none;
-            z-index: 10;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .custom-category-wrapper .error-message.show {
-            display: block;
-        }
-        #custom_category_input {
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: none;
-            background: #F5F5F5;
-            font-size: 16px;
-            width: 100%;
-            max-width: 400px;
-            display: none;
-        }
-        #custom_category_input.show {
-            display: block;
-        }
-        #custom_category_input.error {
-            border: 2px solid #dc3545;
-            background-color: #fff5f5;
-        }
-    </style>
-</head>
-<body>
-    <div class="app-page">
+{% extends "base.html" %}
+{% block title %}Add Service - {{ company.name }} | Barter{% endblock %}
+
+{% block content %}
+<div class="app-page">
         <div class="app-layout">
             <!-- SIDEBAR -->
             <aside class="app-sidebar">
@@ -127,13 +52,7 @@
                 
                 <div class="app-content">
                     <div class="app-content-inner">
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                          {% if messages %}
-                            {% for category,msg in messages %}
-                              <div class="alert alert-{{ category }}">{{ msg }}</div>
-                            {% endfor %}
-                          {% endif %}
-                        {% endwith %}
+                        
                         
                         <div class="page-header">
                             <h1 class="page-title">Add New Service</h1>
@@ -227,5 +146,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}
