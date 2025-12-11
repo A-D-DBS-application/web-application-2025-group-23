@@ -60,10 +60,16 @@
                                     {{ company.member_count }} members • {{ company.service_count }} services
                                 </p>
                             </div>
-                            <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
-                               class="company-open-btn">
-                                Open workspace
-                            </a>
+                            <div class="company-actions">
+                                <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
+                                   class="company-open-btn">
+                                    Open workspace
+                                </a>
+                                <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" 
+                                   class="company-open-btn company-open-btn--secondary">
+                                    Tradeflow
+                                </a>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>

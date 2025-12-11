@@ -10,8 +10,8 @@
         <div class="service-header">
             <h1>{{ service.title }}</h1>
             <div class="service-provider">
-                <span class="label">by</span>
-                <span class="company-name">{{ selected_company.name if selected_company else 'Unknown Company' }}</span>
+                <span class="label">offered by</span>
+                <span class="company-name">{{ service.company.name if service.company else 'Unknown Company' }}</span>
             </div>
         </div>
 

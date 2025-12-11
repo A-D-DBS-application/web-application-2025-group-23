@@ -8,7 +8,7 @@
         <div class="content-grid">
             <main class="main-content">
                 <h1 class="service-title">{{ service.title }}</h1>
-                <div class="service-company">Company {{ service.company.name }}</div>
+                <div class="service-company">Offered by {{ service.company.name if service.company else 'Unknown company' }}</div>
                 
                 <div class="info-row" style="flex-wrap: wrap;">
                     <div class="info-item">
