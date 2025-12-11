@@ -75,20 +75,6 @@ button:disabled {
     cursor: pointer;
     display:inline-block;
 }
-.btn-danger {
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
-    font-size: 15px;
-    cursor: pointer;
-    display: inline-block;
-    transition: background 0.2s;
-}
-.btn-danger:hover {
-    background: #c82333;
-}
 .btn-primary.small { padding: 8px 14px; font-size: 13px; }
 .btn-primary.large, .btn-outline.large { font-size: 18px; padding: 14px 36px; }
 
@@ -320,6 +306,9 @@ button:disabled {
     font-size: 14px;
     cursor: pointer;
     display: inline-block;
+}
+.btn-danger:hover {
+    background: #c82333;
 }
 .btn-danger.small {
     padding: 6px 12px;
@@ -1013,23 +1002,6 @@ button:disabled {
     padding-top: 16px;
     display: flex;
     gap: 16px;
-}
-
-.link-back {
-    font-size: 15px;
-    color: #1A73E8;
-    text-decoration: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.link-back:hover {
-    text-decoration: underline;
 }
 
 .onboarding-btn {
