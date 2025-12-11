@@ -1,106 +1,63 @@
 {% extends "base.html" %}
-{% block title %}{{ service.title }} | Barter{% endblock %}
+{% block title %}{{ service.title }} - Barter.com{% endblock %}
+{% block nav_companies_active %}class="active"{% endblock %}
 
 {% block content %}
-<div class="app-page">
-        <div class="app-layout">
-            <!-- SIDEBAR -->
-            <aside class="app-sidebar">
-                <div class="app-sidebar-inner">
-                    <div class="app-sidebar-logo">
-                        <a href="{{ url_for('main.my_companies') }}">Barter.com</a>
-                    </div>
-                    
-                    <div class="sidebar-profile sidebar-profile--compact">
-                        <div class="sidebar-avatar sidebar-avatar--small"></div>
-                        <div>
-                            <div class="sidebar-user-name sidebar-user-name--small">Hi, {{ username }}</div>
-                            <div class="sidebar-user-sub">My companies</div>
-                        </div>
-                    </div>
-                    
-                    <div class="sidebar-companies">
-                        {% for comp in companies %}
-                        <button class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}"
-                                data-href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}">
-                            <div class="sidebar-company-name">{{ comp.name }}</div>
-                            <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
-                            <span class="sidebar-company-role tag">{% if comp.is_admin %}Admin{% else %}Member{% endif %}</span>
-                        </button>
-                        {% endfor %}
-                    </div>
-                </div>
-            </aside>
-            
-            <!-- MAIN CONTENT -->
-            <div class="app-main">
-                <header class="app-header">
-                    <div class="app-header-content">
-                        <div class="app-header-left">
-                            <button class="link-back" data-href="{{ url_for('main.workspace_services', company_id=company.company_id) }}">
-                                ← Back to Services
-                            </button>
-                        </div>
-                        <nav class="app-nav">
-                            <a href="{{ url_for('main.marketplace') }}" class="app-nav-link">Marketplace</a>
-                            <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
-                            <a href="{{ url_for('main.profile_settings') }}" class="app-nav-link">Profile</a>
-                            <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
-                        </nav>
-                    </div>
-                </header>
-                
-                <main class="app-content">
-                    <div class="app-content-inner">
-                        
-                        <!-- SERVICE HEADER -->
-                        <div class="service-header" style="background: linear-gradient(135deg, #1a73e8 0%, #0066cc 100%); color: white; padding: 32px; border-radius: 8px; margin-bottom: 24px;">
-                            <h1 style="margin: 0 0 8px 0; color: white; font-size: 32px; font-weight: 600;">{{ service.title }}</h1>
-                            <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 16px; font-weight: 500;">Service Offering</p>
-                        </div>
-
-                        <!-- COMPANY INFO -->
-                        <div class="company-info" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <h3 style="margin-top: 0; color: #1a73e8;">{{ company.name }}</h3>
-                            <p style="color: #666;">No reviews yet</p>
-                        </div>
-
-                        <!-- SERVICE DETAILS -->
-                        <div class="detail-section" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <h3 style="margin-top: 0;">Service Description</h3>
-                            <p style="line-height: 1.6; color: #666;">{{ service.description }}</p>
-                        </div>
-
-                        <div class="detail-section" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <h3 style="margin-top: 0;">Details</h3>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                                <div>
-                                    <strong>Duration:</strong> {{ service.duration_hours }} hours
-                                </div>
-                                <div>
-                                    <strong>Status:</strong> {% if service.is_active %}Active{% else %}Inactive{% endif %}
-                                </div>
-                            </div>
-                            
-                            {% if service.categories %}
-                                <div style="margin-top: 16px;">
-                                    <strong>Categories:</strong><br>
-                                    {% for cat in service.categories.split(',') %}
-                                        <span class="tag" style="background: #e8e8e8; color: #333; padding: 6px 14px; border-radius: 20px; font-size: 13px; display: inline-block; margin-right: 8px; margin-top: 8px; font-weight: 500; border: 1px solid #d0d0d0;">{{ cat.strip() }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        {% if is_admin %}
-                        <div style="margin-top: 24px;">
-                            <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" 
-                               class="btn btn-primary">Edit Service</a>
-                        </div>
-                        {% endif %}
-                    </div>
-                </main>
+<div class="service-container">
+    <a href="{{ url_for('main.workspace_services', company_id=company.company_id) }}" class="back-link">← Back to Services</a>
+    
+    <div class="service-detail-card">
+        <div class="service-header">
+            <h1>{{ service.title }}</h1>
+            <div class="service-provider">
+                <span class="label">offered by</span>
+                <span class="company-name">{{ company.name }}</span>
             </div>
         </div>
+
+        <div class="service-info-grid">
+            <div class="info-item">
+                <span class="info-label">SERVICE DESCRIPTION</span>
+                <span class="info-value">{{ service.description or 'No description' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">CATEGORY</span>
+                <div class="category-tags-container">
+                    {% if service.categories %}
+                        {% for cat in service.categories.split(',') %}
+                            <span class="category-tag">{{ cat.strip() }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="category-tag">Uncategorized</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="service-description">
+            <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" class="btn-submit" style="display: inline-block; text-align: center; text-decoration: none;">Edit Service</a>
+        </div>
     </div>
+
+    {% if reviews and reviews|length > 0 %}
+    <div class="reviews-section">
+        <h2>Reviews</h2>
+        <div class="reviews-list">
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-header">
+                    <span class="reviewer-name">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
+                    <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+                </div>
+                <div class="review-rating">
+                    {% for i in range(review.rating) %}★{% endfor %}
+                    {% for i in range(5 - review.rating) %}☆{% endfor %}
+                </div>
+                <p class="review-text">{{ review.comment }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

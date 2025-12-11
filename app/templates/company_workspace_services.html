@@ -88,6 +88,8 @@
                      class="btn btn-secondary">View</a>
                   <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" 
                      class="btn btn-primary">Edit</a>
+                  <button onclick="confirmDeleteService('{{ service.service_id }}', '{{ service.title }}')" 
+                          class="btn btn-danger">Delete</button>
                 </div>
               </article>
               {% endfor %}
@@ -101,4 +103,12 @@
       </main>
     </div>
   </div>
+  
+  <script>
+    function confirmDeleteService(serviceId, serviceTitle) {
+      if (confirm(`Are you sure you want to delete "${serviceTitle}"? This action cannot be undone.`)) {
+        window.location.href = `{{ url_for('main.delete_service', service_id='SERVICE_ID') }}`.replace('SERVICE_ID', serviceId);
+      }
+    }
+  </script>
 {% endblock %}

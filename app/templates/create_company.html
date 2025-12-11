@@ -46,50 +46,15 @@
                         </div>
                         
                         <form method="post" class="company-form">
-                            <div class="form-layout">
-                                <div class="logo-upload">
-                                    <div class="logo-upload-card">
-                                        <div class="logo-upload-icon">
-                                            <svg width="56" height="56" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M12 5v14M5 12h14"/>
-                                            </svg>
-                                        </div>
-                                        <span class="logo-upload-text">Upload logo</span>
-                                    </div>
+                            <div class="form-fields">
+                                <div class="form-field form-field--full">
+                                    <label for="name">Company Name *</label>
+                                    <input type="text" id="name" name="name" required placeholder="Enter company name">
                                 </div>
                                 
-                                <div class="form-fields">
-                                    <div class="form-field form-field--full">
-                                        <label for="name">Company Name *</label>
-                                        <input type="text" id="name" name="name" required placeholder="Enter company name">
-                                    </div>
-                                    
-                                    <div class="form-field form-field--full">
-                                        <label for="description">Description</label>
-                                        <textarea id="description" name="description" placeholder="Describe your company..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-field form-field--two-col">
-                                        <div class="form-field">
-                                            <label for="category">Category</label>
-                                            <div class="select-wrapper">
-                                                <select id="category" name="category">
-                                                    <option value="">Select category</option>
-                                                    <option value="Technology">Technology</option>
-                                                    <option value="Marketing">Marketing</option>
-                                                    <option value="Consulting">Consulting</option>
-                                                    <option value="Design">Design</option>
-                                                    <option value="Other">Other</option>
-                                                </select>
-                                                <span class="select-arrow">▼</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="form-field">
-                                            <label for="website">Website</label>
-                                            <input type="url" id="website" name="website" placeholder="https://example.com">
-                                        </div>
-                                    </div>
+                                <div class="form-field form-field--full">
+                                    <label for="description">Description</label>
+                                    <textarea id="description" name="description" placeholder="Describe your company..."></textarea>
                                 </div>
                             </div>
                             

@@ -87,7 +87,10 @@ def marketplace():
 
 @main.route('/marketplace/public')
 def marketplace_public():
-    """Public marketplace page for non-logged-in users."""
+    """Public marketplace page for non-logged-in users and logged-in users without a company."""
+    # Check if user is logged in
+    is_logged_in = 'user_id' in session
+    
     # Get filter parameters
     search_query = request.args.get('search', '').strip()
     category_filter = request.args.get('category', '').strip()
@@ -146,6 +149,7 @@ def marketplace_public():
         search_query=search_query,
         category_filter=category_filter,
         service_ratings=service_ratings,
+        is_logged_in=is_logged_in,
     )
 
 

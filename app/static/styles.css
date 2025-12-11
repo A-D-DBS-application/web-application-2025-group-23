@@ -75,6 +75,20 @@ button:disabled {
     cursor: pointer;
     display:inline-block;
 }
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 15px;
+    cursor: pointer;
+    display: inline-block;
+    transition: background 0.2s;
+}
+.btn-danger:hover {
+    background: #c82333;
+}
 .btn-primary.small { padding: 8px 14px; font-size: 13px; }
 .btn-primary.large, .btn-outline.large { font-size: 18px; padding: 14px 36px; }
 
@@ -1678,7 +1692,6 @@ button:disabled {
     margin-top: 24px;
     margin-bottom: 24px;
     width: 100%;
-    max-width: 894px;
     height: 48px;
     border-radius: 10px;
     border: none;
@@ -1762,6 +1775,16 @@ button:disabled {
     justify-content: flex-end;
     gap: 8px;
     padding-top: 12px;
+    flex-wrap: nowrap;
+}
+
+.service-card__footer .btn {
+    flex: 1;
+    padding: 9px 6px;
+    font-size: 14px;
+    white-space: nowrap;
+    min-width: 0;
+    max-width: 95px;
 }
 
 /* ====== PAGE HEADER ====== */
@@ -1950,7 +1973,7 @@ button:disabled {
 .btn-save,
 .btn-join {
     width: 100%;
-    max-width: 862px;
+    max-width: 100%;
 }
 
 .helper-text {

@@ -34,22 +34,11 @@
             
             <!-- MAIN CONTENT -->
             <main class="app-main">
-                <header class="app-header">
-                    <div class="app-header-content">
-                        <div class="app-header-left">
-                            <a href="{{ url_for('main.workspace_services', company_id=service.company_id) }}" class="link-back">← Back to Services</a>
-                        </div>
-                        <nav class="app-nav">
-                            <a href="{{ url_for('main.marketplace') }}" class="app-nav-link">Marketplace</a>
-                            <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
-                            <a href="{{ url_for('main.profile_settings') }}" class="app-nav-link">Profile</a>
-                            <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
-                        </nav>
-                    </div>
-                </header>
-                
                 <div class="app-content">
                     <div class="app-content-inner">
+                        <div class="workspace-header-left" style="margin-bottom: 24px;">
+                            <a href="{{ url_for('main.workspace_services', company_id=service.company_id) }}" class="link-back" style="text-decoration: none;">← Back to Services</a>
+                        </div>
                         
                         
                         <div class="page-header">
@@ -60,12 +49,12 @@
                         <form method="post" class="service-form">
                             <div class="form-field form-field--full">
                                 <label for="title">Service Title *</label>
-                                <input type="text" id="title" name="title" required placeholder="e.g., Financial Consulting" value="{{ form_title or '' }}">
+                                <input type="text" id="title" name="title" required placeholder="e.g., Financial Consulting" value="{{ form_title or '' }}" maxlength="100">
                             </div>
 
                             <div class="form-field form-field--full">
                                 <label for="description">Description *</label>
-                                <textarea id="description" name="description" required rows="4" placeholder="Describe the service in detail...">{{ form_description or '' }}</textarea>
+                                <textarea id="description" name="description" required rows="4" placeholder="Describe the service in detail..." maxlength="500">{{ form_description or '' }}</textarea>
                             </div>
 
                             <div class="form-field">

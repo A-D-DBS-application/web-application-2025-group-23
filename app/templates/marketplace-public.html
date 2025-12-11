@@ -12,7 +12,11 @@
         <div class="login-notice">
             <div class="notice-content">
                 <span class="notice-icon">🔒</span>
+                {% if is_logged_in %}
+                <span class="notice-text">Want to trade services? <a href="{{ url_for('main.create_company') }}">Create</a> or <a href="{{ url_for('main.join_company') }}">join</a> a company to get started!</span>
+                {% else %}
                 <span class="notice-text">Want to trade services? <a href="{{ url_for('main.login') }}">Login</a> or <a href="{{ url_for('main.register') }}">Register</a> to get started!</span>
+                {% endif %}
             </div>
         </div>
 

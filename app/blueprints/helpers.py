@@ -172,8 +172,8 @@ def _marketplace_context(selected_company_id_str=None, redirect_missing='main.se
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
     user_companies = [membership.company for membership in memberships]
     if not user_companies:
-        flash('You need to join or create a company to use the marketplace', 'info')
-        return uid, user_companies, None, redirect(url_for('main.my_companies'))
+        # Redirect to public marketplace for logged-in users without a company
+        return uid, user_companies, None, redirect(url_for('main.marketplace_public'))
 
     selected_company_id = None
     if selected_company_id_str:

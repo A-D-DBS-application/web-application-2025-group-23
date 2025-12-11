@@ -3,6 +3,8 @@ Core routes - authentication, company management, services, deals, and utility p
 """
 import uuid
 import datetime
+import random
+import string
 from flask import request, redirect, url_for, render_template, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from .blueprints.core import main
@@ -245,10 +247,18 @@ def create_company():
         if not name:
             flash('Company name is required', 'error')
             return render_template('create_company.html')
+        
+        # Generate unique join code
+        while True:
+            join_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            if not Company.query.filter_by(join_code=join_code).first():
+                break
+        
         new_company = Company(
             company_id=uuid.uuid4(),
             name=name,
             description=description or '',
+            join_code=join_code,
             barter_coins=0,
             created_at=datetime.datetime.now(datetime.timezone.utc)
         )
@@ -750,7 +760,15 @@ def edit_service(service_id):
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
-        category = request.form.get('categories')
+        categories_list = request.form.getlist('categories')
+        custom_category = request.form.get('custom_category', '').strip()
+        
+        # Add custom category if "Other" is selected and custom category is provided
+        if 'Other' in categories_list and custom_category:
+            categories_list = [cat for cat in categories_list if cat != 'Other']
+            categories_list.append(custom_category)
+        
+        category = ','.join(categories_list) if categories_list else ''
         
         if not title or not description or not category:
             flash('Vul alle velden in', 'error')
@@ -762,7 +780,7 @@ def edit_service(service_id):
                                  categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
                                  form_title=title,
                                  form_description=description,
-                                 form_categories=[category] if category else [])
+                                 form_categories=categories_list)
         
         service.title = title
         service.description = description
@@ -805,7 +823,7 @@ def delete_service(service_id):
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
     if not membership or not membership.is_admin:
         flash('You do not have permission to delete this service', 'error')
-        return redirect(url_for('main.company_services', company_id=company_id))
+        return redirect(url_for('main.workspace_services', company_id=company_id))
     
     pending_proposals = DealProposal.query.filter(
         DealProposal.status == 'pending',
@@ -814,13 +832,13 @@ def delete_service(service_id):
     
     if pending_proposals:
         flash('Cannot delete service while it is part of a pending negotiation', 'warning')
-        return redirect(url_for('main.company_services', company_id=company_id))
+        return redirect(url_for('main.workspace_services', company_id=company_id))
     
     db.session.delete(service)
     db.session.commit()
     
     flash('Service deleted successfully', 'success')
-    return redirect(url_for('main.company_services', company_id=company_id))
+    return redirect(url_for('main.workspace_services', company_id=company_id))
 
 
 # ==================== DEAL ROUTES ====================
