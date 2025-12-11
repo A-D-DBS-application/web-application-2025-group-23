@@ -36,12 +36,8 @@
   .message-text { font-size: 14px; color: #1a1a1a; line-height: 1.6; }
   .money-box { background: #fff; border: 1px solid #e8eaed; border-radius: 6px; padding: 12px 16px; margin-bottom: 18px; }
   .money-pill { display: inline-block; background: #e8f0fe; color: #1A73E8; padding: 6px 10px; border-radius: 999px; font-weight: 700; }
-  .action-buttons { display: flex; gap: 12px; }
-  .btn { padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; }
-  .btn-accept { background: #34a853; color: #fff; }
-  .btn-accept:hover { background: #2d8e47; }
-  .btn-decline { background: #e8eaed; color: #1a1a1a; }
-  .btn-decline:hover { background: #d8dce2; }
+  .note { font-size: 12px; color: #5f6368; }
+  .spacer { height: 8px; }
 </style>
 {% endblock %}
 
@@ -49,21 +45,18 @@
 <div class="container">
   <aside class="sidebar">
       <div class="company-badge">{{ company.name }}</div>
-      
       <div class="sidebar-section">
         <div class="sidebar-section-title">Requests</div>
         <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" class="sidebar-link">Incoming</a>
         <a href="{{ url_for('main.tradeflow_you_requested', company_id=company.company_id) }}" class="sidebar-link">You Requested</a>
         <a href="{{ url_for('main.tradeflow_archived_requests', company_id=company.company_id) }}" class="sidebar-link">Archived</a>
       </div>
-
       <div class="sidebar-section">
         <div class="sidebar-section-title">Contracts</div>
         <a href="{{ url_for('main.tradeflow_match_made', company_id=company.company_id) }}" class="sidebar-link">Matches</a>
-        <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="sidebar-link active">Waiting for You</a>
-        <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="sidebar-link">Awaiting Them</a>
+        <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="sidebar-link">Waiting for You</a>
+        <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="sidebar-link active">Awaiting Them</a>
       </div>
-
       <div class="sidebar-section">
         <div class="sidebar-section-title">Deals</div>
         <a href="{{ url_for('main.tradeflow_ongoing_deals', company_id=company.company_id) }}" class="sidebar-link">Ongoing</a>
@@ -72,11 +65,10 @@
     </aside>
 
     <main class="main">
-      <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="back-link">← Back to Waiting for You</a>
+      <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="back-link">← Back to Awaiting Them</a>
       <div class="detail-card">
         <h1 class="page-title">Offer Details</h1>
-        <p class="page-desc">Review this offer and decide to accept or decline</p>
-        
+        <p class="page-desc">This proposal is waiting for {{ proposal.to_company.name }} to respond.</p>
         <div class="pair-grid">
           <div class="pair-side">
             <div class="pair-label">{{ proposal.from_company.name }} offers</div>
@@ -89,7 +81,7 @@
             <div class="pair-desc">{{ proposal.to_service.description }}</div>
           </div>
         </div>
-        
+
         <div style="border-top: 1px solid #e8eaed; padding-top: 20px; margin-top: 6px;">
           <div class="section-title">Offer Terms</div>
           <div class="info-grid">
@@ -110,19 +102,15 @@
           {% if money_amount and money_amount|int > 0 and money_type %}
           <div class="money-box">
             {% if money_type == 'receive' %}
-              <span class="money-pill">💸 They ask: €{{ money_amount }}</span>
+              <span class="money-pill">💸 You ask: €{{ money_amount }}</span>
             {% else %}
-              <span class="money-pill">💰 They offer: €{{ money_amount }}</span>
+              <span class="money-pill">💰 You offer: €{{ money_amount }}</span>
             {% endif %}
           </div>
           {% endif %}
-          
-          <form method="POST">
-            <div class="action-buttons">
-              <button type="submit" name="action" value="accept" class="btn btn-accept">Accept Offer</button>
-              <button type="submit" name="action" value="decline" class="btn btn-decline">Decline</button>
-            </div>
-          </form>
+
+          <div class="note">Read-only view. You can't accept or decline here.</div>
+          <div class="spacer"></div>
         </div>
       </div>
     </main>

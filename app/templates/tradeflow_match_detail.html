@@ -43,6 +43,19 @@
   .form-input:focus, .form-textarea:focus { outline: none; border-color: #1A73E8; background: rgba(26, 115, 232, 0.02); }
   .form-textarea { resize: vertical; min-height: 80px; }
   .input-hint { font-size: 12px; color: #9aa0a6; margin-top: 4px; }
+  .money-section { background: #f5f7fa; padding: 20px; border-radius: 6px; margin-bottom: 20px; }
+  .money-toggle { display: flex; gap: 16px; margin-bottom: 20px; }
+  .toggle-btn { flex: 1; padding: 12px; border: 2px solid #e8eaed; background: white; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+  .toggle-btn.active { border-color: #1A73E8; background: rgba(26, 115, 232, 0.08); color: #1A73E8; }
+  .toggle-btn:hover { border-color: #1A73E8; }
+  .money-input-group { margin-bottom: 16px; }
+  .money-input-label { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; display: block; }
+  .money-input-wrapper { display: flex; align-items: center; gap: 12px; }
+  .money-input-field { flex: 1; padding: 10px 12px; border: 1px solid #e8eaed; border-radius: 6px; font-family: 'Roboto', sans-serif; font-size: 14px; }
+  .money-input-field:focus { outline: none; border-color: #1A73E8; background: rgba(26, 115, 232, 0.02); }
+  .money-currency { font-weight: 600; color: #1a1a1a; min-width: 30px; text-align: right; }
+  .money-preview { background: white; padding: 12px 16px; border-radius: 6px; border: 1px solid #e8eaed; font-size: 14px; color: #5f6368; }
+  .preview-text { color: #1A73E8; font-weight: 600; }
 </style>
 {% endblock %}
 
@@ -107,10 +120,26 @@
           <p style="color: #5f6368; margin-bottom: 20px;">Finalize the details of this trade</p>
           
           <form method="POST" action="{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=proposal.proposal_id) }}">
-            <div class="form-group">
-              <label class="form-label">Extra Payment / Compensation (€)</label>
-              <input type="number" name="barter_coins" class="form-input" placeholder="Enter amount in EUR (leave blank for 0)" value="0" min="-1000" max="1000" step="0.01">
-              <div class="input-hint">Positive numbers = you pay extra euros | Negative numbers = you request euros from the other party</div>
+            <div class="money-section">
+              <div class="money-toggle">
+                <button type="button" class="toggle-btn active" data-type="receive" onclick="setMoneyType('receive')">💸 I Want (€)</button>
+                <button type="button" class="toggle-btn" data-type="give" onclick="setMoneyType('give')">💰 I Give (€)</button>
+              </div>
+              
+              <div class="money-input-group">
+                <label class="money-input-label">Amount: <span id="moneyTypeLabel">I want to receive</span></label>
+                <div class="money-input-wrapper">
+                  <input type="number" id="moneyInput" class="money-input-field" min="0" max="10000" value="0" step="10" placeholder="0" oninput="updateMoneyDisplay()">
+                  <span class="money-currency">€</span>
+                </div>
+              </div>
+              
+              <div class="money-preview">
+                <span id="moneyPreview">No additional money specified</span>
+              </div>
+              
+              <input type="hidden" id="moneyAmount" name="money_amount" value="0">
+              <input type="hidden" id="moneyType" name="money_type" value="receive">
             </div>
 
             <div class="form-group">
@@ -127,4 +156,47 @@
       </div>
     </main>
   </div>
+
+<script>
+function setMoneyType(type) {
+  // Update hidden input
+  document.getElementById('moneyType').value = type;
+  
+  // Update button states
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // Update label
+  const label = type === 'receive' ? 'I want to receive' : 'I want to give';
+  document.getElementById('moneyTypeLabel').textContent = label;
+  
+  // Update preview
+  updateMoneyDisplay();
+}
+
+function updateMoneyDisplay() {
+  const input = document.getElementById('moneyInput');
+  const amount = parseInt(input.value) || 0;
+  const type = document.getElementById('moneyType').value;
+  
+  // Update hidden value
+  document.getElementById('moneyAmount').value = amount;
+  
+  // Update preview text
+  const preview = document.getElementById('moneyPreview');
+  if (amount === 0) {
+    preview.innerHTML = 'No additional money specified';
+  } else {
+    const verb = type === 'receive' ? 'want to receive' : 'want to give';
+    preview.innerHTML = `<span class="preview-text">€${amount}</span> ${verb}`;
+  }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  updateMoneyDisplay();
+});
+</script>
 {% endblock %}

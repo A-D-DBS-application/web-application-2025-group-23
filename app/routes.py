@@ -259,7 +259,6 @@ def create_company():
             name=name,
             description=description or '',
             join_code=join_code,
-            barter_coins=0,
             created_at=datetime.datetime.now(datetime.timezone.utc)
         )
         db.session.add(new_company)
@@ -676,7 +675,6 @@ def add_service(company_id):
             title=title,
             description=description,
             duration_hours=duration,
-            barter_coins_cost=0,
             categories=','.join(categories) if categories else None,
             is_offered=is_offered,
             is_active=True,
@@ -855,7 +853,6 @@ def send_proposal():
     to_company_id = uuid.UUID(request.form.get('to_company_id'))
     from_service_id = uuid.UUID(request.form.get('from_service_id'))
     to_service_id = uuid.UUID(request.form.get('to_service_id'))
-    barter_coins = int(request.form.get('barter_coins', 0))
     message = request.form.get('message', '').strip()
     
     membership = CompanyMember.query.filter_by(
@@ -869,9 +866,6 @@ def send_proposal():
         return redirect(url_for('main.workspace_overview', company_id=from_company_id))
     
     company = Company.query.get(from_company_id)
-    if barter_coins > 0 and company.barter_coins < barter_coins:
-        flash('Insufficient barter coins', 'error')
-        return redirect(url_for('main.workspace_overview', company_id=from_company_id))
     
     proposal = DealProposal(
         proposal_id=uuid.uuid4(),
@@ -879,7 +873,6 @@ def send_proposal():
         to_company_id=to_company_id,
         from_service_id=from_service_id,
         to_service_id=to_service_id,
-        barter_coins_offered=barter_coins,
         message=message,
         status='pending',
         created_at=datetime.datetime.now(datetime.timezone.utc)
@@ -914,13 +907,6 @@ def accept_proposal(proposal_id):
     if proposal.status != 'pending':
         flash('This proposal has already been processed', 'warning')
         return redirect(url_for('main.workspace_overview', company_id=proposal.to_company_id))
-    
-    if proposal.barter_coins_offered > 0:
-        from_company = Company.query.get(proposal.from_company_id)
-        to_company = Company.query.get(proposal.to_company_id)
-        
-        from_company.barter_coins -= proposal.barter_coins_offered
-        to_company.barter_coins += proposal.barter_coins_offered
     
     proposal.status = 'accepted'
     
@@ -1178,7 +1164,6 @@ def sign_contract(deal_id):
                              company_a=company_a,
                              company_b=company_b)
     
-    barter_coins = request.form.get('barter_coins', 0, type=int)
     message = request.form.get('message', '')
     
     user_id = uuid.UUID(session['user_id'])
@@ -1213,7 +1198,6 @@ def sign_contract(deal_id):
         to_service_id=to_service.service_id,
         from_company_id=from_company_id,
         to_company_id=to_company_id,
-        barter_coins_offered=barter_coins,
         message=message,
         status='pending',
         created_at=datetime.datetime.now(datetime.timezone.utc)

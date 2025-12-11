@@ -73,8 +73,6 @@ class Company(db.Model):
     created_at = db.Column(DateTime(timezone=True))
     # Code users can submit to request joining the company
     join_code = db.Column(db.Text, nullable=True, unique=True)
-    # Barter coins for the company (virtual currency for balancing trades)
-    barter_coins = db.Column(db.Integer, nullable=False, default=0)
 
     # Relaties:
     # - members: lijst van CompanyMember records
@@ -182,9 +180,6 @@ class Service(db.Model):
     description = db.Column(db.Text, nullable=False)
     # Duration in hours (can be decimal, e.g. 1.5 hours)
     duration_hours = db.Column(db.Numeric, nullable=False)
-    
-    # Barter coins cost for this service
-    barter_coins_cost = db.Column(db.Integer, nullable=False, default=0)
     
     # Many-to-many relationship with categories (stored as text tags)
     # Categories: Finance, Accounting, IT, Marketing, Legal, Design, HR, Consulting, etc.
@@ -313,7 +308,6 @@ class DealProposal(db.Model):
         db.ForeignKey("service.service_id"),
         nullable=False
     )
-    barter_coins_offered = db.Column(db.Integer, nullable=False, default=0)
     message = db.Column(db.Text)  # Optional message from proposer
     status = db.Column(db.Text, nullable=False, default='pending')  # pending, accepted, rejected
     created_at = db.Column(DateTime(timezone=True), nullable=False)
@@ -357,86 +351,7 @@ class ActiveDeal(db.Model):
         return f"<ActiveDeal {self.active_deal_id} ({self.status})>"
 
 
-# ==========================
-# BARTER DEAL
-# ==========================
-class BarterDeal(db.Model):
-    """
-    Een deal tussen twee services (service A en service B).
-    """
-    __tablename__ = "barterdeal"
 
-    deal_id = db.Column(UUID(as_uuid=True), primary_key=True)
-
-    service_a_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
-        nullable=False,
-    )
-    service_b_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
-        nullable=False,
-    )
-
-    # ENUM 'deal_status' in Supabase → Text in ORM
-    status = db.Column(db.Text, nullable=False)
-
-    start_date = db.Column(db.Date)
-    end_date = db.Column(db.Date)
-    ratio_a_to_b = db.Column(db.Numeric)  # bv. 1.0 = 1:1, 2.0 = 2:1
-
-    created_at = db.Column(DateTime(timezone=True))
-    updated_at = db.Column(DateTime(timezone=True))
-
-    service_a = db.relationship(
-        "Service",
-        foreign_keys=[service_a_id],
-        backref=db.backref("as_service_a_deals", lazy="dynamic"),
-    )
-    service_b = db.relationship(
-        "Service",
-        foreign_keys=[service_b_id],
-        backref=db.backref("as_service_b_deals", lazy="dynamic"),
-    )
-
-    def __repr__(self) -> str:
-        return f"<BarterDeal {self.deal_id}>"
-
-
-# ==========================
-# CONTRACT
-# ==========================
-class Contract(db.Model):
-    """
-    Contract dat hoort bij één BarterDeal.
-    """
-    __tablename__ = "contract"
-
-    contract_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    deal_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("barterdeal.deal_id"),
-        nullable=False,
-    )
-
-    signed_by_initiator = db.Column(db.Boolean)
-    signed_by_counterparty = db.Column(db.Boolean)
-    signed_at_initiator = db.Column(DateTime(timezone=True))
-    signed_at_counterparty = db.Column(DateTime(timezone=True))
-
-    # ENUM 'contract_status' in Supabase
-    status = db.Column(db.Text, nullable=False)
-
-    created_at = db.Column(DateTime(timezone=True))
-
-    deal = db.relationship(
-        "BarterDeal",
-        backref=db.backref("contract", uselist=False),
-    )
-
-    def __repr__(self) -> str:
-        return f"<Contract {self.contract_id}>"
 
 
 # ==========================
