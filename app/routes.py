@@ -88,6 +88,12 @@ def select_company_for_marketplace():
     uid = uuid.UUID(session["user_id"])
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
 
+    # If user is in only 1 company, automatically select it and go to marketplace
+    if len(memberships) == 1:
+        company = Company.query.get(memberships[0].company_id)
+        if company:
+            return redirect(url_for('main.marketplace', company_id=company.company_id))
+
     companies = []
     for membership in memberships:
         comp = Company.query.get(membership.company_id)
@@ -144,7 +150,21 @@ def login():
         usr = User.query.filter_by(username=username).first()
         if usr and check_password_hash(usr.password_hash, password):
             session['user_id'] = str(usr.user_id)
-            return redirect(url_for('main.my_companies'))
+            
+            # Check how many companies the user is in
+            memberships = CompanyMember.query.filter_by(user_id=usr.user_id).all()
+            
+            if len(memberships) == 0:
+                # No companies, redirect to my_companies to create/join one
+                return redirect(url_for('main.my_companies'))
+            elif len(memberships) == 1:
+                # Only one company, auto-select it and go to marketplace
+                company = Company.query.get(memberships[0].company_id)
+                return redirect(url_for('main.marketplace', company_id=company.company_id))
+            else:
+                # Multiple companies, go to select company screen
+                return redirect(url_for('main.select_company_for_marketplace'))
+        
         flash('Invalid username or password', 'error')
         return render_template('login.html')
     return render_template('login.html')

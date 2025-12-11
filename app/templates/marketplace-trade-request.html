@@ -22,7 +22,15 @@
             </div>
             <div class="info-item">
                 <span class="info-label">CATEGORY</span>
-                <span class="info-value">{{ service.categories or 'Uncategorized' }}</span>
+                <div class="category-tags-container">
+                    {% if service.categories %}
+                        {% for cat in service.categories.split(',') %}
+                            <span class="category-tag">{{ cat.strip() }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="category-tag">Uncategorized</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
 

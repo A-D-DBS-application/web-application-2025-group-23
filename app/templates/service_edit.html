@@ -33,68 +33,115 @@
             </aside>
             
             <!-- MAIN CONTENT -->
-            <div class="app-main">
+            <main class="app-main">
                 <header class="app-header">
                     <div class="app-header-content">
                         <div class="app-header-left">
-                            <button class="link-back" data-href="{{ url_for('main.workspace_services', company_id=service.company_id) }}">
-                                ← Back to service details
-                            </button>
+                            <a href="{{ url_for('main.workspace_services', company_id=service.company_id) }}" class="link-back">← Back to Services</a>
                         </div>
                         <nav class="app-nav">
                             <a href="{{ url_for('main.marketplace') }}" class="app-nav-link">Marketplace</a>
                             <a href="{{ url_for('main.my_companies') }}" class="app-nav-link">My companies</a>
+                            <a href="{{ url_for('main.profile_settings') }}" class="app-nav-link">Profile</a>
                             <a href="{{ url_for('main.logout') }}" class="app-nav-link">Log out</a>
                         </nav>
                     </div>
                 </header>
                 
-                <main class="app-content">
+                <div class="app-content">
                     <div class="app-content-inner">
                         
                         
-                        <div class="form-page-header">
-                            <h1 class="form-page-title">Edit service</h1>
-                            <p class="form-page-subtitle">Update the details of your service. Changes will be visible in your company workspace and on your public service page.</p>
+                        <div class="page-header">
+                            <h1 class="page-title">Edit Service</h1>
+                            <p class="page-subtitle">Update the details of your service</p>
                         </div>
                         
-                        <form method="post" class="standard-form">
-                            <div class="form-group">
-                                <label for="title" class="form-label">Service title</label>
-                                <input type="text" 
-                                       id="title" 
-                                       name="title" 
-                                       class="form-input" 
-                                       placeholder="Enter your service title"
-                                       value="{{ form_title or '' }}"
-                                       required>
+                        <form method="post" class="service-form">
+                            <div class="form-field form-field--full">
+                                <label for="title">Service Title *</label>
+                                <input type="text" id="title" name="title" required placeholder="e.g., Financial Consulting" value="{{ form_title or '' }}">
                             </div>
 
-                            <div class="form-group">
-                                <label for="description" class="form-label">Service description</label>
-                                <textarea id="description" 
-                                          name="description" 
-                                          class="form-textarea" 
-                                          rows="5"
-                                          placeholder="Describe the service"
-                                          required>{{ form_description or '' }}</textarea>
+                            <div class="form-field form-field--full">
+                                <label for="description">Description *</label>
+                                <textarea id="description" name="description" required rows="4" placeholder="Describe the service in detail...">{{ form_description or '' }}</textarea>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">Category</label>
-                                <select name="categories" class="form-select" required>
-                                    <option value="">Choose category</option>
+                            <div class="form-field">
+                                <label for="duration_hours">Duration (hours) *</label>
+                                <input type="number" id="duration_hours" name="duration_hours" required step="0.5" min="0.5" placeholder="e.g., 2.5" value="{{ form_duration or '' }}" style="max-width: 300px;">
+                            </div>
+
+                            <input type="hidden" name="is_offered" value="true">
+
+                            <div class="form-field form-field--full">
+                                <label>Categories (select all that apply)</label>
+                                <div class="category-grid">
                                     {% for cat in categories %}
-                                        <option value="{{ cat }}" {% if cat in (form_categories or []) %}selected{% endif %}>{{ cat }}</option>
+                                        <div class="category-item">
+                                            <input type="checkbox" id="cat_{{ loop.index }}" name="categories" value="{{ cat }}" {% if cat in (form_categories or []) %}checked{% endif %}>
+                                            <label for="cat_{{ loop.index }}">{{ cat }}</label>
+                                        </div>
                                     {% endfor %}
-                                </select>
+                                    <div class="category-item other-item">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <input type="checkbox" id="cat_other" name="categories" value="Other" onchange="toggleCustomCategoryInput()" {% if 'Other' in (form_categories or []) %}checked{% endif %}>
+                                            <label for="cat_other">Other</label>
+                                        </div>
+                                        <div class="custom-category-wrapper">
+                                            <div class="error-message" id="custom_category_error">Vul dit veld in.</div>
+                                            <input type="text" id="custom_category_input" name="custom_category" placeholder="Specify your custom category here...">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-full-width">Save changes</button>
+                            <button type="submit" class="btn btn-primary btn-create">Save changes</button>
                         </form>
                     </div>
-                </main>
-            </div>
+                </div>
+            </main>
         </div>
     </div>
+
+    <script>
+        function toggleCustomCategoryInput() {
+            const checkbox = document.getElementById('cat_other');
+            const customInput = document.getElementById('custom_category_input');
+            const errorMsg = document.getElementById('custom_category_error');
+            
+            if (checkbox.checked) {
+                customInput.classList.add('show');
+                customInput.focus();
+            } else {
+                customInput.classList.remove('show');
+                customInput.value = '';
+                customInput.classList.remove('error');
+                errorMsg.classList.remove('show');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkbox = document.getElementById('cat_other');
+            if (checkbox.checked) {
+                toggleCustomCategoryInput();
+            }
+            
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const catOther = document.getElementById('cat_other');
+                const customInput = document.getElementById('custom_category_input');
+                const errorMsg = document.getElementById('custom_category_error');
+                
+                if (catOther.checked && !customInput.value.trim()) {
+                    e.preventDefault();
+                    customInput.classList.add('error');
+                    errorMsg.classList.add('show');
+                    customInput.focus();
+                    return false;
+                }
+            });
+        });
+    </script>
 {% endblock %}

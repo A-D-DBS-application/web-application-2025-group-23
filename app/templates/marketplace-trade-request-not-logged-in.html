@@ -2,68 +2,67 @@
 {% block title %}{{ service.title }} - Barter.com{% endblock %}
 
 {% block content %}
-<div class="page-container">
-        <a href="{{ url_for('main.marketplace_public') }}" class="back-link">← Back to marketplace</a>
+<div class="service-container">
+    <a href="{{ url_for('main.marketplace_public') }}" class="back-link">← Back to marketplace</a>
+    
+    <div class="service-detail-card">
+        <div class="service-header">
+            <h1>{{ service.title }}</h1>
+            <div class="service-provider">
+                <span class="label">offered by</span>
+                <span class="company-name">{{ service.company.name if service.company else 'Unknown Company' }}</span>
+            </div>
+        </div>
 
-        <div class="content-grid">
-            <main class="main-content">
-                <h1 class="service-title">{{ service.title }}</h1>
-                <div class="service-company">Offered by {{ service.company.name if service.company else 'Unknown company' }}</div>
-                
-                <div class="info-row" style="flex-wrap: wrap;">
-                    <div class="info-item">
-                        <span class="info-label">Service description</span>
-                        <span class="info-value">
-                            {% if service.description %}
-                                {{ service.description[:90] }}{% if service.description|length > 90 %}...{% endif %}
-                            {% else %}
-                                No description provided yet
-                            {% endif %}
-                        </span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Category</span>
-                        <span class="info-value">{{ service.categories or 'Not specified' }}</span>
-                    </div>
-                    {% if reviews and reviews|length > 0 %}
-                    <div class="info-item">
-                        <span class="info-label">Average Rating</span>
-                        <span class="info-value" style="color: #fbbf24;">★ {{ "%.1f"|format(avg_rating) }} ({{ reviews|length }} reviews)</span>
-                    </div>
+        <div class="service-info-grid">
+            <div class="info-item">
+                <span class="info-label">SERVICE DESCRIPTION</span>
+                <span class="info-value">{{ service.description or 'No description' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">CATEGORY</span>
+                <div class="category-tags-container">
+                    {% if service.categories %}
+                        {% for cat in service.categories.split(',') %}
+                            <span class="category-tag">{{ cat.strip() }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="category-tag">Uncategorized</span>
                     {% endif %}
                 </div>
+            </div>
+        </div>
 
-                <div class="login-notice">
-                    <h3>Log in to trade</h3>
-                    <p>You must be logged in to send a trade request.</p>
-                    <p>Log in or create an account to start trading services on Barter.</p>
-                    <div class="notice-actions">
-                        <a href="{{ url_for('main.login') }}" class="btn-login">Log in</a>
-                        <a href="{{ url_for('main.register') }}" class="btn-register">Create account</a>
-                    </div>
-                </div>
-
-                {% if reviews %}
-                <div class="reviews-section">
-                    <h2 class="section-title">Reviews</h2>
-                    <div class="reviews-list">
-                        {% for review in reviews %}
-                        <div class="review-card">
-                            <div class="review-header">
-                                <span class="reviewer-name">{{ review.reviewer.username }}</span>
-                                <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</span>
-                            </div>
-                            <div class="review-rating">
-                                {% for i in range(review.rating) %}★{% endfor %}
-                                {% for i in range(5 - review.rating) %}☆{% endfor %}
-                            </div>
-                            <p class="review-text">{{ review.comment }}</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-            </main>
+        <div class="login-notice">
+            <h3>Log in to trade</h3>
+            <p>You must be logged in to send a trade request.</p>
+            <p>Log in or create an account to start trading services on Barter.</p>
+            <div class="notice-actions">
+                <a href="{{ url_for('main.login') }}" class="btn-login">Log in</a>
+                <a href="{{ url_for('main.register') }}" class="btn-register">Create account</a>
+            </div>
         </div>
     </div>
+
+    {% if reviews and reviews|length > 0 %}
+    <div class="reviews-section">
+        <h2>Reviews</h2>
+        <div class="reviews-list">
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-header">
+                    <span class="reviewer-name">{{ review.reviewer.username }}</span>
+                    <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</span>
+                </div>
+                <div class="review-rating">
+                    {% for i in range(review.rating) %}★{% endfor %}
+                    {% for i in range(5 - review.rating) %}☆{% endfor %}
+                </div>
+                <p class="review-text">{{ review.comment }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

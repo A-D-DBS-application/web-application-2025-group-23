@@ -64,13 +64,13 @@ body {
     font-weight: 500;
     margin-bottom: 1rem;
     padding: 0.5rem 1rem;
-    background: rgba(255,255,255,0.2);
+    background: #667eea;
     border-radius: 8px;
     transition: all 0.3s;
 }
 
 .back-link:hover {
-    background: rgba(255,255,255,0.3);
+    background: #5568d3;
 }
 
 .service-detail-card {
@@ -144,10 +144,44 @@ body {
     display: inline-block;
 }
 
-.coin-cost {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #667eea;
+.category-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.category-tag {
+    background: #f0f0f0 !important;
+    color: #667eea !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    border: none !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+}
+
+.login-notice {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.login-notice h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+}
+
+.login-notice p {
+    color: white;
+    line-height: 1.6;
+    margin: 0.5rem 0;
 }
 
 .service-description {
@@ -196,6 +230,7 @@ body {
 .notice-actions {
     display: flex;
     gap: 1rem;
+    justify-content: center;
 }
 
 .btn-login,

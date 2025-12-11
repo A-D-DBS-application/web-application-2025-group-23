@@ -144,6 +144,27 @@ body {
     display: inline-block;
 }
 
+.category-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.category-tag {
+    background: #f0f0f0 !important;
+    color: #667eea !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    border: none !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+}
+
 .coin-cost {
     font-size: 1.3rem;
     font-weight: bold;

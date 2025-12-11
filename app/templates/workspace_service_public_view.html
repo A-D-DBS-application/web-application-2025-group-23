@@ -53,50 +53,51 @@
                 <main class="app-content">
                     <div class="app-content-inner">
                         
-                        
-                        <div class="service-view-header">
-                            <h1 class="service-view-title">{{ service.title }}</h1>
-                            <p class="service-view-company">{{ company.name }}</p>
+                        <!-- SERVICE HEADER -->
+                        <div class="service-header" style="background: linear-gradient(135deg, #1a73e8 0%, #0066cc 100%); color: white; padding: 32px; border-radius: 8px; margin-bottom: 24px;">
+                            <h1 style="margin: 0 0 8px 0; color: white; font-size: 32px; font-weight: 600;">{{ service.title }}</h1>
+                            <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 16px; font-weight: 500;">Service Offering</p>
                         </div>
-                        
-                        <div class="service-view-content">
-                            <div class="service-view-section">
-                                <h2 class="service-view-section-title">Description</h2>
-                                <p class="service-view-text">{{ service.description }}</p>
+
+                        <!-- COMPANY INFO -->
+                        <div class="company-info" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top: 0; color: #1a73e8;">{{ company.name }}</h3>
+                            <p style="color: #666;">No reviews yet</p>
+                        </div>
+
+                        <!-- SERVICE DETAILS -->
+                        <div class="detail-section" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top: 0;">Service Description</h3>
+                            <p style="line-height: 1.6; color: #666;">{{ service.description }}</p>
+                        </div>
+
+                        <div class="detail-section" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top: 0;">Details</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                <div>
+                                    <strong>Duration:</strong> {{ service.duration_hours }} hours
+                                </div>
+                                <div>
+                                    <strong>Status:</strong> {% if service.is_active %}Active{% else %}Inactive{% endif %}
+                                </div>
                             </div>
                             
-                            <div class="service-view-section">
-                                <h2 class="service-view-section-title">Details</h2>
-                                <div class="service-view-details">
-                                    <div class="service-detail-item">
-                                        <span class="service-detail-label">Duration:</span>
-                                        <span class="service-detail-value">{{ service.duration_hours }} hours</span>
-                                    </div>
-                                    <div class="service-detail-item">
-                                        <span class="service-detail-label">Status:</span>
-                                        <span class="service-detail-value">{% if service.is_active %}Active{% else %}Inactive{% endif %}</span>
-                                    </div>
-                                </div>
-                                
-                                {% if service.categories %}
+                            {% if service.categories %}
                                 <div style="margin-top: 16px;">
-                                    <span class="service-detail-label">Categories:</span>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                                        {% for cat in service.categories.split(',') %}
-                                            <span class="tag">{{ cat.strip() }}</span>
-                                        {% endfor %}
-                                    </div>
+                                    <strong>Categories:</strong><br>
+                                    {% for cat in service.categories.split(',') %}
+                                        <span class="tag" style="background: #e8e8e8; color: #333; padding: 6px 14px; border-radius: 20px; font-size: 13px; display: inline-block; margin-right: 8px; margin-top: 8px; font-weight: 500; border: 1px solid #d0d0d0;">{{ cat.strip() }}</span>
+                                    {% endfor %}
                                 </div>
-                                {% endif %}
-                            </div>
-                            
-                            {% if is_admin %}
-                            <div class="service-view-actions">
-                                <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" 
-                                   class="btn btn-primary">Edit Service</a>
-                            </div>
                             {% endif %}
                         </div>
+                        
+                        {% if is_admin %}
+                        <div style="margin-top: 24px;">
+                            <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" 
+                               class="btn btn-primary">Edit Service</a>
+                        </div>
+                        {% endif %}
                     </div>
                 </main>
             </div>
