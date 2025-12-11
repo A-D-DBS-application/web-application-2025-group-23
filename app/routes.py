@@ -339,7 +339,7 @@ def edit_company(company_id):
         company.description = request.form.get('description', company.description)
         db.session.commit()
         flash('Company updated successfully', 'success')
-        return redirect(url_for('main.view_company', company_id=company_id))
+        return redirect(url_for('main.workspace_overview', company_id=company_id))
     return render_template('edit_company.html', company=company)
 
 
