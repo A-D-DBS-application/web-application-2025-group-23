@@ -68,7 +68,7 @@
     {% if incoming_requests %}
     <div class="cards-grid">
       {% for req in incoming_requests %}
-      <div class="card" onclick="location.href='{{ url_for('main.tradeflow_select_return', company_id=company.company_id, request_id=req.request_id) }}'">
+      <div class="card" data-href="{{ url_for('main.tradeflow_select_return', company_id=company.company_id, request_id=req.request_id) }}">
         <div class="card-company">{{ req.requesting_company.name }}</div>
         <div class="card-title">{{ req.requested_service.title }}</div>
         <div class="card-desc">{{ req.requested_service.description[:70] }}{% if req.requested_service.description|length > 70 %}...{% endif %}</div>

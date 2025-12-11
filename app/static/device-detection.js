@@ -153,6 +153,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Optional: Show device info in console for development
     // Uncomment to enable:
     // deviceDetection.logInfo();
+    
+    // Handle data-href navigation
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('[data-href]');
+        if (target && !target.disabled) {
+            const href = target.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        }
+    });
 });
 
 // Re-initialize on window resize (for responsive design changes)

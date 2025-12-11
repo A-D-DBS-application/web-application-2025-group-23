@@ -23,7 +23,7 @@
                         {% if user_companies %}
                             {% for comp in user_companies %}
                             <button class="sidebar-company-card {% if comp.company_id == company.company_id %}sidebar-company-card--active{% endif %}"
-                                    onclick="window.location.href='{{ url_for('main.workspace_overview', company_id=comp.company_id) }}'">
+                                    data-href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}">
                                 <div class="sidebar-company-name">{{ comp.name }}</div>
                                 <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
                                 <div class="sidebar-company-role">{% if comp.is_admin %}Admin{% else %}Member{% endif %}</div>

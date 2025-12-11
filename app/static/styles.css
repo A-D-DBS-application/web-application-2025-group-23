@@ -9,6 +9,14 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* DATA-HREF NAVIGATION */
+[data-href] {
+    cursor: pointer;
+}
+[data-href]:not(:disabled):hover {
+    cursor: pointer;
+}
+
 :root {
     --blue: #1A73E8;
     --gray: #999;

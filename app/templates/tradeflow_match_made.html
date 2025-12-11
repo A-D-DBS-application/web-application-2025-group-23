@@ -68,7 +68,7 @@
       {% if matches %}
       <div class="cards-grid">
         {% for match in matches %}
-        <div class="card" onclick="location.href='{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=match.proposal_id) }}'">
+        <div class="card" data-href="{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=match.proposal_id) }}">
           <div class="card-pair">
             <div class="card-side">
               <div class="card-side-label">{{ match.from_company.name }}</div>

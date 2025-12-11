@@ -84,7 +84,7 @@
               <div class="card-side-title">{{ deal.proposal.to_service.title }}</div>
             </div>
           </div>
-          <a href="{{ url_for('main.tradeflow_ongoing_deal_detail', company_id=company.company_id, deal_id=deal.active_deal_id) }}" class="card-button" style="text-decoration: none; display: block; text-align: center;">View</a>
+          <button class="card-button" data-href="{{ url_for('main.tradeflow_ongoing_deal_detail', company_id=company.company_id, deal_id=deal.active_deal_id) }}">View</button>
         </div>
         {% endfor %}
       </div>
