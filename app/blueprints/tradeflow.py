@@ -145,7 +145,7 @@ def tradeflow_create_match(company_id):
         to_company_id=company_id,
         from_service_id=trade_request.requested_service_id,
         to_service_id=service_id,
-        status='pending',
+        status='matched',
         created_at=datetime.datetime.now(datetime.timezone.utc),
     )
 
@@ -244,7 +244,7 @@ def tradeflow_match_made(company_id):
     if resp:
         return resp
 
-    cutoff_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+    cutoff_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
     expired = DealProposal.query.filter(
         DealProposal.status == 'matched',
         DealProposal.created_at < cutoff_date
@@ -253,40 +253,71 @@ def tradeflow_match_made(company_id):
         db.session.delete(proposal)
     db.session.commit()
 
-    matches = DealProposal.query.filter(
-        ((DealProposal.from_company_id == company_id) | (DealProposal.to_company_id == company_id)),
-        DealProposal.status.in_(['matched', 'pending'])
+    matched_proposals = DealProposal.query.filter(
+        DealProposal.status == 'matched',
+        (
+            (DealProposal.from_company_id == company_id) |
+            (DealProposal.to_company_id == company_id)
+        )
     ).all()
 
-    return render_template('tradeflow_match_made.html', company=company, matches=matches)
+    return render_template(
+        'tradeflow_match_made.html',
+        company=company,
+        matches=matched_proposals
+    )
 
 
 @main.route('/tradeflow/<uuid:company_id>/match/<uuid:proposal_id>', methods=['GET', 'POST'])
 def tradeflow_match_detail(company_id, proposal_id):
-    """View detail of one match or create offer"""
+    """Detail page for a match, to send an offer"""
     if (resp := _require_login()):
         return resp
     company, resp = _require_company_member(company_id)
     if resp:
         return resp
+
     proposal = DealProposal.query.get_or_404(proposal_id)
-    if (resp := _ensure_proposal_involves_company(proposal, company_id)):
-        return resp
+    if proposal.from_company_id != company_id and proposal.to_company_id != company_id:
+        flash('Not authorized to view this proposal.', 'danger')
+        return redirect(url_for('main.tradeflow_match_made', company_id=company_id))
 
     if request.method == 'POST':
-        barter_coins = _parse_int(request.form.get('barter_coins'), 0)
         message = request.form.get('message', '')
+        money_amount = _parse_int(request.form.get('money_amount'), 0)
+        money_type = request.form.get('money_type') if request.form.get('money_type') in ('receive', 'give') else None
 
-        # Normalize orientation so the company sending the offer becomes from_company.
-        # This makes filters work: "Awaiting Them" shows proposals where current company is sender.
-        if proposal.to_company_id == company_id:
-            proposal.from_company_id, proposal.to_company_id = proposal.to_company_id, proposal.from_company_id
-            proposal.from_service_id, proposal.to_service_id = proposal.to_service_id, proposal.from_service_id
+        # Compute orientation for the NEW proposal based on current company sending
+        if proposal.from_company_id == company_id:
+            new_from_company_id = proposal.from_company_id
+            new_to_company_id = proposal.to_company_id
+            new_from_service_id = proposal.from_service_id
+            new_to_service_id = proposal.to_service_id
+        else:
+            new_from_company_id = proposal.to_company_id
+            new_to_company_id = proposal.from_company_id
+            new_from_service_id = proposal.to_service_id
+            new_to_service_id = proposal.from_service_id
 
-        proposal.barter_coins_offered = barter_coins
-        proposal.message = message if message.strip() else None
-        proposal.status = 'pending'
+        # Persist money info inside message (no DB fields). Prefix with a simple tag.
+        money_prefix = ''
+        if money_type and money_amount and money_amount > 0:
+            money_prefix = f"[MONEY:{money_type}:{money_amount}] "
 
+        full_message = (money_prefix + message).strip()
+
+        # Create a new DealProposal so both sides' offers remain visible
+        new_proposal = DealProposal(
+            proposal_id=uuid.uuid4(),
+            from_company_id=new_from_company_id,
+            to_company_id=new_to_company_id,
+            from_service_id=new_from_service_id,
+            to_service_id=new_to_service_id,
+            status='pending',
+            message=full_message if full_message else None,
+            created_at=datetime.datetime.now(datetime.timezone.utc)
+        )
+        db.session.add(new_proposal)
         db.session.commit()
 
         flash('Offer sent! Waiting for the other party to respond.', 'success')
@@ -308,14 +339,33 @@ def tradeflow_create_offer(company_id, proposal_id):
         return resp
 
     if request.method == 'POST':
-        barter_coins = _parse_int(request.form.get('barter_coins'), 0)
         message = request.form.get('message', '')
 
-        proposal.barter_coins_offered = barter_coins
         proposal.message = message if message.strip() else None
         proposal.status = 'accepted'
 
         db.session.add(_create_active_deal_from_proposal(proposal_id))
+        # Remove related pending/matched proposals for the same pair (both directions)
+        related = DealProposal.query.filter(
+            DealProposal.proposal_id != proposal_id,
+            DealProposal.status.in_(['matched', 'pending']),
+            (
+                (
+                    (DealProposal.from_company_id == proposal.from_company_id) &
+                    (DealProposal.to_company_id == proposal.to_company_id) &
+                    (DealProposal.from_service_id == proposal.from_service_id) &
+                    (DealProposal.to_service_id == proposal.to_service_id)
+                ) |
+                (
+                    (DealProposal.from_company_id == proposal.to_company_id) &
+                    (DealProposal.to_company_id == proposal.from_company_id) &
+                    (DealProposal.from_service_id == proposal.to_service_id) &
+                    (DealProposal.to_service_id == proposal.from_service_id)
+                )
+            )
+        ).all()
+        for p in related:
+            db.session.delete(p)
         db.session.commit()
 
         flash('Offer accepted! Deal is now active.', 'success')
@@ -346,6 +396,47 @@ def tradeflow_awaiting_signature(company_id):
         if action == 'accept':
             proposal.status = 'accepted'
             db.session.add(_create_active_deal_from_proposal(proposal_id))
+            
+            # First remove proposals for the exact same service pair (both orientations)
+            related = DealProposal.query.filter(
+                DealProposal.proposal_id != proposal_id,
+                DealProposal.status.in_(['matched', 'pending']),
+                (
+                    (
+                        (DealProposal.from_company_id == proposal.from_company_id) &
+                        (DealProposal.to_company_id == proposal.to_company_id) &
+                        (DealProposal.from_service_id == proposal.from_service_id) &
+                        (DealProposal.to_service_id == proposal.to_service_id)
+                    ) |
+                    (
+                        (DealProposal.from_company_id == proposal.to_company_id) &
+                        (DealProposal.to_company_id == proposal.from_company_id) &
+                        (DealProposal.from_service_id == proposal.to_service_id) &
+                        (DealProposal.to_service_id == proposal.from_service_id)
+                    )
+                )
+            ).all()
+            for p in related:
+                db.session.delete(p)
+            
+            # Additionally remove any other matched/pending proposals between the same companies (any services)
+            related_company = DealProposal.query.filter(
+                DealProposal.status.in_(['matched', 'pending']),
+                DealProposal.proposal_id != proposal_id,
+                (
+                    (
+                        (DealProposal.from_company_id == proposal.from_company_id) &
+                        (DealProposal.to_company_id == proposal.to_company_id)
+                    ) |
+                    (
+                        (DealProposal.from_company_id == proposal.to_company_id) &
+                        (DealProposal.to_company_id == proposal.from_company_id)
+                    )
+                )
+            ).all()
+            for p in related_company:
+                db.session.delete(p)
+            
             db.session.commit()
 
             flash('Deal accepted! Now active.', 'success')
@@ -362,6 +453,22 @@ def tradeflow_awaiting_signature(company_id):
         to_company_id=company_id,
         status='pending'
     ).all()
+
+    # Parse money tags for overview cards
+    for offer in awaiting_signature:
+        offer.money_type = None
+        offer.money_amount = None
+        try:
+            if offer.message and offer.message.startswith('[MONEY:'):
+                end_idx = offer.message.find(']')
+                if end_idx != -1:
+                    tag = offer.message[7:end_idx]
+                    parts = tag.split(':')
+                    if len(parts) == 2 and parts[0] in ('receive', 'give'):
+                        offer.money_type = parts[0]
+                        offer.money_amount = _parse_int(parts[1], 0)
+        except Exception:
+            pass
 
     return render_template('tradeflow_awaiting_signature.html', company=company, awaiting_signature=awaiting_signature)
 
@@ -386,6 +493,47 @@ def tradeflow_awaiting_signature_detail(company_id, proposal_id):
         if action == 'accept':
             proposal.status = 'accepted'
             db.session.add(_create_active_deal_from_proposal(proposal_id))
+            
+            # First remove proposals for the exact same service pair (both orientations)
+            related = DealProposal.query.filter(
+                DealProposal.proposal_id != proposal_id,
+                DealProposal.status.in_(['matched', 'pending']),
+                (
+                    (
+                        (DealProposal.from_company_id == proposal.from_company_id) &
+                        (DealProposal.to_company_id == proposal.to_company_id) &
+                        (DealProposal.from_service_id == proposal.from_service_id) &
+                        (DealProposal.to_service_id == proposal.to_service_id)
+                    ) |
+                    (
+                        (DealProposal.from_company_id == proposal.to_company_id) &
+                        (DealProposal.to_company_id == proposal.from_company_id) &
+                        (DealProposal.from_service_id == proposal.to_service_id) &
+                        (DealProposal.to_service_id == proposal.from_service_id)
+                    )
+                )
+            ).all()
+            for p in related:
+                db.session.delete(p)
+            
+            # Additionally remove any other matched/pending proposals between the same companies (any services)
+            related_company = DealProposal.query.filter(
+                DealProposal.status.in_(['matched', 'pending']),
+                DealProposal.proposal_id != proposal_id,
+                (
+                    (
+                        (DealProposal.from_company_id == proposal.from_company_id) &
+                        (DealProposal.to_company_id == proposal.to_company_id)
+                    ) |
+                    (
+                        (DealProposal.from_company_id == proposal.to_company_id) &
+                        (DealProposal.to_company_id == proposal.from_company_id)
+                    )
+                )
+            ).all()
+            for p in related_company:
+                db.session.delete(p)
+            
             db.session.commit()
 
             flash('Deal accepted! Now active.', 'success')
@@ -397,6 +545,23 @@ def tradeflow_awaiting_signature_detail(company_id, proposal_id):
 
             flash('Offer declined.', 'info')
             return redirect(url_for('main.tradeflow_awaiting_signature', company_id=company_id))
+
+    # Parse optional money info from message prefix like [MONEY:receive:100]
+    proposal.money_type = None
+    proposal.money_amount = None
+    try:
+        if proposal.message and proposal.message.startswith('[MONEY:'):
+            end_idx = proposal.message.find(']')
+            if end_idx != -1:
+                tag = proposal.message[7:end_idx]  # inside MONEY:
+                parts = tag.split(':')
+                if len(parts) == 2 and parts[0] in ('receive', 'give'):
+                    proposal.money_type = parts[0]
+                    proposal.money_amount = _parse_int(parts[1], 0)
+                    # Strip the tag from the visible message
+                    proposal.message = proposal.message[end_idx+1:].strip()
+    except Exception:
+        pass
 
     return render_template('tradeflow_awaiting_signature_detail.html', company=company, proposal=proposal)
 
@@ -415,7 +580,57 @@ def tradeflow_awaiting_other_party(company_id):
         status='pending'
     ).all()
 
+    # Parse money tags for overview cards
+    for offer in awaiting_other_party:
+        offer.money_type = None
+        offer.money_amount = None
+        try:
+            if offer.message and offer.message.startswith('[MONEY:'):
+                end_idx = offer.message.find(']')
+                if end_idx != -1:
+                    tag = offer.message[7:end_idx]
+                    parts = tag.split(':')
+                    if len(parts) == 2 and parts[0] in ('receive', 'give'):
+                        offer.money_type = parts[0]
+                        offer.money_amount = _parse_int(parts[1], 0)
+        except Exception:
+            pass
+
     return render_template('tradeflow_awaiting_other_party.html', company=company, awaiting_other_party=awaiting_other_party)
+
+
+@main.route('/tradeflow/<uuid:company_id>/awaiting-other-party/<uuid:proposal_id>', methods=['GET'])
+def tradeflow_awaiting_other_party_detail(company_id, proposal_id):
+    """Read-only detail view for offers you sent, awaiting other party"""
+    if (resp := _require_login()):
+        return resp
+    company, resp = _require_company_member(company_id)
+    if resp:
+        return resp
+    proposal = DealProposal.query.get_or_404(proposal_id)
+
+    # Only allow viewing if this company sent the offer
+    if proposal.from_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+
+    # Parse optional money info from message prefix like [MONEY:receive:100]
+    proposal.money_type = None
+    proposal.money_amount = None
+    try:
+        if proposal.message and proposal.message.startswith('[MONEY:'):
+            end_idx = proposal.message.find(']')
+            if end_idx != -1:
+                tag = proposal.message[7:end_idx]
+                parts = tag.split(':')
+                if len(parts) == 2 and parts[0] in ('receive', 'give'):
+                    proposal.money_type = parts[0]
+                    proposal.money_amount = _parse_int(parts[1], 0)
+                    proposal.message = proposal.message[end_idx+1:].strip()
+    except Exception:
+        pass
+
+    return render_template('tradeflow_awaiting_other_party_detail.html', company=company, proposal=proposal)
 
 
 @main.route('/tradeflow/<uuid:company_id>/ongoing-deals', methods=['GET'])
