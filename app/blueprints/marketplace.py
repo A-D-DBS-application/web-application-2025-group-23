@@ -4,7 +4,7 @@ import uuid
 from flask import request, redirect, url_for, render_template, session, flash
 from sqlalchemy import func
 
-from ..models import db, Service, Review, TradeRequest
+from ..models import db, Service, Review, TradeRequest, Company
 from .core import main
 from .helpers import _marketplace_context, login_required
 
@@ -29,18 +29,19 @@ def marketplace():
     page = max(page, 1)
 
     # Base query: active services from OTHER companies
-    query = Service.query.filter(
+    query = Service.query.join(Company, Service.company_id == Company.company_id).filter(
         Service.is_active == True,  # noqa: E712
         ~Service.company_id.in_(user_company_ids)
     )
 
-    # Apply search filter (including category search)
+    # Apply search filter (including category search and company name)
     if search_query:
         query = query.filter(
             db.or_(
                 Service.title.ilike(f'%{search_query}%'),
                 Service.description.ilike(f'%{search_query}%'),
-                Service.categories.ilike(f'%{search_query}%')
+                Service.categories.ilike(f'%{search_query}%'),
+                Company.name.ilike(f'%{search_query}%')
             )
         )
 
@@ -101,14 +102,15 @@ def marketplace_public():
     page = max(page, 1)
 
     # Base query
-    query = Service.query.filter_by(is_active=True)
+    query = Service.query.join(Company, Service.company_id == Company.company_id).filter(Service.is_active == True)  # noqa: E712
 
-    # Apply search filter
+    # Apply search filter (including company name)
     if search_query:
         query = query.filter(
             db.or_(
                 Service.title.ilike(f'%{search_query}%'),
-                Service.description.ilike(f'%{search_query}%')
+                Service.description.ilike(f'%{search_query}%'),
+                Company.name.ilike(f'%{search_query}%')
             )
         )
 

@@ -33,6 +33,8 @@
   .card-desc { font-size: 13px; color: #5f6368; line-height: 1.5; margin-bottom: 12px; }
   .card-meta { display: flex; justify-content: space-between; font-size: 12px; color: #9aa0a6; margin-bottom: 14px; }
   .card-badge { background: #e8f0fe; color: #1A73E8; padding: 4px 8px; border-radius: 3px; font-weight: 600; font-size: 11px; }
+  .card-categories { display: flex; flex-wrap: wrap; gap: 6px; }
+  .card-category-tag { background: #f0f0f0; color: #667eea; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; white-space: nowrap; }
   .empty { text-align: center; padding: 60px 20px; }
   .empty-icon { font-size: 48px; margin-bottom: 12px; }
   .empty-text { color: #5f6368; font-size: 16px; }
@@ -91,8 +93,14 @@
         <div class="card-desc">{{ service.description[:70] }}{% if service.description|length > 70 %}...{% endif %}</div>
         <div class="card-meta">
           <span>⏱ {{ service.duration_hours }} hrs</span>
-          <span class="card-badge">{{ service.categories or 'Service' }}</span>
         </div>
+        {% if service.categories %}
+        <div class="card-categories">
+          {% for cat in service.categories.split(',') %}
+            <span class="card-category-tag">{{ cat.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
       </a>
       {% endfor %}
     </div>
