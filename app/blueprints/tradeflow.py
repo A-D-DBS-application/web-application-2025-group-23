@@ -261,10 +261,44 @@ def tradeflow_match_made(company_id):
         )
     ).all()
 
+    # For each match, check if there's a pending proposal
+    matches_with_status = []
+    for match in matched_proposals:
+        # Check if there's a pending proposal for this service pair (not rejected)
+        pending_proposal = DealProposal.query.filter(
+            DealProposal.status == 'pending',
+            (
+                (
+                    (DealProposal.from_company_id == match.from_company_id) &
+                    (DealProposal.to_company_id == match.to_company_id) &
+                    (DealProposal.from_service_id == match.from_service_id) &
+                    (DealProposal.to_service_id == match.to_service_id)
+                ) |
+                (
+                    (DealProposal.from_company_id == match.to_company_id) &
+                    (DealProposal.to_company_id == match.from_company_id) &
+                    (DealProposal.from_service_id == match.to_service_id) &
+                    (DealProposal.to_service_id == match.from_service_id)
+                )
+            )
+        ).first()
+        
+        match_info = {
+            'proposal': match,
+            'has_pending': pending_proposal is not None,
+            'pending_sent_by_you': False
+        }
+        
+        if pending_proposal:
+            # Determine if the current company sent the pending proposal
+            match_info['pending_sent_by_you'] = (pending_proposal.from_company_id == company_id)
+        
+        matches_with_status.append(match_info)
+
     return render_template(
         'tradeflow_match_made.html',
         company=company,
-        matches=matched_proposals
+        matches=matches_with_status
     )
 
 

@@ -21,6 +21,8 @@
   .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
   .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 24px; transition: all 0.2s; }
   .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #1A73E8; }
+  .card.disabled { background: #f5f5f5; border-color: #d0d0d0; cursor: not-allowed; opacity: 0.7; }
+  .card.disabled:hover { box-shadow: none; border-color: #d0d0d0; }
   .card-pair { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
   .card-side { flex: 1; }
   .card-side-label { font-size: 11px; color: #9aa0a6; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
@@ -28,6 +30,8 @@
   .arrows { color: #1A73E8; font-size: 18px; font-weight: 700; }
   .card-button { display: block; width: 100%; background: #1A73E8; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; margin-top: 14px; }
   .card-button:hover { background: #1557b0; }
+  .card-button.disabled { background: #9aa0a6; cursor: not-allowed; }
+  .card-button.disabled:hover { background: #9aa0a6; }
   .empty { text-align: center; padding: 60px 20px; }
   .empty-icon { font-size: 48px; margin-bottom: 12px; }
   .empty-text { color: #5f6368; font-size: 16px; }
@@ -67,8 +71,9 @@
       </div>
       {% if matches %}
       <div class="cards-grid">
-        {% for match in matches %}
-        <div class="card" data-href="{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=match.proposal_id) }}">
+        {% for match_info in matches %}
+        {% set match = match_info.proposal %}
+        <div class="card {% if match_info.has_pending %}disabled{% endif %}" {% if not match_info.has_pending %}data-href="{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=match.proposal_id) }}"{% endif %}>
           <div class="card-pair">
             <div class="card-side">
               <div class="card-side-label">{{ match.from_company.name }}</div>
@@ -80,7 +85,17 @@
               <div class="card-side-title">{{ match.to_service.title }}</div>
             </div>
           </div>
-          <button class="card-button">View Details</button>
+          {% if match_info.has_pending %}
+            <button class="card-button disabled" disabled>
+              {% if match_info.pending_sent_by_you %}
+                Offer sent to them
+              {% else %}
+                Offer received from them
+              {% endif %}
+            </button>
+          {% else %}
+            <button class="card-button">View Details</button>
+          {% endif %}
         </div>
         {% endfor %}
       </div>
