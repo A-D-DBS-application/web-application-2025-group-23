@@ -152,6 +152,7 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
+    min-height: 2.5rem;
 }
 
 .category-badge {
@@ -171,7 +172,7 @@
 .service-footer {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     margin-top: auto;
     padding-top: 0.575rem;
     border-top: 1px solid #f0f0f0;
@@ -186,6 +187,14 @@
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s;
+    height: 38px;
+    max-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    margin-bottom: 0;
+    align-self: flex-end;
 }
 
 .btn-view:hover {
