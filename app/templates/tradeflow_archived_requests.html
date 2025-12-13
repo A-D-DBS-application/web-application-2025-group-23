@@ -11,9 +11,10 @@
   .company-badge { background: rgba(26, 115, 232, 0.08); padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #1A73E8; margin-bottom: 28px; border: 1px solid rgba(26, 115, 232, 0.15); }
   .sidebar-section { margin-bottom: 32px; }
   .sidebar-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #9aa0a6; margin-bottom: 14px; letter-spacing: 0.6px; }
-  .sidebar-link { display: block; padding: 10px 12px; margin: 4px 0; border-radius: 6px; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: all 0.15s; }
+  .sidebar-link { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin: 4px 0; border-radius: 6px; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: all 0.15s; }
   .sidebar-link:hover { background: rgba(26, 115, 232, 0.08); color: #1A73E8; }
   .sidebar-link.active { background: rgba(26, 115, 232, 0.12); color: #1A73E8; font-weight: 600; }
+  .notification-badge { background: #1A73E8; color: white; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center; }
   .main { flex: 1; padding: 40px 48px; overflow-y: auto; }
   .page-header { margin-bottom: 36px; }
   .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
@@ -40,22 +41,46 @@
       
       <div class="sidebar-section">
         <div class="sidebar-section-title">Requests</div>
-        <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" class="sidebar-link">Incoming</a>
-        <a href="{{ url_for('main.tradeflow_you_requested', company_id=company.company_id) }}" class="sidebar-link">You Requested</a>
-        <a href="{{ url_for('main.tradeflow_archived_requests', company_id=company.company_id) }}" class="sidebar-link active">Archived</a>
+        <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" class="sidebar-link">
+          <span>Incoming</span>
+          {% if unread_counts and unread_counts.incoming > 0 %}<span class="notification-badge">{{ unread_counts.incoming }}</span>{% endif %}
+        </a>
+        <a href="{{ url_for('main.tradeflow_you_requested', company_id=company.company_id) }}" class="sidebar-link">
+          <span>You Requested</span>
+          {% if unread_counts and unread_counts.you_requested > 0 %}<span class="notification-badge">{{ unread_counts.you_requested }}</span>{% endif %}
+        </a>
+        <a href="{{ url_for('main.tradeflow_archived_requests', company_id=company.company_id) }}" class="sidebar-link active">
+          <span>Archived</span>
+          {% if unread_counts and unread_counts.archived > 0 %}<span class="notification-badge">{{ unread_counts.archived }}</span>{% endif %}
+        </a>
       </div>
 
       <div class="sidebar-section">
         <div class="sidebar-section-title">Contracts</div>
-        <a href="{{ url_for('main.tradeflow_match_made', company_id=company.company_id) }}" class="sidebar-link">Matches</a>
-        <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="sidebar-link">Waiting for You</a>
-        <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="sidebar-link">Awaiting Them</a>
+        <a href="{{ url_for('main.tradeflow_match_made', company_id=company.company_id) }}" class="sidebar-link">
+          <span>Matches</span>
+          {% if unread_counts and unread_counts.matches > 0 %}<span class="notification-badge">{{ unread_counts.matches }}</span>{% endif %}
+        </a>
+        <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="sidebar-link">
+          <span>Waiting for You</span>
+          {% if unread_counts and unread_counts.awaiting_signature > 0 %}<span class="notification-badge">{{ unread_counts.awaiting_signature }}</span>{% endif %}
+        </a>
+        <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="sidebar-link">
+          <span>Awaiting Them</span>
+          {% if unread_counts and unread_counts.awaiting_other_party > 0 %}<span class="notification-badge">{{ unread_counts.awaiting_other_party }}</span>{% endif %}
+        </a>
       </div>
 
       <div class="sidebar-section">
         <div class="sidebar-section-title">Deals</div>
-        <a href="{{ url_for('main.tradeflow_ongoing_deals', company_id=company.company_id) }}" class="sidebar-link">Ongoing</a>
-        <a href="{{ url_for('main.tradeflow_completed_deals', company_id=company.company_id) }}" class="sidebar-link">Completed</a>
+        <a href="{{ url_for('main.tradeflow_ongoing_deals', company_id=company.company_id) }}" class="sidebar-link">
+          <span>Ongoing</span>
+          {% if unread_counts and unread_counts.ongoing > 0 %}<span class="notification-badge">{{ unread_counts.ongoing }}</span>{% endif %}
+        </a>
+        <a href="{{ url_for('main.tradeflow_completed_deals', company_id=company.company_id) }}" class="sidebar-link">
+          <span>Completed</span>
+          {% if unread_counts and unread_counts.completed > 0 %}<span class="notification-badge">{{ unread_counts.completed }}</span>{% endif %}
+        </a>
       </div>
     </aside>
 

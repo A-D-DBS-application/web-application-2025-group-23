@@ -229,6 +229,7 @@ class TradeRequest(db.Model):
     status = db.Column(db.Text, nullable=False, default='active')  # active, archived (expired/no match)
     created_at = db.Column(DateTime(timezone=True), nullable=False)
     expires_at = db.Column(DateTime(timezone=True), nullable=False)
+    archived_at = db.Column(DateTime(timezone=True), nullable=True)  # When the request was archived
 
     # Relationships
     requesting_company = db.relationship("Company", foreign_keys=[requesting_company_id], backref="trade_requests_sent")
@@ -476,6 +477,38 @@ class Deliverable(db.Model):
 
     def __repr__(self) -> str:
         return f"<Deliverable {self.deliverable_id} for deal {self.active_deal_id}>"
+
+
+# ==========================
+# TRADEFLOW VIEW TRACKING
+# ==========================
+class TradeflowView(db.Model):
+    """
+    Tracks when a user last viewed each tradeflow section for notification badges.
+    """
+    __tablename__ = "tradeflow_view"
+
+    view_id = db.Column(UUID(as_uuid=True), primary_key=True)
+    company_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("company.company_id"),
+        nullable=False
+    )
+    user_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("user.user_id"),
+        nullable=False
+    )
+    section = db.Column(db.Text, nullable=False)  # 'incoming', 'you_requested', 'archived', 'matches', 'awaiting_signature', 'awaiting_other_party', 'ongoing', 'completed'
+    last_viewed_at = db.Column(DateTime(timezone=True), nullable=False)
+
+    # Relationships
+    company = db.relationship("Company", backref=db.backref("tradeflow_views", lazy="dynamic"))
+    user = db.relationship("User", backref=db.backref("tradeflow_views", lazy="dynamic"))
+
+    def __repr__(self) -> str:
+        return f"<TradeflowView {self.section} for company {self.company_id} by user {self.user_id}>"
+
 
 
 

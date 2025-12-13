@@ -2,7 +2,7 @@ import datetime
 import uuid
 from functools import wraps
 from flask import request, session, redirect, url_for, flash
-from ..models import User, Company, CompanyMember, Service, DealProposal, ActiveDeal, TradeRequest
+from ..models import User, Company, CompanyMember, Service, DealProposal, ActiveDeal, TradeRequest, TradeflowView, db
 
 def get_current_user():
     """Helper to load current user from session; returns None when invalid."""
@@ -215,3 +215,132 @@ def marketplace_company_required(view):
         kwargs['selected_company'] = selected
         return view(*args, **kwargs)
     return wrapper
+
+
+def mark_tradeflow_section_viewed(company_id, section):
+    """Mark a tradeflow section as viewed by the current user."""
+    user_id = session.get('user_id')
+    if not user_id:
+        return
+    
+    try:
+        user_uuid = uuid.UUID(user_id)
+        company_uuid = uuid.UUID(str(company_id))
+    except (ValueError, AttributeError):
+        return
+    
+    # Find existing view record or create new one
+    view = TradeflowView.query.filter_by(
+        company_id=company_uuid,
+        user_id=user_uuid,
+        section=section
+    ).first()
+    
+    if view:
+        view.last_viewed_at = datetime.datetime.now(datetime.timezone.utc)
+    else:
+        view = TradeflowView(
+            view_id=uuid.uuid4(),
+            company_id=company_uuid,
+            user_id=user_uuid,
+            section=section,
+            last_viewed_at=datetime.datetime.now(datetime.timezone.utc)
+        )
+        db.session.add(view)
+    
+    db.session.commit()
+
+
+def get_tradeflow_unread_counts(company_id):
+    """Get unread counts for all tradeflow sections."""
+    user_id = session.get('user_id')
+    if not user_id:
+        return {}
+    
+    try:
+        user_uuid = uuid.UUID(user_id)
+        company_uuid = uuid.UUID(str(company_id))
+    except (ValueError, AttributeError):
+        return {}
+    
+    counts = {}
+    
+    # Get last viewed timestamps for each section
+    views = TradeflowView.query.filter_by(
+        company_id=company_uuid,
+        user_id=user_uuid
+    ).all()
+    
+    last_viewed = {view.section: view.last_viewed_at for view in views}
+    
+    # Count incoming requests created after last view
+    incoming_cutoff = last_viewed.get('incoming', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    counts['incoming'] = TradeRequest.query.filter(
+        TradeRequest.requested_service.has(company_id=company_uuid),
+        TradeRequest.status == 'active',
+        TradeRequest.created_at > incoming_cutoff
+    ).count()
+    
+    # Count you requested items created after last view
+    you_requested_cutoff = last_viewed.get('you_requested', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    counts['you_requested'] = TradeRequest.query.filter(
+        TradeRequest.requesting_company_id == company_uuid,
+        TradeRequest.status == 'active',
+        TradeRequest.created_at > you_requested_cutoff
+    ).count()
+    
+    # Count archived requests using archived_at timestamp
+    archived_cutoff = last_viewed.get('archived', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    counts['archived'] = TradeRequest.query.filter(
+        ((TradeRequest.requesting_company_id == company_uuid) | 
+         (TradeRequest.requested_service.has(company_id=company_uuid))),
+        TradeRequest.status == 'archived',
+        TradeRequest.archived_at != None,
+        TradeRequest.archived_at > archived_cutoff
+    ).count()
+    
+    # Count matches
+    matches_cutoff = last_viewed.get('matches', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    counts['matches'] = DealProposal.query.filter(
+        DealProposal.status == 'matched',
+        ((DealProposal.from_company_id == company_uuid) | 
+         (DealProposal.to_company_id == company_uuid)),
+        DealProposal.created_at > matches_cutoff
+    ).count()
+    
+    # Count awaiting signature
+    awaiting_signature_cutoff = last_viewed.get('awaiting_signature', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    counts['awaiting_signature'] = DealProposal.query.filter(
+        DealProposal.to_company_id == company_uuid,
+        DealProposal.status == 'pending',
+        DealProposal.created_at > awaiting_signature_cutoff
+    ).count()
+    
+    # Count awaiting other party
+    awaiting_other_cutoff = last_viewed.get('awaiting_other_party', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    counts['awaiting_other_party'] = DealProposal.query.filter(
+        DealProposal.from_company_id == company_uuid,
+        DealProposal.status == 'pending',
+        DealProposal.created_at > awaiting_other_cutoff
+    ).count()
+    
+    # Count ongoing deals
+    ongoing_cutoff = last_viewed.get('ongoing', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    counts['ongoing'] = ActiveDeal.query.join(DealProposal).filter(
+        ((DealProposal.from_company_id == company_uuid) | 
+         (DealProposal.to_company_id == company_uuid)),
+        ActiveDeal.status == 'in_progress',
+        ActiveDeal.created_at > ongoing_cutoff
+    ).count()
+    
+    # Count completed deals
+    completed_cutoff = last_viewed.get('completed', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    counts['completed'] = ActiveDeal.query.join(DealProposal).filter(
+        ((DealProposal.from_company_id == company_uuid) | 
+         (DealProposal.to_company_id == company_uuid)),
+        ActiveDeal.status == 'completed',
+        ActiveDeal.created_at > completed_cutoff
+    ).count()
+    
+    return counts
+
