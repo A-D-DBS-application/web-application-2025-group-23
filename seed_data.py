@@ -83,7 +83,7 @@ import sys
 import datetime
 from werkzeug.security import generate_password_hash
 from app import create_app
-from app.models import db, User, Company, CompanyMember, CompanyJoinRequest, Service, DealProposal, ActiveDeal, Review, ServiceInterest, TradeRequest, Message
+from app.models import db, User, Company, CompanyMember, CompanyJoinRequest, Service, DealProposal, ActiveDeal, Review, TradeRequest
 
 def seed_database(force_reset=False):
     """Populate database with example data"""
@@ -128,9 +128,7 @@ def seed_database(force_reset=False):
             # Delete in correct order to avoid FK conflicts
             try:
                 db.session.query(Review).delete()
-                db.session.query(ServiceInterest).delete()
                 db.session.query(TradeRequest).delete()
-                db.session.query(Message).delete()  # Delete messages before deal proposals
                 db.session.query(ActiveDeal).delete()
                 db.session.query(DealProposal).delete()
                 db.session.query(Service).delete()

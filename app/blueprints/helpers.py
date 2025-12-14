@@ -52,6 +52,8 @@ def _require_company_member(company_id):
     if not member:
         flash('Access denied', 'error')
         return None, redirect(url_for('main.my_companies'))
+    # Store selected company in session for navigation
+    session['selected_company_id'] = str(company_id)
     return company, None
 
 
@@ -180,6 +182,7 @@ def _marketplace_context(selected_company_id_str=None, redirect_missing='main.se
         try:
             selected_company_id = uuid.UUID(selected_company_id_str)
             session['marketplace_company_id'] = str(selected_company_id)
+            session['selected_company_id'] = str(selected_company_id)
         except ValueError:
             selected_company_id = None
     elif 'marketplace_company_id' in session:
@@ -289,14 +292,17 @@ def get_tradeflow_unread_counts(company_id):
         TradeRequest.created_at > you_requested_cutoff
     ).count()
     
-    # Count archived requests using archived_at timestamp
+    # Count archived requests using archived_at timestamp (fallback to created_at for old records)
     archived_cutoff = last_viewed.get('archived', datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    # For old records without archived_at, use created_at as a fallback
     counts['archived'] = TradeRequest.query.filter(
         ((TradeRequest.requesting_company_id == company_uuid) | 
          (TradeRequest.requested_service.has(company_id=company_uuid))),
         TradeRequest.status == 'archived',
-        TradeRequest.archived_at != None,
-        TradeRequest.archived_at > archived_cutoff
+        db.or_(
+            db.and_(TradeRequest.archived_at != None, TradeRequest.archived_at > archived_cutoff),
+            db.and_(TradeRequest.archived_at == None, TradeRequest.created_at > archived_cutoff)
+        )
     ).count()
     
     # Count matches

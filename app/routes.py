@@ -8,7 +8,7 @@ import string
 from flask import request, redirect, url_for, render_template, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from .blueprints.core import main
-from .models import db, User, Company, CompanyMember, Service, DealProposal, ActiveDeal, ServiceInterest, Review, CompanyJoinRequest
+from .models import db, User, Company, CompanyMember, Service, DealProposal, ActiveDeal, Review, CompanyJoinRequest
 
 
 def _workspace_context(company_id: uuid.UUID, uid: uuid.UUID):
@@ -17,6 +17,9 @@ def _workspace_context(company_id: uuid.UUID, uid: uuid.UUID):
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
     if not membership:
         return None
+
+    # Store selected company in session for navigation
+    session['selected_company_id'] = str(company_id)
 
     member_count = CompanyMember.query.filter_by(company_id=company_id).count()
     service_count = Service.query.filter_by(company_id=company_id).count()
@@ -81,21 +84,26 @@ def company_choice():
     return render_template("company_choice.html")
 
 
-@main.route("/select-company-marketplace")
-def select_company_for_marketplace():
-    """Let the user pick which company to use for the marketplace."""
+@main.route("/select-company-tradeflow")
+def select_company_for_tradeflow():
+    """Let the user pick which company to use for tradeflow."""
     if "user_id" not in session:
         return redirect(url_for("main.login"))
 
     uid = uuid.UUID(session["user_id"])
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
 
-    # If user is in only 1 company, automatically select it and go to marketplace
+    if not memberships:
+        flash('You need to be a member of a company to access Tradeflow', 'error')
+        return redirect(url_for('main.my_companies'))
+
+    # If user is in only 1 company, automatically select it
     if len(memberships) == 1:
         company = Company.query.get(memberships[0].company_id)
         if company:
-            return redirect(url_for('main.marketplace', company_id=company.company_id))
+            return redirect(url_for('main.tradeflow_incoming_requests', company_id=company.company_id))
 
+    # Multiple companies - always show selection page
     companies = []
     for membership in memberships:
         comp = Company.query.get(membership.company_id)
@@ -111,7 +119,41 @@ def select_company_for_marketplace():
                 "is_admin": membership.is_admin
             })
 
-    return render_template("select_company_marketplace.html", companies=companies)
+    return render_template("select_company.html", companies=companies, destination='tradeflow')
+
+
+@main.route("/select-company-marketplace")
+def select_company_for_marketplace():
+    """Let the user pick which company to use for the marketplace."""
+    if "user_id" not in session:
+        return redirect(url_for("main.login"))
+
+    uid = uuid.UUID(session["user_id"])
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+
+    # If user is in only 1 company, automatically select it and go to marketplace
+    if len(memberships) == 1:
+        company = Company.query.get(memberships[0].company_id)
+        if company:
+            return redirect(url_for('main.marketplace', company_id=company.company_id))
+
+    # Multiple companies - always show selection page
+    companies = []
+    for membership in memberships:
+        comp = Company.query.get(membership.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                "company_id": comp.company_id,
+                "name": comp.name,
+                "description": comp.description,
+                "member_count": member_count,
+                "service_count": service_count,
+                "is_admin": membership.is_admin
+            })
+
+    return render_template("select_company.html", companies=companies, destination='marketplace')
 
 
 # ==================== AUTHENTICATION ROUTES ====================
@@ -1033,16 +1075,6 @@ def complete_deal(deal_id):
         active_deal.status = 'completed'
         active_deal.completed_at = datetime.datetime.now(datetime.timezone.utc)
         
-        ServiceInterest.query.filter_by(
-            service_id=proposal.from_service_id,
-            company_id=proposal.to_company_id
-        ).delete()
-        
-        ServiceInterest.query.filter_by(
-            service_id=proposal.to_service_id,
-            company_id=proposal.from_company_id
-        ).delete()
-        
         flash('Deal completed! Both parties can now leave a review.', 'success')
     else:
         flash('Deal marked as completed on your side.', 'success')
@@ -1130,87 +1162,6 @@ def review_deal(deal_id):
                          active_deal=active_deal,
                          proposal=proposal,
                          reviewed_company=reviewed_company)
-
-
-@main.route('/deal/<deal_id>/sign-contract', methods=['GET', 'POST'])
-def sign_contract(deal_id):
-    """Sign a contract for a barter deal."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    parts = deal_id.split('_')
-    if len(parts) != 2:
-        return 'Invalid deal ID', 400
-    
-    interest1 = ServiceInterest.query.get(parts[0])
-    interest2 = ServiceInterest.query.get(parts[1])
-    
-    if not interest1 or not interest2:
-        return 'Interests not found', 404
-    
-    service_a = Service.query.get(interest1.offering_service_id)
-    service_b = Service.query.get(interest2.offering_service_id)
-    
-    if not service_a or not service_b:
-        return 'Services not found', 404
-    
-    if request.method == 'GET':
-        company_a = Company.query.get(service_a.company_id)
-        company_b = Company.query.get(service_b.company_id)
-        return render_template('sign_contract.html',
-                             deal_id=deal_id,
-                             service_a=service_a,
-                             service_b=service_b,
-                             company_a=company_a,
-                             company_b=company_b)
-    
-    message = request.form.get('message', '')
-    
-    user_id = uuid.UUID(session['user_id'])
-    
-    membership_a = CompanyMember.query.filter_by(
-        user_id=user_id,
-        company_id=service_a.company_id
-    ).first()
-    
-    membership_b = CompanyMember.query.filter_by(
-        user_id=user_id,
-        company_id=service_b.company_id
-    ).first()
-    
-    if membership_a:
-        from_service = service_a
-        to_service = service_b
-        from_company_id = service_a.company_id
-        to_company_id = service_b.company_id
-    elif membership_b:
-        from_service = service_b
-        to_service = service_a
-        from_company_id = service_b.company_id
-        to_company_id = service_a.company_id
-    else:
-        flash('You are not a member of either company', 'error')
-        return redirect(url_for('main.index'))
-    
-    proposal = DealProposal(
-        proposal_id=uuid.uuid4(),
-        from_service_id=from_service.service_id,
-        to_service_id=to_service.service_id,
-        from_company_id=from_company_id,
-        to_company_id=to_company_id,
-        message=message,
-        status='pending',
-        created_at=datetime.datetime.now(datetime.timezone.utc)
-    )
-    db.session.add(proposal)
-    
-    db.session.delete(interest1)
-    db.session.delete(interest2)
-    
-    db.session.commit()
-    
-    flash('Proposal sent successfully!', 'success')
-    return redirect(url_for('main.workspace_overview', company_id=from_company_id))
 
 
 @main.route('/contract/<contract_id>/mark-delivered', methods=['POST'])

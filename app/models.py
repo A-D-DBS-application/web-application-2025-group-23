@@ -150,16 +150,6 @@ class CompanyMember(db.Model):
 
 
 # ==========================
-# SERVICE CATEGORY (Association table for many-to-many)
-# ==========================
-service_categories = db.Table(
-    'service_categories',
-    db.Column('service_id', UUID(as_uuid=True), db.ForeignKey('service.service_id'), primary_key=True),
-    db.Column('category_name', db.Text, primary_key=True)
-)
-
-
-# ==========================
 # SERVICE
 # ==========================
 class Service(db.Model):
@@ -237,45 +227,6 @@ class TradeRequest(db.Model):
 
     def __repr__(self) -> str:
         return f"<TradeRequest {self.request_id} ({self.status})>"
-
-
-# ==========================
-# SERVICE INTEREST (DEPRECATED - KEPT FOR BACKWARDS COMPATIBILITY)
-# ==========================
-class ServiceInterest(db.Model):
-    """
-    Tracks when a company expresses interest in another company's service.
-    company_id: The company showing interest
-    service_id: The service they're interested in
-    offering_service_id: The service they're offering in exchange
-    """
-    __tablename__ = "service_interest"
-
-    interest_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    service_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
-        nullable=False
-    )
-    company_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
-        nullable=False
-    )
-    offering_service_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
-        nullable=False
-    )
-    created_at = db.Column(DateTime(timezone=True), nullable=False)
-
-    # Relationships
-    service = db.relationship("Service", foreign_keys=[service_id], backref="interests")
-    company = db.relationship("Company", backref="service_interests")
-    offering_service = db.relationship("Service", foreign_keys=[offering_service_id])
-
-    def __repr__(self) -> str:
-        return f"<ServiceInterest {self.interest_id}>"
 
 
 # ==========================
@@ -412,71 +363,6 @@ class Review(db.Model):
 
     def __repr__(self) -> str:
         return f"<Review {self.review_id} rating={self.rating}>"
-
-
-# ==========================
-# MESSAGE
-# ==========================
-class Message(db.Model):
-    """
-    Negotiation messages between companies on a specific proposal.
-    Allows companies to communicate during the proposal phase.
-    """
-    __tablename__ = "message"
-
-    message_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    proposal_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("deal_proposal.proposal_id"),
-        nullable=False
-    )
-    from_company_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
-        nullable=False
-    )
-    content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(DateTime(timezone=True), nullable=False)
-
-    # Relationships
-    proposal = db.relationship("DealProposal", backref=db.backref("messages", lazy="dynamic"))
-    from_company = db.relationship("Company", backref=db.backref("sent_messages", lazy="dynamic"))
-
-    def __repr__(self) -> str:
-        return f"<Message {self.message_id} on proposal {self.proposal_id}>"
-
-
-# ==========================
-# DELIVERABLE
-# ==========================
-class Deliverable(db.Model):
-    """
-    Files/deliverables uploaded by companies to fulfill their service obligations.
-    Associated with an active deal.
-    """
-    __tablename__ = "deliverable"
-
-    deliverable_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    active_deal_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("active_deal.active_deal_id"),
-        nullable=False
-    )
-    from_company_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
-        nullable=False
-    )
-    file_path = db.Column(db.Text, nullable=False)  # Path to uploaded file
-    description = db.Column(db.Text)  # Optional description of the deliverable
-    uploaded_at = db.Column(DateTime(timezone=True), nullable=False)
-
-    # Relationships
-    active_deal = db.relationship("ActiveDeal", backref=db.backref("deliverables", lazy="dynamic"))
-    from_company = db.relationship("Company", backref=db.backref("deliverables", lazy="dynamic"))
-
-    def __repr__(self) -> str:
-        return f"<Deliverable {self.deliverable_id} for deal {self.active_deal_id}>"
 
 
 # ==========================
