@@ -1,0 +1,244 @@
+/* Tradeflow gemeenschappelijke styles */
+
+/* Layout */
+.tradeflow-container { display: flex; min-height: calc(100vh - 60px); }
+
+/* Sidebar */
+.tradeflow-container .sidebar { width: 340px; background: white; border-right: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; }
+.tradeflow-container .company-badge { background: rgba(26, 115, 232, 0.08); padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #1A73E8; margin-bottom: 28px; border: 1px solid rgba(26, 115, 232, 0.15); }
+.tradeflow-container .sidebar-section { margin-bottom: 32px; }
+.tradeflow-container .sidebar-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #9aa0a6; margin-bottom: 14px; letter-spacing: 0.6px; }
+.tradeflow-container .sidebar-link { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin: 4px 0; border-radius: 6px; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: all 0.15s; }
+.tradeflow-container .sidebar-link:hover { background: rgba(26, 115, 232, 0.08); color: #1A73E8; }
+.tradeflow-container .sidebar-link.active { background: rgba(26, 115, 232, 0.12); color: #1A73E8; font-weight: 600; }
+.tradeflow-container .notification-badge { background: #1A73E8; color: white; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center; }
+
+/* Main content */
+.tradeflow-container .main { flex: 1; padding: 40px 48px; overflow-y: auto; }
+.tradeflow-container .page-header { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: flex-start; }
+.tradeflow-container .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.tradeflow-container .page-desc { font-size: 15px; color: #5f6368; line-height: 1.6; max-width: 600px; }
+
+/* Cards grid */
+.tradeflow-container .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.tradeflow-container a.card { text-decoration: none; color: inherit; display: block; }
+.tradeflow-container .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 20px; transition: all 0.2s; cursor: pointer; }
+.tradeflow-container .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #1A73E8; }
+.tradeflow-container .card.disabled { background: #f5f5f5; border-color: #d0d0d0; cursor: not-allowed; opacity: 0.7; }
+.tradeflow-container .card.disabled:hover { box-shadow: none; border-color: #d0d0d0; }
+.tradeflow-container .card.archived { opacity: 0.7; }
+.tradeflow-container .card.archived:hover { opacity: 1; }
+.tradeflow-container .card-company { font-size: 13px; font-weight: 600; color: #5f6368; text-transform: uppercase; margin-bottom: 6px; }
+.tradeflow-container .card-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.tradeflow-container .card-desc { font-size: 13px; color: #5f6368; line-height: 1.5; margin-bottom: 12px; }
+.tradeflow-container .card-meta { display: flex; justify-content: space-between; font-size: 12px; color: #9aa0a6; margin-bottom: 14px; }
+.tradeflow-container .card-badge { background: #f0f0f0; color: #667eea; padding: 6px 14px; border-radius: 20px; font-weight: 500; font-size: 13px; }
+.tradeflow-container .card-badge.expired { background: #fce8e6; color: #d33425; }
+.tradeflow-container .card-button { display: block; width: 100%; background: #1A73E8; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; margin-top: 12px; text-align: center; text-decoration: none; }
+.tradeflow-container .card-button:hover { background: #1557b0; }
+.tradeflow-container .card-button.disabled { background: #9aa0a6; cursor: not-allowed; }
+.tradeflow-container .card-button.disabled:hover { background: #9aa0a6; }
+.tradeflow-container .card-button.archived { background: #e8eaed; color: #5f6368; cursor: not-allowed; }
+
+/* Card pair (for matches) */
+.tradeflow-container .card-pair { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+.tradeflow-container .card-side { flex: 1; }
+.tradeflow-container .card-side-label { font-size: 12px; color: #9aa0a6; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+.tradeflow-container .card-side-title { font-size: 18px; font-weight: 600; }
+.tradeflow-container .arrows { color: #1A73E8; font-size: 18px; font-weight: 700; }
+
+/* Empty state */
+.tradeflow-container .empty { text-align: center; padding: 60px 20px; }
+.tradeflow-container .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.tradeflow-container .empty-text { color: #5f6368; font-size: 16px; }
+
+/* Detail pages */
+.tradeflow-container .detail-card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 28px; max-width: 700px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tradeflow-container .detail-title { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
+.tradeflow-container .detail-section { margin-bottom: 20px; }
+.tradeflow-container .detail-label { font-size: 12px; font-weight: 600; color: #5f6368; text-transform: uppercase; margin-bottom: 6px; }
+.tradeflow-container .detail-value { font-size: 15px; color: #1a1a1a; }
+
+/* Back link - styled as blue button */
+.tradeflow-container .back-link { display: inline-block; background: #1A73E8; color: white; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 6px; margin-bottom: 20px; transition: background 0.2s; }
+.tradeflow-container .back-link:hover { background: #1557b0; color: white; }
+
+/* Status badges */
+.tradeflow-container .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; background: #fce8e6; color: #d33425; }
+.tradeflow-container .status-badge.active, .tradeflow-container .status-badge--active { background: #e6f4ea; color: #1e8e3e; }
+.tradeflow-container .status-badge.pending, .tradeflow-container .status-badge--pending { background: #fef7e0; color: #f9ab00; }
+.tradeflow-container .status-badge.completed, .tradeflow-container .status-badge--completed { background: #e6f4ea; color: #1e8e3e; }
+
+/* Trade pair visualization */
+.tradeflow-container .trade-pair { display: flex; gap: 20px; align-items: stretch; margin-bottom: 24px; }
+.tradeflow-container .trade-side { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 20px; }
+.tradeflow-container .trade-side-title { font-size: 13px; font-weight: 700; color: #5f6368; text-transform: uppercase; margin-bottom: 12px; }
+.tradeflow-container .trade-arrow { display: flex; align-items: center; font-size: 24px; color: #1A73E8; }
+
+/* Form elements */
+.tradeflow-container .form-group { margin-bottom: 20px; }
+.tradeflow-container .form-label { display: block; font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+.tradeflow-container .form-input { width: 100%; padding: 12px; border: 1px solid #e8eaed; border-radius: 6px; font-size: 14px; }
+.tradeflow-container .form-input:focus { outline: none; border-color: #1A73E8; }
+.tradeflow-container .form-textarea { min-height: 100px; resize: vertical; }
+
+/* Action buttons */
+.tradeflow-container .action-buttons { display: flex; gap: 12px; margin-top: 24px; }
+.tradeflow-container .btn-primary { background: #1A73E8; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+.tradeflow-container .btn-primary:hover { background: #1557b0; }
+.tradeflow-container .btn-secondary { background: white; color: #5f6368; padding: 12px 24px; border: 1px solid #e8eaed; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+.tradeflow-container .btn-secondary:hover { border-color: #1A73E8; color: #1A73E8; }
+.tradeflow-container .btn-danger { background: #dc3545; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+.tradeflow-container .btn-danger:hover { background: #c82333; }
+
+/* Detail page specific styles */
+.tradeflow-container .service-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a; }
+.tradeflow-container .service-company { font-size: 16px; color: #5f6368; margin-bottom: 16px; }
+.tradeflow-container .service-desc { font-size: 16px; color: #5f6368; line-height: 1.6; margin-bottom: 24px; }
+.tradeflow-container .meta-grid { display: flex; gap: 0; background: #f8f9fa; border-radius: 8px; margin-top: 16px; overflow: hidden; border: 1px solid #e8eaed; }
+.tradeflow-container .meta-item { flex: 1; padding: 20px; border-right: 1px solid #e8eaed; min-width: 0; }
+.tradeflow-container .meta-item:last-child { border-right: none; }
+.tradeflow-container .meta-label { font-size: 12px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 4px; }
+.tradeflow-container .meta-value { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+
+/* Match detail styles */
+.tradeflow-container .match-header { margin-bottom: 24px; }
+.tradeflow-container .match-companies { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.tradeflow-container .match-company { font-size: 14px; font-weight: 600; color: #5f6368; }
+.tradeflow-container .match-arrow { font-size: 20px; color: #1A73E8; }
+.tradeflow-container .services-comparison { display: flex; gap: 20px; margin-bottom: 24px; }
+.tradeflow-container .service-box { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 20px; }
+.tradeflow-container .service-box-label { font-size: 11px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 8px; }
+.tradeflow-container .service-box-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.tradeflow-container .service-box-company { font-size: 13px; color: #5f6368; margin-bottom: 8px; }
+.tradeflow-container .service-box-duration { font-size: 13px; color: #5f6368; }
+
+/* Ongoing/Completed deal detail styles */
+.tradeflow-container .deal-status { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+.tradeflow-container .deal-status.ongoing { background: #e8f0fe; color: #1A73E8; }
+.tradeflow-container .deal-status.completed { background: #e6f4ea; color: #1e8e3e; }
+.tradeflow-container .deal-info { margin-bottom: 24px; }
+.tradeflow-container .deal-info-row { display: flex; margin-bottom: 12px; }
+.tradeflow-container .deal-info-label { width: 140px; font-size: 13px; color: #5f6368; }
+.tradeflow-container .deal-info-value { font-size: 14px; font-weight: 500; color: #1a1a1a; }
+
+/* Review styles */
+.tradeflow-container .review-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #e8eaed; }
+.tradeflow-container .review-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+.tradeflow-container .star-rating { display: flex; gap: 4px; margin-bottom: 12px; }
+.tradeflow-container .star { font-size: 24px; color: #fbbc04; }
+.tradeflow-container .star.inactive { color: #dadce0; }
+.tradeflow-container .review-textarea { width: 100%; min-height: 100px; padding: 12px; border: 1px solid #e8eaed; border-radius: 6px; font-size: 14px; resize: vertical; }
+.tradeflow-container .review-textarea:focus { outline: none; border-color: #1A73E8; }
+.tradeflow-container .review-text { font-size: 14px; color: #1a1a1a; line-height: 1.5; }
+.tradeflow-container .rating { color: #fbbc04; font-size: 14px; }
+
+/* Pair grid (for detail pages showing two services side by side) */
+.tradeflow-container .pair-grid { display: flex; gap: 20px; margin-bottom: 24px; }
+.tradeflow-container .pair-side { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 20px; border: 1px solid #e8eaed; }
+.tradeflow-container .pair-label { font-size: 12px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 8px; }
+.tradeflow-container .pair-service { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+.tradeflow-container .pair-desc { font-size: 14px; color: #5f6368; line-height: 1.5; }
+
+/* Info grid (for details like Created date, Status, etc) */
+.tradeflow-container .info-grid { display: flex; gap: 32px; margin-bottom: 16px; }
+.tradeflow-container .info-item { min-width: 0; }
+.tradeflow-container .info-label { font-size: 11px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 4px; }
+.tradeflow-container .info-value { font-size: 15px; font-weight: 500; color: #1a1a1a; }
+
+/* Section title */
+.tradeflow-container .section-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px; }
+
+/* Card header with blue left border */
+.tradeflow-container .card-header { background: #e8f0fe; border-left: 4px solid #1A73E8; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+.tradeflow-container .card-header-label { font-size: 12px; font-weight: 600; color: #1A73E8; }
+
+/* Money pill/box */
+.tradeflow-container .money-pill { display: inline-block; background: #e8f5e9; color: #1b5e20; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 12px; }
+.tradeflow-container .money-box { margin: 16px 0; }
+
+/* Money section (for match detail form) */
+.tradeflow-container .money-section { margin-bottom: 24px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+.tradeflow-container .money-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+.tradeflow-container .toggle-btn { padding: 10px 16px; border: 1px solid #e8eaed; border-radius: 6px; background: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+.tradeflow-container .toggle-btn.active { background: #1A73E8; color: white; border-color: #1A73E8; }
+.tradeflow-container .toggle-btn:hover:not(.active) { border-color: #1A73E8; }
+.tradeflow-container .money-input-group { margin-bottom: 12px; }
+.tradeflow-container .money-input-label { display: block; font-size: 13px; color: #5f6368; margin-bottom: 8px; }
+.tradeflow-container .money-input-wrapper { display: flex; align-items: center; gap: 8px; }
+.tradeflow-container .money-input-field { width: 120px; padding: 10px; border: 1px solid #e8eaed; border-radius: 6px; font-size: 16px; font-weight: 600; }
+.tradeflow-container .money-input-field:focus { outline: none; border-color: #1A73E8; }
+.tradeflow-container .money-currency { font-size: 16px; font-weight: 600; color: #5f6368; }
+.tradeflow-container .money-preview { font-size: 14px; color: #5f6368; font-style: italic; }
+
+/* Status grid (for ongoing deals) */
+.tradeflow-container .status-grid { display: flex; gap: 32px; margin-bottom: 20px; }
+.tradeflow-container .status-item { min-width: 0; }
+.tradeflow-container .status-label { font-size: 13px; color: #5f6368; margin-bottom: 4px; }
+.tradeflow-container .status-value { font-size: 15px; font-weight: 600; }
+
+/* Button variants */
+.tradeflow-container .btn { display: inline-block; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; text-align: center; transition: all 0.2s; }
+.tradeflow-container .btn-accept { background: #34a853; color: white; }
+.tradeflow-container .btn-accept:hover { background: #2d8e47; }
+.tradeflow-container .btn-decline { background: white; color: #dc3545; border: 1px solid #dc3545; margin-left: 12px; }
+.tradeflow-container .btn-decline:hover { background: #fef2f2; }
+.tradeflow-container .btn-success { background: #34a853; color: white; }
+.tradeflow-container .btn-success:hover { background: #2d8e47; }
+
+/* Form elements */
+.tradeflow-container .form-group { margin-bottom: 20px; }
+.tradeflow-container .form-label { display: block; font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+.tradeflow-container .form-textarea { width: 100%; min-height: 100px; padding: 12px; border: 1px solid #e8eaed; border-radius: 6px; font-size: 14px; resize: vertical; font-family: inherit; }
+.tradeflow-container .form-textarea:focus { outline: none; border-color: #1A73E8; }
+
+/* Form card (for write review etc) */
+.tradeflow-container .form-card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 28px; max-width: 700px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tradeflow-container .deal-summary { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+.tradeflow-container .summary-title { font-size: 11px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 12px; }
+
+/* Rating stars for form */
+.tradeflow-container .rating-stars { display: flex; gap: 8px; margin-bottom: 8px; }
+.tradeflow-container .star-btn { background: none; border: none; font-size: 32px; color: #dadce0; cursor: pointer; transition: color 0.2s; padding: 0; }
+.tradeflow-container .star-btn:hover, .tradeflow-container .star-btn.active { color: #fbbc04; }
+.tradeflow-container .rating-value { font-size: 14px; color: #5f6368; }
+
+/* Form actions */
+.tradeflow-container .form-actions { display: flex; gap: 12px; margin-top: 24px; }
+.tradeflow-container .form-group textarea { width: 100%; min-height: 120px; padding: 12px; border: 1px solid #e8eaed; border-radius: 6px; font-size: 14px; resize: vertical; font-family: inherit; }
+.tradeflow-container .form-group textarea:focus { outline: none; border-color: #1A73E8; }
+
+/* Info box (for select return page) */
+.tradeflow-container .info-box { background: #e8f0fe; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+.tradeflow-container .info-box-label { font-size: 11px; font-weight: 700; color: #1A73E8; text-transform: uppercase; margin-bottom: 6px; }
+.tradeflow-container .info-box-title { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+.tradeflow-container .info-box-desc { font-size: 14px; color: #5f6368; line-height: 1.5; }
+
+/* Delivery Status Grid for Ongoing Deals */
+.tradeflow-container .status-grid { display: flex; gap: 16px; margin-top: 16px; }
+.tradeflow-container .status-item { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 20px; border: 2px solid #e8eaed; }
+.tradeflow-container .status-label { font-size: 13px; font-weight: 700; color: #5f6368; text-transform: uppercase; margin-bottom: 12px; }
+.tradeflow-container .status-value { font-size: 20px; font-weight: 700; }
+.tradeflow-container .status-value.confirmed { color: #34a853; }
+.tradeflow-container .status-value.pending { color: #f9ab00; }
+
+/* Decline button */
+.tradeflow-container .decline-btn { background: white; color: #dc3545; padding: 10px 20px; border: 1px solid #dc3545; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+.tradeflow-container .decline-btn:hover { background: #fef2f2; }
+
+/* Action button (for select return detail) */
+.tradeflow-container .action-btn { display: block; background: #1A73E8; color: white; padding: 14px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; text-align: center; transition: background 0.2s; }
+.tradeflow-container .action-btn:hover { background: #1557b0; }
+
+/* Card category tags */
+.tradeflow-container .card-categories { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tradeflow-container .card-category-tag { background: #f0f0f0; color: #667eea; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+
+/* Page header with content and action */
+.tradeflow-container .page-header-content { flex: 1; }
+
+/* Note text */
+.tradeflow-container .note { font-size: 14px; color: #9aa0a6; font-style: italic; margin-top: 16px; }
+
+/* Spacer */
+.tradeflow-container .spacer { height: 24px; }

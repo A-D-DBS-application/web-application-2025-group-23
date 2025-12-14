@@ -2,89 +2,11 @@
 {% block title %}Incoming Requests – Barter.com{% endblock %}
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 
-{% block extra_css %}
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Roboto', sans-serif; background: #f5f7fa; color: #1a1a1a; }
-  .container { display: flex; min-height: calc(100vh - 60px); }
-  .sidebar { width: 340px; background: white; border-right: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; }
-  .company-badge { background: rgba(26, 115, 232, 0.08); padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #1A73E8; margin-bottom: 28px; border: 1px solid rgba(26, 115, 232, 0.15); }
-  .sidebar-section { margin-bottom: 32px; }
-  .sidebar-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #9aa0a6; margin-bottom: 14px; letter-spacing: 0.6px; }
-  .sidebar-link { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin: 4px 0; border-radius: 6px; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: all 0.15s; }
-  .sidebar-link:hover { background: rgba(26, 115, 232, 0.08); color: #1A73E8; }
-  .sidebar-link.active { background: rgba(26, 115, 232, 0.12); color: #1A73E8; font-weight: 600; }
-  .notification-badge { background: #1A73E8; color: white; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center; }
-  .main { flex: 1; padding: 40px 48px; overflow-y: auto; }
-  .page-header { margin-bottom: 36px; }
-  .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
-  .page-desc { font-size: 15px; color: #5f6368; line-height: 1.6; max-width: 600px; }
-  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-  .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 20px; transition: all 0.2s; cursor: pointer; }
-  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #1A73E8; }
-  .card-company { font-size: 12px; font-weight: 600; color: #5f6368; text-transform: uppercase; margin-bottom: 6px; }
-  .card-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-  .card-desc { font-size: 13px; color: #5f6368; line-height: 1.5; margin-bottom: 12px; }
-  .card-meta { display: flex; justify-content: space-between; font-size: 12px; color: #9aa0a6; margin-bottom: 14px; }
-  .card-badge { background: #e8f0fe; color: #1A73E8; padding: 4px 8px; border-radius: 3px; font-weight: 600; font-size: 11px; }
-  .card-button { display: block; width: 100%; background: #1A73E8; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; margin-top: 12px; }
-  .card-button:hover { background: #1557b0; }
-  .empty { text-align: center; padding: 60px 20px; }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-text { color: #5f6368; font-size: 16px; }
-</style>
-{% endblock %}
+{% set active_page = 'incoming' %}
 
 {% block content %}
-<div class="container">
-  <aside class="sidebar">
-    <div class="company-badge">{{ company.name }}</div>
-    
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Requests</div>
-      <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" class="sidebar-link active">
-        <span>Incoming</span>
-        {% if unread_counts and unread_counts.incoming > 0 %}<span class="notification-badge">{{ unread_counts.incoming }}</span>{% endif %}
-      </a>
-      <a href="{{ url_for('main.tradeflow_you_requested', company_id=company.company_id) }}" class="sidebar-link">
-        <span>You Requested</span>
-        {% if unread_counts and unread_counts.you_requested > 0 %}<span class="notification-badge">{{ unread_counts.you_requested }}</span>{% endif %}
-      </a>
-      <a href="{{ url_for('main.tradeflow_archived_requests', company_id=company.company_id) }}" class="sidebar-link">
-        <span>Archived</span>
-        {% if unread_counts and unread_counts.archived > 0 %}<span class="notification-badge">{{ unread_counts.archived }}</span>{% endif %}
-      </a>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Contracts</div>
-      <a href="{{ url_for('main.tradeflow_match_made', company_id=company.company_id) }}" class="sidebar-link">
-        <span>Matches</span>
-        {% if unread_counts and unread_counts.matches > 0 %}<span class="notification-badge">{{ unread_counts.matches }}</span>{% endif %}
-      </a>
-      <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="sidebar-link">
-        <span>Waiting for You</span>
-        {% if unread_counts and unread_counts.awaiting_signature > 0 %}<span class="notification-badge">{{ unread_counts.awaiting_signature }}</span>{% endif %}
-      </a>
-      <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="sidebar-link">
-        <span>Awaiting Them</span>
-        {% if unread_counts and unread_counts.awaiting_other_party > 0 %}<span class="notification-badge">{{ unread_counts.awaiting_other_party }}</span>{% endif %}
-      </a>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Deals</div>
-      <a href="{{ url_for('main.tradeflow_ongoing_deals', company_id=company.company_id) }}" class="sidebar-link">
-        <span>Ongoing</span>
-        {% if unread_counts and unread_counts.ongoing > 0 %}<span class="notification-badge">{{ unread_counts.ongoing }}</span>{% endif %}
-      </a>
-      <a href="{{ url_for('main.tradeflow_completed_deals', company_id=company.company_id) }}" class="sidebar-link">
-        <span>Completed</span>
-        {% if unread_counts and unread_counts.completed > 0 %}<span class="notification-badge">{{ unread_counts.completed }}</span>{% endif %}
-      </a>
-    </div>
-  </aside>
+<div class="tradeflow-container">
+  {% include '_tradeflow_sidebar.html' %}
 
   <main class="main">
     <div class="page-header">
