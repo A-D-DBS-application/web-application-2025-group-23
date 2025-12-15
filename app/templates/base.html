@@ -19,7 +19,7 @@
             overflow-y: scroll;
         }
         .nav-links a.active {
-            color: #4f46e5 !important;
+            color: #1A73E8 !important;
             text-decoration: underline;
             text-underline-offset: 4px;
         }
@@ -54,7 +54,7 @@
         }
         .flash-info {
             background-color: #d1ecf1;
-            color: #0c5460;
+            color: #1A73E8;
             border-left: 4px solid #17a2b8;
         }
         @keyframes slideDown {
@@ -75,7 +75,7 @@
     <!-- Global Header/Navbar -->
     <nav class="navbar">
         <div class="nav-content">
-            <a href="{{ url_for('main.start') }}" class="nav-brand">Barter.com</a>
+            <a href="{{ url_for('main.index') }}" class="nav-brand">Barter.com</a>
             <div class="nav-links">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('main.select_company_for_marketplace') }}" {% block nav_marketplace_active %}{% endblock %}>Marketplace</a>

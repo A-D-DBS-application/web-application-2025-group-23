@@ -53,7 +53,7 @@
 }
 
 .company-name {
-    color: #667eea;
+    color: #1A73E8;
     font-weight: 600;
     font-size: 1.1rem;
 }
@@ -91,7 +91,7 @@
 }
 
 .category-badge {
-    background: #667eea;
+    background: #1A73E8;
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 20px;
@@ -110,7 +110,7 @@
 .coin-cost {
     font-size: 1.3rem;
     font-weight: bold;
-    color: #667eea;
+    color: #1A73E8;
 }
 
 .service-description {
@@ -133,7 +133,7 @@
 }
 
 .balance-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1A73E8 0%, #1A73E8 100%);
     color: white;
     padding: 1.5rem;
     border-radius: 8px;
@@ -197,7 +197,7 @@
 
 .form-group textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #1A73E8;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -208,7 +208,7 @@
 
 .btn-submit {
     padding: 1rem 2rem;
-    background: #667eea;
+    background: #1A73E8;
     color: white;
     border: none;
     border-radius: 8px;
@@ -219,7 +219,7 @@
 }
 
 .btn-submit:hover:not(:disabled) {
-    background: #5568d3;
+    background: #1A73E8;
     transform: scale(1.05);
 }
 

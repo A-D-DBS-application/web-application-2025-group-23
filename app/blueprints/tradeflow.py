@@ -14,6 +14,7 @@ from .helpers import (
     _require_login,
     mark_tradeflow_section_viewed,
     get_tradeflow_unread_counts,
+    _sidebar_companies,
 )
 
 
@@ -31,13 +32,17 @@ def tradeflow_incoming_requests(company_id):
     
     # Get unread counts for sidebar
     unread_counts = get_tradeflow_unread_counts(company_id)
+    
+    # Get user companies for sidebar dropdown
+    user_id = uuid.UUID(session['user_id'])
+    user_companies = _sidebar_companies(user_id, company_id)
 
     incoming_requests = TradeRequest.query.join(Service).filter(
         Service.company_id == company_id,
         TradeRequest.status == 'active'
     ).all()
 
-    return render_template('tradeflow_incoming_requests.html', company=company, incoming_requests=incoming_requests, unread_counts=unread_counts)
+    return render_template('tradeflow_incoming_requests.html', company=company, incoming_requests=incoming_requests, unread_counts=unread_counts, user_companies=user_companies)
 
 
 @main.route('/tradeflow/<uuid:company_id>/incoming-requests/<uuid:request_id>/select-return', methods=['GET', 'POST'])
@@ -179,13 +184,17 @@ def tradeflow_you_requested(company_id):
 
     mark_tradeflow_section_viewed(company_id, 'you_requested')
     unread_counts = get_tradeflow_unread_counts(company_id)
+    
+    # Get user companies for sidebar dropdown
+    user_id = uuid.UUID(session['user_id'])
+    user_companies = _sidebar_companies(user_id, company_id)
 
     your_requests = TradeRequest.query.filter_by(
         requesting_company_id=company_id,
         status='active'
     ).all()
 
-    return render_template('tradeflow_you_requested.html', company=company, your_requests=your_requests, unread_counts=unread_counts)
+    return render_template('tradeflow_you_requested.html', company=company, your_requests=your_requests, unread_counts=unread_counts, user_companies=user_companies)
 
 
 @main.route('/tradeflow/<uuid:company_id>/you-requested/<uuid:request_id>', methods=['GET'])
@@ -221,6 +230,10 @@ def tradeflow_archived_requests(company_id):
 
     mark_tradeflow_section_viewed(company_id, 'archived')
     unread_counts = get_tradeflow_unread_counts(company_id)
+    
+    # Get user companies for sidebar dropdown
+    user_id = uuid.UUID(session['user_id'])
+    user_companies = _sidebar_companies(user_id, company_id)
 
     # Get archived requests both sent by and received by this company
     archived_requests = TradeRequest.query.filter(
@@ -229,7 +242,7 @@ def tradeflow_archived_requests(company_id):
         TradeRequest.status == 'archived'
     ).order_by(TradeRequest.archived_at.desc().nullsfirst()).all()
 
-    return render_template('tradeflow_archived_requests.html', company=company, archived_requests=archived_requests, unread_counts=unread_counts)
+    return render_template('tradeflow_archived_requests.html', company=company, archived_requests=archived_requests, unread_counts=unread_counts, user_companies=user_companies)
 
 
 @main.route('/tradeflow/<uuid:company_id>/archived-requests/<uuid:request_id>', methods=['GET'])
@@ -266,6 +279,10 @@ def tradeflow_match_made(company_id):
     # Mark section as viewed
     mark_tradeflow_section_viewed(company_id, 'matches')
     unread_counts = get_tradeflow_unread_counts(company_id)
+    
+    # Get user companies for sidebar dropdown
+    user_id = uuid.UUID(session['user_id'])
+    user_companies = _sidebar_companies(user_id, company_id)
 
     cutoff_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
     expired = DealProposal.query.filter(
@@ -322,7 +339,8 @@ def tradeflow_match_made(company_id):
         'tradeflow_match_made.html',
         company=company,
         matches=matches_with_status,
-        unread_counts=unread_counts
+        unread_counts=unread_counts,
+        user_companies=user_companies
     )
 
 
@@ -510,6 +528,13 @@ def tradeflow_awaiting_signature(company_id):
             flash('Offer declined.', 'info')
             return redirect(url_for('main.tradeflow_awaiting_signature', company_id=company_id))
 
+    mark_tradeflow_section_viewed(company_id, 'awaiting_signature')
+    unread_counts = get_tradeflow_unread_counts(company_id)
+    
+    # Get user companies for sidebar dropdown
+    user_id = uuid.UUID(session['user_id'])
+    user_companies = _sidebar_companies(user_id, company_id)
+
     awaiting_signature = DealProposal.query.filter_by(
         to_company_id=company_id,
         status='pending'
@@ -531,7 +556,7 @@ def tradeflow_awaiting_signature(company_id):
         except Exception:
             pass
 
-    return render_template('tradeflow_awaiting_signature.html', company=company, awaiting_signature=awaiting_signature, unread_counts=unread_counts)
+    return render_template('tradeflow_awaiting_signature.html', company=company, awaiting_signature=awaiting_signature, unread_counts=unread_counts, user_companies=user_companies)
 
 
 @main.route('/tradeflow/<uuid:company_id>/awaiting-signature/<uuid:proposal_id>', methods=['GET', 'POST'])
@@ -638,6 +663,10 @@ def tradeflow_awaiting_other_party(company_id):
 
     mark_tradeflow_section_viewed(company_id, 'awaiting_other_party')
     unread_counts = get_tradeflow_unread_counts(company_id)
+    
+    # Get user companies for sidebar dropdown
+    user_id = uuid.UUID(session['user_id'])
+    user_companies = _sidebar_companies(user_id, company_id)
 
     awaiting_other_party = DealProposal.query.filter_by(
         from_company_id=company_id,
@@ -660,7 +689,7 @@ def tradeflow_awaiting_other_party(company_id):
         except Exception:
             pass
 
-    return render_template('tradeflow_awaiting_other_party.html', company=company, awaiting_other_party=awaiting_other_party, unread_counts=unread_counts)
+    return render_template('tradeflow_awaiting_other_party.html', company=company, awaiting_other_party=awaiting_other_party, unread_counts=unread_counts, user_companies=user_companies)
 
 
 @main.route('/tradeflow/<uuid:company_id>/awaiting-other-party/<uuid:proposal_id>', methods=['GET'])
@@ -708,13 +737,17 @@ def tradeflow_ongoing_deals(company_id):
 
     mark_tradeflow_section_viewed(company_id, 'ongoing')
     unread_counts = get_tradeflow_unread_counts(company_id)
+    
+    # Get user companies for sidebar dropdown
+    user_id = uuid.UUID(session['user_id'])
+    user_companies = _sidebar_companies(user_id, company_id)
 
     ongoing_deals = ActiveDeal.query.join(DealProposal).filter(
         ((DealProposal.from_company_id == company_id) | (DealProposal.to_company_id == company_id)),
         ActiveDeal.status == 'in_progress'
     ).all()
 
-    return render_template('tradeflow_ongoing_deals.html', company=company, ongoing_deals=ongoing_deals, unread_counts=unread_counts)
+    return render_template('tradeflow_ongoing_deals.html', company=company, ongoing_deals=ongoing_deals, unread_counts=unread_counts, user_companies=user_companies)
 
 
 @main.route('/tradeflow/<uuid:company_id>/ongoing-deals/<uuid:deal_id>', methods=['GET', 'POST'])
@@ -756,6 +789,43 @@ def tradeflow_ongoing_deal_detail(company_id, deal_id):
     )
 
 
+@main.route('/tradeflow/switch-company/<uuid:new_company_id>', methods=['GET'])
+def tradeflow_switch_company(new_company_id):
+    """Switch to a different company in tradeflow - redirects to same page type with new company"""
+    if (resp := _require_login()):
+        return resp
+    
+    # Verify user is member of new company
+    company, resp = _require_company_member(new_company_id)
+    if resp:
+        return resp
+    
+    # Get referer to determine which page to redirect to
+    referer = request.referrer or ''
+    
+    # Try to extract the current route pattern from referer
+    # Default to incoming requests if we can't determine
+    if '/incoming-requests' in referer:
+        return redirect(url_for('main.tradeflow_incoming_requests', company_id=new_company_id))
+    elif '/you-requested' in referer:
+        return redirect(url_for('main.tradeflow_you_requested', company_id=new_company_id))
+    elif '/archived-requests' in referer:
+        return redirect(url_for('main.tradeflow_archived_requests', company_id=new_company_id))
+    elif '/match-made' in referer or '/trade-matches' in referer:
+        return redirect(url_for('main.tradeflow_match_made', company_id=new_company_id))
+    elif '/awaiting-signature' in referer:
+        return redirect(url_for('main.tradeflow_awaiting_signature', company_id=new_company_id))
+    elif '/awaiting-other-party' in referer:
+        return redirect(url_for('main.tradeflow_awaiting_other_party', company_id=new_company_id))
+    elif '/ongoing-deals' in referer:
+        return redirect(url_for('main.tradeflow_ongoing_deals', company_id=new_company_id))
+    elif '/completed-deals' in referer:
+        return redirect(url_for('main.tradeflow_completed_deals', company_id=new_company_id))
+    else:
+        # Default to incoming requests
+        return redirect(url_for('main.tradeflow_incoming_requests', company_id=new_company_id))
+
+
 @main.route('/tradeflow/<uuid:company_id>/completed-deals', methods=['GET'])
 def tradeflow_completed_deals(company_id):
     """View completed deals for this company"""
@@ -767,13 +837,17 @@ def tradeflow_completed_deals(company_id):
 
     mark_tradeflow_section_viewed(company_id, 'completed')
     unread_counts = get_tradeflow_unread_counts(company_id)
+    
+    # Get user companies for sidebar dropdown
+    user_id = uuid.UUID(session['user_id'])
+    user_companies = _sidebar_companies(user_id, company_id)
 
     completed_deals = ActiveDeal.query.join(DealProposal).filter(
         ((DealProposal.from_company_id == company_id) | (DealProposal.to_company_id == company_id)),
         ActiveDeal.status == 'completed'
     ).all()
 
-    return render_template('tradeflow_completed_deals.html', company=company, completed_deals=completed_deals, unread_counts=unread_counts)
+    return render_template('tradeflow_completed_deals.html', company=company, completed_deals=completed_deals, unread_counts=unread_counts, user_companies=user_companies)
 
 
 @main.route('/tradeflow/<uuid:company_id>/completed-deals/<uuid:deal_id>', methods=['GET'])

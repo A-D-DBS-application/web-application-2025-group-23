@@ -44,12 +44,12 @@
 }
 
 #company-select:hover {
-    border-color: #667eea;
+    border-color: #1A73E8;
 }
 
 #company-select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #1A73E8;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -73,7 +73,7 @@
 .search-bar:focus,
 .category-filter:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #1A73E8;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -125,7 +125,7 @@
 }
 
 .service-company {
-    color: #667eea;
+    color: #1A73E8;
     font-size: 0.9rem;
     font-weight: 500;
     margin-bottom: 0.575rem;
@@ -157,7 +157,7 @@
 
 .category-badge {
     background: #f0f0f0;
-    color: #667eea;
+    color: #1A73E8;
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.85rem;
@@ -181,7 +181,7 @@
 
 .btn-view {
     padding: 0.5rem 1.5rem;
-    background: #667eea;
+    background: #1A73E8;
     color: white;
     text-decoration: none;
     border-radius: 8px;

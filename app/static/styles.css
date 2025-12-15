@@ -159,7 +159,7 @@ button:disabled {
 .nav-brand {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #5b6ef5;
+    color: #1A73E8;
     text-decoration: none;
     white-space: nowrap;
     flex-shrink: 0;
@@ -167,7 +167,7 @@ button:disabled {
 }
 
 .nav-brand:hover {
-    color: #4a5de8;
+    color: #1A73E8;
 }
 
 .nav-links {
@@ -189,7 +189,7 @@ button:disabled {
 }
 
 .nav-links a:hover {
-    color: #5b6ef5;
+    color: #1A73E8;
 }
 
 /* Responsive navbar - alles op 1 lijn, kleinere tekst bij smalle schermen */
@@ -593,7 +593,7 @@ button:disabled {
 /* LEFT PANEL */
 .auth-left {
     flex: 0 0 40%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1A73E8 0%, #1A73E8 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -837,7 +837,7 @@ button:disabled {
 }
 
 .sidebar-btn:hover {
-    background: #1557B0;
+    background: #1A73E8;
 }
 
 .sidebar-btn-desc {
@@ -991,7 +991,7 @@ button:disabled {
 }
 
 .company-open-btn:hover {
-    background: #1557B0;
+    background: #1A73E8;
 }
 
 .company-actions {
@@ -1009,7 +1009,7 @@ button:disabled {
 }
 
 .company-open-btn--secondary:hover {
-    background: #1557B0;
+    background: #1A73E8;
 }
 
 .empty-state {
@@ -1467,7 +1467,7 @@ button:disabled {
     border-radius: 5px;
     font-size: 13px;
     line-height: 20px;
-    color: #0C438B;
+    color: #1A73E8;
     background: rgba(26, 115, 232, 0.15);
     opacity: 0.8;
 }
@@ -1883,7 +1883,7 @@ button:disabled {
 }
 
 .invite-card__copy:hover {
-    background: #1557B0;
+    background: #1A73E8;
 }
 
 /* ====== SERVICES ====== */
@@ -1908,7 +1908,7 @@ button:disabled {
 }
 
 .add-service-btn:hover {
-    background: #1557B0;
+    background: #1A73E8;
 }
 
 .services-grid {
@@ -2206,7 +2206,7 @@ button:disabled {
 }
 
 .btn-primary:hover {
-    background: #1557B0;
+    background: #1A73E8;
 }
 
 .btn-secondary {

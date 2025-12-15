@@ -31,7 +31,7 @@ body {
 .nav-brand {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #667eea;
+    color: #1A73E8;
     text-decoration: none;
     margin-left: clamp(1rem, 5vw, 4rem);
 }
@@ -51,7 +51,7 @@ body {
 
 .nav-links a:hover,
 .nav-links a.active {
-    color: #667eea;
+    color: #1A73E8;
 }
 
 .service-categories {
@@ -64,7 +64,7 @@ body {
 
 .category-tag {
     background: #f0f0f0 !important;
-    color: #667eea !important;
+    color: #1A73E8 !important;
     padding: 6px 14px !important;
     border-radius: 20px !important;
     font-size: 13px !important;

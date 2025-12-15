@@ -1,20 +1,226 @@
 /* Tradeflow gemeenschappelijke styles */
 
 /* Layout */
-.tradeflow-container { display: flex; min-height: calc(100vh - 60px); }
+.tradeflow-container {
+    display: flex;
+    min-height: calc(100vh - 60px);
+    background: #f3f6fb;
+    padding: 32px 40px;
+    gap: 32px;
+}
 
-/* Sidebar */
-.tradeflow-container .sidebar { width: 340px; background: white; border-right: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; }
-.tradeflow-container .company-badge { background: rgba(26, 115, 232, 0.08); padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #1A73E8; margin-bottom: 28px; border: 1px solid rgba(26, 115, 232, 0.15); }
-.tradeflow-container .sidebar-section { margin-bottom: 32px; }
-.tradeflow-container .sidebar-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #9aa0a6; margin-bottom: 14px; letter-spacing: 0.6px; }
-.tradeflow-container .sidebar-link { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin: 4px 0; border-radius: 6px; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: all 0.15s; }
-.tradeflow-container .sidebar-link:hover { background: rgba(26, 115, 232, 0.08); color: #1A73E8; }
-.tradeflow-container .sidebar-link.active { background: rgba(26, 115, 232, 0.12); color: #1A73E8; font-weight: 600; }
-.tradeflow-container .notification-badge { background: #1A73E8; color: white; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center; }
+/* Sidebar - Figma-stijl */
+.tradeflow-container .tradeflow-sidebar {
+    width: 320px;
+    background: #e9f1ff;
+    border-radius: 16px;
+    padding: 24px 20px 32px;
+    border: 1px solid rgba(26, 115, 232, 0.18);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+}
+
+.tradeflow-sidebar-header {
+    margin-bottom: 32px;
+}
+
+.tradeflow-sidebar-brand {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 24px;
+}
+
+.tradeflow-sidebar-company {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tradeflow-sidebar-company-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9aa0a6;
+}
+
+.tradeflow-sidebar-company-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+    transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
+.tradeflow-sidebar-company-select:hover {
+    border-color: #1A73E8;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+    transform: translateY(-1px);
+}
+
+.tradeflow-sidebar-company-select-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.tradeflow-sidebar-company-select-prefix {
+    font-size: 11px;
+    color: #5f6368;
+    margin-bottom: 2px;
+}
+
+.tradeflow-sidebar-company-select-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.tradeflow-sidebar-company-select-chevron {
+    font-size: 14px;
+    color: #5f6368;
+    transition: transform 0.2s ease;
+}
+
+.tradeflow-sidebar-company-select[aria-expanded="true"] .tradeflow-sidebar-company-select-chevron {
+    transform: rotate(180deg);
+}
+
+.tradeflow-sidebar-company-dropdown {
+    position: relative;
+}
+
+.tradeflow-sidebar-company-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.tradeflow-sidebar-company-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.tradeflow-sidebar-company-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    color: #1f2933;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.tradeflow-sidebar-company-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.tradeflow-sidebar-company-dropdown-item:hover {
+    background: rgba(26, 115, 232, 0.08);
+    color: #1A73E8;
+}
+
+.tradeflow-sidebar-company-dropdown-item.active {
+    background: rgba(26, 115, 232, 0.12);
+    color: #1A73E8;
+    font-weight: 600;
+}
+
+.company-dropdown-name {
+    flex: 1;
+}
+
+.company-dropdown-check {
+    color: #1A73E8;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+.tradeflow-container .sidebar-section {
+    margin-bottom: 28px;
+}
+
+.tradeflow-container .sidebar-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #9aa0a6;
+    margin-bottom: 12px;
+    letter-spacing: 0.08em;
+}
+
+.tradeflow-container .sidebar-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    margin: 3px 0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2933;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.08s ease;
+}
+
+.tradeflow-container .sidebar-link:hover {
+    background: rgba(26, 115, 232, 0.08);
+    color: #1A73E8;
+    transform: translateX(1px);
+}
+
+.tradeflow-container .sidebar-link.active {
+    background: rgba(26, 115, 232, 0.16);
+    color: #1A73E8;
+    font-weight: 600;
+}
+
+.tradeflow-container .notification-badge {
+    background: #1A73E8;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    min-width: 22px;
+    text-align: center;
+}
 
 /* Main content */
-.tradeflow-container .main { flex: 1; padding: 40px 48px; overflow-y: auto; }
+.tradeflow-container .main {
+    flex: 1;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px 40px 40px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+    overflow-y: auto;
+}
 .tradeflow-container .page-header { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: flex-start; }
 .tradeflow-container .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
 .tradeflow-container .page-desc { font-size: 15px; color: #5f6368; line-height: 1.6; max-width: 600px; }
@@ -32,10 +238,10 @@
 .tradeflow-container .card-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
 .tradeflow-container .card-desc { font-size: 13px; color: #5f6368; line-height: 1.5; margin-bottom: 12px; }
 .tradeflow-container .card-meta { display: flex; justify-content: space-between; font-size: 12px; color: #9aa0a6; margin-bottom: 14px; }
-.tradeflow-container .card-badge { background: #f0f0f0; color: #667eea; padding: 6px 14px; border-radius: 20px; font-weight: 500; font-size: 13px; }
+.tradeflow-container .card-badge { background: #f0f0f0; color: #1A73E8; padding: 6px 14px; border-radius: 20px; font-weight: 500; font-size: 13px; }
 .tradeflow-container .card-badge.expired { background: #fce8e6; color: #d33425; }
 .tradeflow-container .card-button { display: block; width: 100%; background: #1A73E8; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; margin-top: 12px; text-align: center; text-decoration: none; }
-.tradeflow-container .card-button:hover { background: #1557b0; }
+.tradeflow-container .card-button:hover { background: #1A73E8; }
 .tradeflow-container .card-button.disabled { background: #9aa0a6; cursor: not-allowed; }
 .tradeflow-container .card-button.disabled:hover { background: #9aa0a6; }
 .tradeflow-container .card-button.archived { background: #e8eaed; color: #5f6368; cursor: not-allowed; }
@@ -61,7 +267,7 @@
 
 /* Back link - styled as blue button */
 .tradeflow-container .back-link { display: inline-block; background: #1A73E8; color: white; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 6px; margin-bottom: 20px; transition: background 0.2s; }
-.tradeflow-container .back-link:hover { background: #1557b0; color: white; }
+.tradeflow-container .back-link:hover { background: #1A73E8; color: white; }
 
 /* Status badges */
 .tradeflow-container .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; background: #fce8e6; color: #d33425; }
@@ -85,7 +291,7 @@
 /* Action buttons */
 .tradeflow-container .action-buttons { display: flex; gap: 12px; margin-top: 24px; }
 .tradeflow-container .btn-primary { background: #1A73E8; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; }
-.tradeflow-container .btn-primary:hover { background: #1557b0; }
+.tradeflow-container .btn-primary:hover { background: #1A73E8; }
 .tradeflow-container .btn-secondary { background: white; color: #5f6368; padding: 12px 24px; border: 1px solid #e8eaed; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; }
 .tradeflow-container .btn-secondary:hover { border-color: #1A73E8; color: #1A73E8; }
 .tradeflow-container .btn-danger { background: #dc3545; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; }
@@ -228,11 +434,11 @@
 
 /* Action button (for select return detail) */
 .tradeflow-container .action-btn { display: block; background: #1A73E8; color: white; padding: 14px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; text-align: center; transition: background 0.2s; }
-.tradeflow-container .action-btn:hover { background: #1557b0; }
+.tradeflow-container .action-btn:hover { background: #1A73E8; }
 
 /* Card category tags */
 .tradeflow-container .card-categories { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-.tradeflow-container .card-category-tag { background: #f0f0f0; color: #667eea; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+.tradeflow-container .card-category-tag { background: #f0f0f0; color: #1A73E8; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; }
 
 /* Page header with content and action */
 .tradeflow-container .page-header-content { flex: 1; }
@@ -242,3 +448,16 @@
 
 /* Spacer */
 .tradeflow-container .spacer { height: 24px; }
+
+/* Responsive adjustments for sidebar layout */
+@media (max-width: 960px) {
+    .tradeflow-container {
+        flex-direction: column;
+        padding: 24px 16px;
+    }
+
+    .tradeflow-container .tradeflow-sidebar {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+}

@@ -13,13 +13,13 @@
     font-weight: 500;
     margin-bottom: 1rem;
     padding: 0.5rem 1rem;
-    background: #667eea;
+    background: #1A73E8;
     border-radius: 8px;
     transition: all 0.3s;
 }
 
 .back-link:hover {
-    background: #5568d3;
+    background: #1A73E8;
 }
 
 .service-detail-card {
@@ -53,7 +53,7 @@
 }
 
 .company-name {
-    color: #667eea;
+    color: #1A73E8;
     font-weight: 600;
     font-size: 1.1rem;
 }
@@ -91,7 +91,7 @@
 }
 
 .category-badge {
-    background: #667eea;
+    background: #1A73E8;
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 20px;
@@ -108,7 +108,7 @@
 }
 
 .login-notice {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1A73E8 0%, #1A73E8 100%);
     padding: 2rem;
     border-radius: 12px;
     text-align: center;
@@ -186,23 +186,23 @@
 }
 
 .btn-login {
-    background: #667eea;
+    background: #1A73E8;
     color: white;
 }
 
 .btn-login:hover {
-    background: #5568d3;
+    background: #1A73E8;
     transform: scale(1.05);
 }
 
 .btn-register {
     background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
+    color: #1A73E8;
+    border: 2px solid #1A73E8;
 }
 
 .btn-register:hover {
-    background: #667eea;
+    background: #1A73E8;
     color: white;
     transform: scale(1.05);
 }
