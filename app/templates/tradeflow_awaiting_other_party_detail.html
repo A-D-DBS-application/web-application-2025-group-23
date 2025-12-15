@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Offer Detail – Barter.com{% endblock %}
+{% block nav_tradeflow_active %}class="active"{% endblock %}
+{% set active_page = 'awaiting_other_party' %}
+
+{% block content %}
+<div class="tradeflow-container">
+    {% include '_tradeflow_sidebar.html' %}
+
+    <main class="main">
+      <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="back-link">← Back to Awaiting Them</a>
+      <div class="detail-card">
+        <h1 class="page-title">Offer Details</h1>
+        <p class="page-desc">This proposal is waiting for {{ proposal.to_company.name }} to respond.</p>
+        <div class="pair-grid">
+          <div class="pair-side">
+            <div class="pair-label">{{ proposal.from_company.name }} offers</div>
+            <div class="pair-service">{{ proposal.from_service.title }}</div>
+            <div class="pair-desc">{{ proposal.from_service.description }}</div>
+          </div>
+          <div class="pair-side">
+            <div class="pair-label">{{ proposal.to_company.name }} offers</div>
+            <div class="pair-service">{{ proposal.to_service.title }}</div>
+            <div class="pair-desc">{{ proposal.to_service.description }}</div>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid #e8eaed; padding-top: 20px; margin-top: 6px;">
+          <div class="section-title">Offer Terms</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Created</div>
+              <div class="info-value">{{ proposal.created_at.strftime('%d-%m-%Y') }}</div>
+            </div>
+            {% if proposal.message %}
+            <div class="info-item">
+              <div class="info-label">Message</div>
+              <div class="info-value">{{ proposal.message }}</div>
+            </div>
+            {% endif %}
+          </div>
+
+          {% set money_type = proposal.money_type if proposal.money_type is defined else None %}
+          {% set money_amount = proposal.money_amount if proposal.money_amount is defined else None %}
+          {% if money_amount and money_amount|int > 0 and money_type %}
+          <div class="money-box">
+            {% if money_type == 'receive' %}
+              <span class="money-pill">💸 You ask: €{{ money_amount }}</span>
+            {% else %}
+              <span class="money-pill">💰 You offer: €{{ money_amount }}</span>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <div class="note">Read-only view. You can't accept or decline here.</div>
+          <div class="spacer"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+{% endblock %}

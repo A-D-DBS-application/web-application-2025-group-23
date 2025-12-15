@@ -9,7 +9,6 @@
             <div class="info-section">
                 <h3>Company Info</h3>
                 <div class="code-display">Join Code: {{ company.join_code or 'No code' }}</div>
-                <div style="margin-top: 8px;"><strong>Barter Coins:</strong> {{ company.barter_coins }}</div>
                 <div style="margin-top: 12px; display: flex; gap: 10px;">
                     <a href="{{ url_for('main.company_services', company_id=company.company_id) }}" class="btn-primary small">My Services</a>
                     <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" class="btn-primary small">Requests</a>

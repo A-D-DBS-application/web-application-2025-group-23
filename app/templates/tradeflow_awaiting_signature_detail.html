@@ -1,72 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Offer Detail – Barter.com{% endblock %}
-
-{% block extra_css %}
-<style>
-  body { background: #f5f7fa; color: #1a1a1a; }
-  .tradeflow-container { display: flex; min-height: calc(100vh - 60px); }
-  .tradeflow-sidebar { width: 200px; background: #fff; border-right: 1px solid #e8eaed; padding: 24px 0; }
-  .company-badge { background: #e8eaed; padding: 12px 16px; margin: 0 16px 24px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a; }
-  .sidebar-section { margin-bottom: 24px; }
-  .sidebar-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #9aa0a6; margin: 0 16px 8px; letter-spacing: 0.5px; }
-  .sidebar-link { display: block; padding: 8px 16px; color: #1a1a1a; text-decoration: none; font-size: 13px; cursor: pointer; transition: background 0.15s; }
-  .sidebar-link:hover { background: #f5f7fa; }
-  .sidebar-link.active { background: #e8eaed; color: #1A73E8; font-weight: 600; }
-  .tradeflow-main { flex: 1; padding: 40px 48px; }
-  .back-link { display: inline-block; margin-bottom: 20px; color: #1A73E8; text-decoration: none; font-weight: 500; }
-  .back-link:hover { text-decoration: underline; }
-  .detail-card { background: #fff; border: 1px solid #e8eaed; border-radius: 8px; padding: 28px; max-width: 840px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-  .page-title { font-size: 26px; font-weight: 700; margin: 0 0 8px; }
-  .page-desc { color: #5f6368; margin: 0 0 24px; font-size: 14px; }
-  .pair-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 20px; }
-  .pair-side { background: #f5f7fa; border-radius: 6px; padding: 14px; }
-  .pair-label { font-size: 11px; color: #9aa0a6; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
-  .pair-service { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-  .pair-desc { font-size: 14px; color: #5f6368; }
-  .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
-  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .info-item { background: #f5f7fa; border-radius: 6px; padding: 12px; }
-  .info-label { font-size: 11px; color: #9aa0a6; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
-  .info-value { font-size: 15px; font-weight: 700; color: #1a1a1a; }
-  .message-box { background: #f0f4ff; border: 1px solid #d7e3ff; border-radius: 6px; padding: 12px; margin-bottom: 18px; }
-  .message-label { font-size: 12px; font-weight: 700; color: #1A73E8; margin-bottom: 6px; }
-  .message-text { font-size: 14px; color: #1a1a1a; line-height: 1.5; }
-  .action-buttons { display: flex; gap: 10px; }
-  .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
-  .btn-accept { background: #34a853; color: #fff; }
-  .btn-accept:hover { background: #2d8e47; }
-  .btn-decline { background: #e8eaed; color: #1a1a1a; }
-  .btn-decline:hover { background: #d8dce2; }
-</style>
-{% endblock %}
+{% block nav_tradeflow_active %}class="active"{% endblock %}
+{% set active_page = 'awaiting_signature' %}
 
 {% block content %}
 <div class="tradeflow-container">
-  <aside class="tradeflow-sidebar">
-      <div class="company-badge">{{ company.name }}</div>
-      
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Requests</div>
-        <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" class="sidebar-link">Incoming</a>
-        <a href="{{ url_for('main.tradeflow_you_requested', company_id=company.company_id) }}" class="sidebar-link">You Requested</a>
-        <a href="{{ url_for('main.tradeflow_archived_requests', company_id=company.company_id) }}" class="sidebar-link">Archived</a>
-      </div>
+    {% include '_tradeflow_sidebar.html' %}
 
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Contracts</div>
-        <a href="{{ url_for('main.tradeflow_match_made', company_id=company.company_id) }}" class="sidebar-link">Matches</a>
-        <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="sidebar-link active">Waiting for You</a>
-        <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="sidebar-link">Awaiting Them</a>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Deals</div>
-        <a href="{{ url_for('main.tradeflow_ongoing_deals', company_id=company.company_id) }}" class="sidebar-link">Ongoing</a>
-        <a href="{{ url_for('main.tradeflow_completed_deals', company_id=company.company_id) }}" class="sidebar-link">Completed</a>
-      </div>
-    </aside>
-
-    <main class="tradeflow-main">
+    <main class="main">
       <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="back-link">← Back to Waiting for You</a>
       <div class="detail-card">
         <h1 class="page-title">Offer Details</h1>
@@ -89,19 +30,26 @@
           <div class="section-title">Offer Terms</div>
           <div class="info-grid">
             <div class="info-item">
-              <div class="info-label">Extra Payment</div>
-              <div class="info-value">€{{ proposal.barter_coins_offered }}</div>
-            </div>
-            <div class="info-item">
               <div class="info-label">Created</div>
               <div class="info-value">{{ proposal.created_at.strftime('%d-%m-%Y') }}</div>
             </div>
+            {% if proposal.message %}
+            <div class="info-item">
+              <div class="info-label">Message</div>
+              <div class="info-value">{{ proposal.message }}</div>
+            </div>
+            {% endif %}
           </div>
-          
-          {% if proposal.message %}
-          <div class="message-box">
-            <div class="message-label">Message from {{ proposal.from_company.name }}</div>
-            <div class="message-text">{{ proposal.message }}</div>
+
+          {% set money_type = proposal.money_type if proposal.money_type is defined else None %}
+          {% set money_amount = proposal.money_amount if proposal.money_amount is defined else None %}
+          {% if money_amount and money_amount|int > 0 and money_type %}
+          <div class="money-box">
+            {% if money_type == 'receive' %}
+              <span class="money-pill">💸 They ask: €{{ money_amount }}</span>
+            {% else %}
+              <span class="money-pill">💰 They offer: €{{ money_amount }}</span>
+            {% endif %}
           </div>
           {% endif %}
           

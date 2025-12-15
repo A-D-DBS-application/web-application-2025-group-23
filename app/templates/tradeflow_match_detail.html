@@ -1,76 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Match Detail – Barter.com{% endblock %}
-
-{% block extra_css %}
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Roboto', sans-serif; background: #f5f7fa; color: #1a1a1a; }
-  .container { display: flex; min-height: calc(100vh - 60px); }
-  .sidebar { width: 340px; background: white; border-right: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; }
-  .company-badge { background: rgba(26, 115, 232, 0.08); padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #1A73E8; margin-bottom: 28px; border: 1px solid rgba(26, 115, 232, 0.15); }
-  .sidebar-section { margin-bottom: 32px; }
-  .sidebar-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #9aa0a6; margin-bottom: 14px; letter-spacing: 0.6px; }
-  .sidebar-link { display: block; padding: 10px 12px; margin: 4px 0; border-radius: 6px; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: all 0.15s; }
-  .sidebar-link:hover { background: rgba(26, 115, 232, 0.08); color: #1A73E8; }
-  .sidebar-link.active { background: rgba(26, 115, 232, 0.12); color: #1A73E8; font-weight: 600; }
-  .main { flex: 1; padding: 40px 48px; overflow-y: auto; }
-  .back-link { display: inline-block; margin-bottom: 24px; color: white; background: #1A73E8; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s; }
-  .back-link:hover { background: #1557b0; }
-  .detail-card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 36px; max-width: 800px; }
-  .pair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 36px; }
-  .pair-side { }
-  .pair-label { font-size: 11px; color: #9aa0a6; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
-  .pair-company { font-size: 14px; color: #5f6368; margin-bottom: 8px; }
-  .pair-service { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
-  .pair-desc { font-size: 14px; color: #5f6368; line-height: 1.6; }
-  .divider { text-align: center; padding: 0 24px; display: flex; align-items: center; }
-  .divider-icon { font-size: 28px; }
-  .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-  .info-item { padding: 16px; background: #f5f7fa; border-radius: 6px; }
-  .info-label { font-size: 12px; color: #5f6368; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
-  .info-value { font-size: 16px; font-weight: 600; color: #1a1a1a; }
-  .action-buttons { display: flex; gap: 12px; margin-top: 32px; }
-  .btn { padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; }
-  .btn-primary { background: #34a853; color: white; }
-  .btn-primary:hover { background: #2d8e47; }
-  .btn-secondary { background: #e8eaed; color: #1a1a1a; }
-  .btn-secondary:hover { background: #d1d5db; }
-  .form-group { margin-bottom: 20px; }
-  .form-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #1a1a1a; }
-  .form-input, .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid #e8eaed; border-radius: 6px; font-family: 'Roboto', sans-serif; font-size: 14px; }
-  .form-input:focus, .form-textarea:focus { outline: none; border-color: #1A73E8; background: rgba(26, 115, 232, 0.02); }
-  .form-textarea { resize: vertical; min-height: 80px; }
-  .input-hint { font-size: 12px; color: #9aa0a6; margin-top: 4px; }
-</style>
-{% endblock %}
+{% block nav_tradeflow_active %}class="active"{% endblock %}
+{% set active_page = 'matches' %}
 
 {% block content %}
-<div class="container">
-    <aside class="sidebar">
-      <div class="company-badge">{{ company.name }}</div>
-      
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Requests</div>
-        <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" class="sidebar-link">Incoming</a>
-        <a href="{{ url_for('main.tradeflow_you_requested', company_id=company.company_id) }}" class="sidebar-link">You Requested</a>
-        <a href="{{ url_for('main.tradeflow_archived_requests', company_id=company.company_id) }}" class="sidebar-link">Archived</a>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Contracts</div>
-        <a href="{{ url_for('main.tradeflow_match_made', company_id=company.company_id) }}" class="sidebar-link active">Matches</a>
-        <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="sidebar-link">Waiting for You</a>
-        <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="sidebar-link">Awaiting Them</a>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Deals</div>
-        <a href="{{ url_for('main.tradeflow_ongoing_deals', company_id=company.company_id) }}" class="sidebar-link">Ongoing</a>
-        <a href="{{ url_for('main.tradeflow_completed_deals', company_id=company.company_id) }}" class="sidebar-link">Completed</a>
-      </div>
-    </aside>
+<div class="tradeflow-container">
+    {% include '_tradeflow_sidebar.html' %}
 
     <main class="main">
       <a href="{{ url_for('main.tradeflow_match_made', company_id=company.company_id) }}" class="back-link">← Back to Matches</a>
@@ -107,10 +42,26 @@
           <p style="color: #5f6368; margin-bottom: 20px;">Finalize the details of this trade</p>
           
           <form method="POST" action="{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=proposal.proposal_id) }}">
-            <div class="form-group">
-              <label class="form-label">Extra Payment / Compensation (€)</label>
-              <input type="number" name="barter_coins" class="form-input" placeholder="Enter amount in EUR (leave blank for 0)" value="0" min="-1000" max="1000" step="0.01">
-              <div class="input-hint">Positive numbers = you pay extra euros | Negative numbers = you request euros from the other party</div>
+            <div class="money-section">
+              <div class="money-toggle">
+                <button type="button" class="toggle-btn active" data-type="receive" onclick="setMoneyType('receive')">💸 I Want (€)</button>
+                <button type="button" class="toggle-btn" data-type="give" onclick="setMoneyType('give')">💰 I Give (€)</button>
+              </div>
+              
+              <div class="money-input-group">
+                <label class="money-input-label">Amount: <span id="moneyTypeLabel">I want to receive</span></label>
+                <div class="money-input-wrapper">
+                  <input type="number" id="moneyInput" class="money-input-field" min="0" max="10000" value="0" step="10" placeholder="0" oninput="updateMoneyDisplay()">
+                  <span class="money-currency">€</span>
+                </div>
+              </div>
+              
+              <div class="money-preview">
+                <span id="moneyPreview">No additional money specified</span>
+              </div>
+              
+              <input type="hidden" id="moneyAmount" name="money_amount" value="0">
+              <input type="hidden" id="moneyType" name="money_type" value="receive">
             </div>
 
             <div class="form-group">
@@ -127,4 +78,47 @@
       </div>
     </main>
   </div>
+
+<script>
+function setMoneyType(type) {
+  // Update hidden input
+  document.getElementById('moneyType').value = type;
+  
+  // Update button states
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // Update label
+  const label = type === 'receive' ? 'I want to receive' : 'I want to give';
+  document.getElementById('moneyTypeLabel').textContent = label;
+  
+  // Update preview
+  updateMoneyDisplay();
+}
+
+function updateMoneyDisplay() {
+  const input = document.getElementById('moneyInput');
+  const amount = parseInt(input.value) || 0;
+  const type = document.getElementById('moneyType').value;
+  
+  // Update hidden value
+  document.getElementById('moneyAmount').value = amount;
+  
+  // Update preview text
+  const preview = document.getElementById('moneyPreview');
+  if (amount === 0) {
+    preview.innerHTML = 'No additional money specified';
+  } else {
+    const verb = type === 'receive' ? 'want to receive' : 'want to give';
+    preview.innerHTML = `<span class="preview-text">€${amount}</span> ${verb}`;
+  }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  updateMoneyDisplay();
+});
+</script>
 {% endblock %}

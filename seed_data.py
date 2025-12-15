@@ -83,7 +83,7 @@ import sys
 import datetime
 from werkzeug.security import generate_password_hash
 from app import create_app
-from app.models import db, User, Company, CompanyMember, CompanyJoinRequest, Service, DealProposal, ActiveDeal, BarterDeal, Contract, Review, ServiceInterest, TradeRequest, Message
+from app.models import db, User, Company, CompanyMember, CompanyJoinRequest, Service, DealProposal, ActiveDeal, Review, TradeRequest
 
 def seed_database(force_reset=False):
     """Populate database with example data"""
@@ -128,12 +128,8 @@ def seed_database(force_reset=False):
             # Delete in correct order to avoid FK conflicts
             try:
                 db.session.query(Review).delete()
-                db.session.query(ServiceInterest).delete()
                 db.session.query(TradeRequest).delete()
-                db.session.query(Message).delete()  # Delete messages before deal proposals
-                db.session.query(Contract).delete()
                 db.session.query(ActiveDeal).delete()
-                db.session.query(BarterDeal).delete()
                 db.session.query(DealProposal).delete()
                 db.session.query(Service).delete()
                 db.session.query(CompanyJoinRequest).delete()
@@ -224,7 +220,6 @@ def seed_database(force_reset=False):
                 name=company_names[i],
                 description=company_descriptions[i],
                 join_code=f"JOIN{i+1:03d}",
-                barter_coins=1000,
                 created_at=datetime.datetime.now(datetime.timezone.utc)
             )
             db.session.add(company)
@@ -443,7 +438,6 @@ def seed_database(force_reset=False):
                     title=service_info['title'],
                     description=service_info['description'],
                     duration_hours=service_info['duration'],
-                    barter_coins_cost=0,
                     categories=service_info['categories'],
                     is_offered=True,
                     is_active=True,
@@ -545,7 +539,6 @@ def seed_database(force_reset=False):
                 to_company_id=companies[to_idx].company_id,
                 from_service_id=service_from.service_id,
                 to_service_id=service_to.service_id,
-                barter_coins_offered=0,
                 status='pending',
                 created_at=now - datetime.timedelta(days=3)
             )
@@ -574,7 +567,6 @@ def seed_database(force_reset=False):
                 to_company_id=companies[to_idx].company_id,
                 from_service_id=service_from.service_id,
                 to_service_id=service_to.service_id,
-                barter_coins_offered=0,
                 status='accepted',
                 created_at=now - datetime.timedelta(days=10)
             )
@@ -616,7 +608,6 @@ def seed_database(force_reset=False):
                 to_company_id=companies[to_idx].company_id,
                 from_service_id=service_from.service_id,
                 to_service_id=service_to.service_id,
-                barter_coins_offered=0,
                 status='accepted',
                 created_at=now - datetime.timedelta(days=60)
             )

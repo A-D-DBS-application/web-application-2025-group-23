@@ -73,8 +73,6 @@ class Company(db.Model):
     created_at = db.Column(DateTime(timezone=True))
     # Code users can submit to request joining the company
     join_code = db.Column(db.Text, nullable=True, unique=True)
-    # Barter coins for the company (virtual currency for balancing trades)
-    barter_coins = db.Column(db.Integer, nullable=False, default=0)
 
     # Relaties:
     # - members: lijst van CompanyMember records
@@ -152,16 +150,6 @@ class CompanyMember(db.Model):
 
 
 # ==========================
-# SERVICE CATEGORY (Association table for many-to-many)
-# ==========================
-service_categories = db.Table(
-    'service_categories',
-    db.Column('service_id', UUID(as_uuid=True), db.ForeignKey('service.service_id'), primary_key=True),
-    db.Column('category_name', db.Text, primary_key=True)
-)
-
-
-# ==========================
 # SERVICE
 # ==========================
 class Service(db.Model):
@@ -182,9 +170,6 @@ class Service(db.Model):
     description = db.Column(db.Text, nullable=False)
     # Duration in hours (can be decimal, e.g. 1.5 hours)
     duration_hours = db.Column(db.Numeric, nullable=False)
-    
-    # Barter coins cost for this service
-    barter_coins_cost = db.Column(db.Integer, nullable=False, default=0)
     
     # Many-to-many relationship with categories (stored as text tags)
     # Categories: Finance, Accounting, IT, Marketing, Legal, Design, HR, Consulting, etc.
@@ -234,6 +219,7 @@ class TradeRequest(db.Model):
     status = db.Column(db.Text, nullable=False, default='active')  # active, archived (expired/no match)
     created_at = db.Column(DateTime(timezone=True), nullable=False)
     expires_at = db.Column(DateTime(timezone=True), nullable=False)
+    archived_at = db.Column(DateTime(timezone=True), nullable=True)  # When the request was archived
 
     # Relationships
     requesting_company = db.relationship("Company", foreign_keys=[requesting_company_id], backref="trade_requests_sent")
@@ -241,45 +227,6 @@ class TradeRequest(db.Model):
 
     def __repr__(self) -> str:
         return f"<TradeRequest {self.request_id} ({self.status})>"
-
-
-# ==========================
-# SERVICE INTEREST (DEPRECATED - KEPT FOR BACKWARDS COMPATIBILITY)
-# ==========================
-class ServiceInterest(db.Model):
-    """
-    Tracks when a company expresses interest in another company's service.
-    company_id: The company showing interest
-    service_id: The service they're interested in
-    offering_service_id: The service they're offering in exchange
-    """
-    __tablename__ = "service_interest"
-
-    interest_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    service_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
-        nullable=False
-    )
-    company_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
-        nullable=False
-    )
-    offering_service_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
-        nullable=False
-    )
-    created_at = db.Column(DateTime(timezone=True), nullable=False)
-
-    # Relationships
-    service = db.relationship("Service", foreign_keys=[service_id], backref="interests")
-    company = db.relationship("Company", backref="service_interests")
-    offering_service = db.relationship("Service", foreign_keys=[offering_service_id])
-
-    def __repr__(self) -> str:
-        return f"<ServiceInterest {self.interest_id}>"
 
 
 # ==========================
@@ -313,7 +260,6 @@ class DealProposal(db.Model):
         db.ForeignKey("service.service_id"),
         nullable=False
     )
-    barter_coins_offered = db.Column(db.Integer, nullable=False, default=0)
     message = db.Column(db.Text)  # Optional message from proposer
     status = db.Column(db.Text, nullable=False, default='pending')  # pending, accepted, rejected
     created_at = db.Column(DateTime(timezone=True), nullable=False)
@@ -357,86 +303,7 @@ class ActiveDeal(db.Model):
         return f"<ActiveDeal {self.active_deal_id} ({self.status})>"
 
 
-# ==========================
-# BARTER DEAL
-# ==========================
-class BarterDeal(db.Model):
-    """
-    Een deal tussen twee services (service A en service B).
-    """
-    __tablename__ = "barterdeal"
 
-    deal_id = db.Column(UUID(as_uuid=True), primary_key=True)
-
-    service_a_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
-        nullable=False,
-    )
-    service_b_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
-        nullable=False,
-    )
-
-    # ENUM 'deal_status' in Supabase → Text in ORM
-    status = db.Column(db.Text, nullable=False)
-
-    start_date = db.Column(db.Date)
-    end_date = db.Column(db.Date)
-    ratio_a_to_b = db.Column(db.Numeric)  # bv. 1.0 = 1:1, 2.0 = 2:1
-
-    created_at = db.Column(DateTime(timezone=True))
-    updated_at = db.Column(DateTime(timezone=True))
-
-    service_a = db.relationship(
-        "Service",
-        foreign_keys=[service_a_id],
-        backref=db.backref("as_service_a_deals", lazy="dynamic"),
-    )
-    service_b = db.relationship(
-        "Service",
-        foreign_keys=[service_b_id],
-        backref=db.backref("as_service_b_deals", lazy="dynamic"),
-    )
-
-    def __repr__(self) -> str:
-        return f"<BarterDeal {self.deal_id}>"
-
-
-# ==========================
-# CONTRACT
-# ==========================
-class Contract(db.Model):
-    """
-    Contract dat hoort bij één BarterDeal.
-    """
-    __tablename__ = "contract"
-
-    contract_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    deal_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("barterdeal.deal_id"),
-        nullable=False,
-    )
-
-    signed_by_initiator = db.Column(db.Boolean)
-    signed_by_counterparty = db.Column(db.Boolean)
-    signed_at_initiator = db.Column(DateTime(timezone=True))
-    signed_at_counterparty = db.Column(DateTime(timezone=True))
-
-    # ENUM 'contract_status' in Supabase
-    status = db.Column(db.Text, nullable=False)
-
-    created_at = db.Column(DateTime(timezone=True))
-
-    deal = db.relationship(
-        "BarterDeal",
-        backref=db.backref("contract", uselist=False),
-    )
-
-    def __repr__(self) -> str:
-        return f"<Contract {self.contract_id}>"
 
 
 # ==========================
@@ -499,68 +366,35 @@ class Review(db.Model):
 
 
 # ==========================
-# MESSAGE
+# TRADEFLOW VIEW TRACKING
 # ==========================
-class Message(db.Model):
+class TradeflowView(db.Model):
     """
-    Negotiation messages between companies on a specific proposal.
-    Allows companies to communicate during the proposal phase.
+    Tracks when a user last viewed each tradeflow section for notification badges.
     """
-    __tablename__ = "message"
+    __tablename__ = "tradeflow_view"
 
-    message_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    proposal_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("deal_proposal.proposal_id"),
-        nullable=False
-    )
-    from_company_id = db.Column(
+    view_id = db.Column(UUID(as_uuid=True), primary_key=True)
+    company_id = db.Column(
         UUID(as_uuid=True),
         db.ForeignKey("company.company_id"),
         nullable=False
     )
-    content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(DateTime(timezone=True), nullable=False)
-
-    # Relationships
-    proposal = db.relationship("DealProposal", backref=db.backref("messages", lazy="dynamic"))
-    from_company = db.relationship("Company", backref=db.backref("sent_messages", lazy="dynamic"))
-
-    def __repr__(self) -> str:
-        return f"<Message {self.message_id} on proposal {self.proposal_id}>"
-
-
-# ==========================
-# DELIVERABLE
-# ==========================
-class Deliverable(db.Model):
-    """
-    Files/deliverables uploaded by companies to fulfill their service obligations.
-    Associated with an active deal.
-    """
-    __tablename__ = "deliverable"
-
-    deliverable_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    active_deal_id = db.Column(
+    user_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("active_deal.active_deal_id"),
+        db.ForeignKey("user.user_id"),
         nullable=False
     )
-    from_company_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
-        nullable=False
-    )
-    file_path = db.Column(db.Text, nullable=False)  # Path to uploaded file
-    description = db.Column(db.Text)  # Optional description of the deliverable
-    uploaded_at = db.Column(DateTime(timezone=True), nullable=False)
+    section = db.Column(db.Text, nullable=False)  # 'incoming', 'you_requested', 'archived', 'matches', 'awaiting_signature', 'awaiting_other_party', 'ongoing', 'completed'
+    last_viewed_at = db.Column(DateTime(timezone=True), nullable=False)
 
     # Relationships
-    active_deal = db.relationship("ActiveDeal", backref=db.backref("deliverables", lazy="dynamic"))
-    from_company = db.relationship("Company", backref=db.backref("deliverables", lazy="dynamic"))
+    company = db.relationship("Company", backref=db.backref("tradeflow_views", lazy="dynamic"))
+    user = db.relationship("User", backref=db.backref("tradeflow_views", lazy="dynamic"))
 
     def __repr__(self) -> str:
-        return f"<Deliverable {self.deliverable_id} for deal {self.active_deal_id}>"
+        return f"<TradeflowView {self.section} for company {self.company_id} by user {self.user_id}>"
+
 
 
 

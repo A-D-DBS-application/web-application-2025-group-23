@@ -8,7 +8,7 @@ import string
 from flask import request, redirect, url_for, render_template, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from .blueprints.core import main
-from .models import db, User, Company, CompanyMember, Service, DealProposal, ActiveDeal, ServiceInterest, Review, CompanyJoinRequest
+from .models import db, User, Company, CompanyMember, Service, DealProposal, ActiveDeal, Review, CompanyJoinRequest
 
 
 def _workspace_context(company_id: uuid.UUID, uid: uuid.UUID):
@@ -17,6 +17,9 @@ def _workspace_context(company_id: uuid.UUID, uid: uuid.UUID):
     membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
     if not membership:
         return None
+
+    # Store selected company in session for navigation
+    session['selected_company_id'] = str(company_id)
 
     member_count = CompanyMember.query.filter_by(company_id=company_id).count()
     service_count = Service.query.filter_by(company_id=company_id).count()
@@ -81,21 +84,26 @@ def company_choice():
     return render_template("company_choice.html")
 
 
-@main.route("/select-company-marketplace")
-def select_company_for_marketplace():
-    """Let the user pick which company to use for the marketplace."""
+@main.route("/select-company-tradeflow")
+def select_company_for_tradeflow():
+    """Let the user pick which company to use for tradeflow."""
     if "user_id" not in session:
         return redirect(url_for("main.login"))
 
     uid = uuid.UUID(session["user_id"])
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
 
-    # If user is in only 1 company, automatically select it and go to marketplace
+    if not memberships:
+        flash('You need to be a member of a company to access Tradeflow', 'error')
+        return redirect(url_for('main.my_companies'))
+
+    # If user is in only 1 company, automatically select it
     if len(memberships) == 1:
         company = Company.query.get(memberships[0].company_id)
         if company:
-            return redirect(url_for('main.marketplace', company_id=company.company_id))
+            return redirect(url_for('main.tradeflow_incoming_requests', company_id=company.company_id))
 
+    # Multiple companies - always show selection page
     companies = []
     for membership in memberships:
         comp = Company.query.get(membership.company_id)
@@ -111,7 +119,41 @@ def select_company_for_marketplace():
                 "is_admin": membership.is_admin
             })
 
-    return render_template("select_company_marketplace.html", companies=companies)
+    return render_template("select_company.html", companies=companies, destination='tradeflow')
+
+
+@main.route("/select-company-marketplace")
+def select_company_for_marketplace():
+    """Let the user pick which company to use for the marketplace."""
+    if "user_id" not in session:
+        return redirect(url_for("main.login"))
+
+    uid = uuid.UUID(session["user_id"])
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+
+    # If user is in only 1 company, automatically select it and go to marketplace
+    if len(memberships) == 1:
+        company = Company.query.get(memberships[0].company_id)
+        if company:
+            return redirect(url_for('main.marketplace', company_id=company.company_id))
+
+    # Multiple companies - always show selection page
+    companies = []
+    for membership in memberships:
+        comp = Company.query.get(membership.company_id)
+        if comp:
+            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
+            service_count = Service.query.filter_by(company_id=comp.company_id).count()
+            companies.append({
+                "company_id": comp.company_id,
+                "name": comp.name,
+                "description": comp.description,
+                "member_count": member_count,
+                "service_count": service_count,
+                "is_admin": membership.is_admin
+            })
+
+    return render_template("select_company.html", companies=companies, destination='marketplace')
 
 
 # ==================== AUTHENTICATION ROUTES ====================
@@ -259,7 +301,6 @@ def create_company():
             name=name,
             description=description or '',
             join_code=join_code,
-            barter_coins=0,
             created_at=datetime.datetime.now(datetime.timezone.utc)
         )
         db.session.add(new_company)
@@ -676,7 +717,6 @@ def add_service(company_id):
             title=title,
             description=description,
             duration_hours=duration,
-            barter_coins_cost=0,
             categories=','.join(categories) if categories else None,
             is_offered=is_offered,
             is_active=True,
@@ -855,7 +895,6 @@ def send_proposal():
     to_company_id = uuid.UUID(request.form.get('to_company_id'))
     from_service_id = uuid.UUID(request.form.get('from_service_id'))
     to_service_id = uuid.UUID(request.form.get('to_service_id'))
-    barter_coins = int(request.form.get('barter_coins', 0))
     message = request.form.get('message', '').strip()
     
     membership = CompanyMember.query.filter_by(
@@ -869,9 +908,6 @@ def send_proposal():
         return redirect(url_for('main.workspace_overview', company_id=from_company_id))
     
     company = Company.query.get(from_company_id)
-    if barter_coins > 0 and company.barter_coins < barter_coins:
-        flash('Insufficient barter coins', 'error')
-        return redirect(url_for('main.workspace_overview', company_id=from_company_id))
     
     proposal = DealProposal(
         proposal_id=uuid.uuid4(),
@@ -879,7 +915,6 @@ def send_proposal():
         to_company_id=to_company_id,
         from_service_id=from_service_id,
         to_service_id=to_service_id,
-        barter_coins_offered=barter_coins,
         message=message,
         status='pending',
         created_at=datetime.datetime.now(datetime.timezone.utc)
@@ -914,13 +949,6 @@ def accept_proposal(proposal_id):
     if proposal.status != 'pending':
         flash('This proposal has already been processed', 'warning')
         return redirect(url_for('main.workspace_overview', company_id=proposal.to_company_id))
-    
-    if proposal.barter_coins_offered > 0:
-        from_company = Company.query.get(proposal.from_company_id)
-        to_company = Company.query.get(proposal.to_company_id)
-        
-        from_company.barter_coins -= proposal.barter_coins_offered
-        to_company.barter_coins += proposal.barter_coins_offered
     
     proposal.status = 'accepted'
     
@@ -968,336 +996,3 @@ def reject_proposal(proposal_id):
     
     flash('Proposal rejected', 'info')
     return redirect(url_for('main.workspace_overview', company_id=proposal.to_company_id))
-
-
-@main.route('/company/<uuid:company_id>/deals')
-def company_deals(company_id):
-    """Show all active deals for a company."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    uid = uuid.UUID(session['user_id'])
-    company = Company.query.get_or_404(company_id)
-    
-    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
-    if not membership:
-        flash('You are not a member of this company', 'error')
-        return redirect(url_for('main.my_companies'))
-    
-    active_deals = ActiveDeal.query.join(DealProposal).filter(
-        db.or_(
-            DealProposal.from_company_id == company_id,
-            DealProposal.to_company_id == company_id
-        )
-    ).order_by(ActiveDeal.created_at.desc()).all()
-    
-    in_progress_deals = [d for d in active_deals if d.status == 'in_progress']
-    completed_deals = [d for d in active_deals if d.status == 'completed']
-    
-    can_review = {}
-    for deal in completed_deals:
-        existing_review = Review.query.filter_by(
-            deal_id=deal.active_deal_id,
-            reviewer_id=uid
-        ).first()
-        can_review[deal.active_deal_id] = not existing_review
-    
-    return render_template('company_deals.html',
-                         company=company,
-                         in_progress_deals=in_progress_deals,
-                         completed_deals=completed_deals,
-                         is_admin=membership.is_admin,
-                         can_review=can_review)
-
-
-@main.route('/deal/<uuid:deal_id>/complete', methods=['POST'])
-def complete_deal(deal_id):
-    """Mark a deal as complete from one company's side. Admin only."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    uid = uuid.UUID(session['user_id'])
-    active_deal = ActiveDeal.query.get_or_404(deal_id)
-    proposal = active_deal.proposal
-    
-    from_admin = CompanyMember.query.filter_by(
-        company_id=proposal.from_company_id,
-        user_id=uid,
-        is_admin=True
-    ).first()
-    
-    to_admin = CompanyMember.query.filter_by(
-        company_id=proposal.to_company_id,
-        user_id=uid,
-        is_admin=True
-    ).first()
-    
-    if not from_admin and not to_admin:
-        flash('You are not an admin of one of the involved companies', 'error')
-        return redirect(url_for('main.index'))
-    
-    if from_admin:
-        active_deal.from_company_completed = True
-        company_id = proposal.from_company_id
-    else:
-        active_deal.to_company_completed = True
-        company_id = proposal.to_company_id
-    
-    if active_deal.from_company_completed and active_deal.to_company_completed:
-        active_deal.status = 'completed'
-        active_deal.completed_at = datetime.datetime.now(datetime.timezone.utc)
-        
-        ServiceInterest.query.filter_by(
-            service_id=proposal.from_service_id,
-            company_id=proposal.to_company_id
-        ).delete()
-        
-        ServiceInterest.query.filter_by(
-            service_id=proposal.to_service_id,
-            company_id=proposal.from_company_id
-        ).delete()
-        
-        flash('Deal completed! Both parties can now leave a review.', 'success')
-    else:
-        flash('Deal marked as completed on your side.', 'success')
-    
-    db.session.commit()
-    
-    return redirect(url_for('main.company_deals', company_id=company_id))
-
-
-@main.route('/deal/<uuid:deal_id>/review', methods=['GET', 'POST'])
-def review_deal(deal_id):
-    """Submit a review for a completed deal."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    uid = uuid.UUID(session['user_id'])
-    active_deal = ActiveDeal.query.get_or_404(deal_id)
-    proposal = active_deal.proposal
-    
-    existing_review = Review.query.filter_by(
-        deal_id=deal_id,
-        reviewer_id=uid
-    ).first()
-    
-    if existing_review:
-        flash('You have already reviewed this deal', 'warning')
-        if 'company_id' in session:
-            return redirect(url_for('main.workspace_overview', company_id=session['company_id']))
-        return redirect(url_for('main.index'))
-    
-    if active_deal.status != 'completed':
-        flash('This deal is not yet completed', 'error')
-        if 'company_id' in session:
-            return redirect(url_for('main.workspace_overview', company_id=session['company_id']))
-        return redirect(url_for('main.index'))
-    
-    from_member = CompanyMember.query.filter_by(
-        company_id=proposal.from_company_id,
-        user_id=uid
-    ).first()
-    
-    to_member = CompanyMember.query.filter_by(
-        company_id=proposal.to_company_id,
-        user_id=uid
-    ).first()
-    
-    if not from_member and not to_member:
-        flash('You are not a member of one of the involved companies', 'error')
-        return redirect(url_for('main.index'))
-    
-    if from_member:
-        reviewed_company_id = proposal.to_company_id
-        my_company_id = proposal.from_company_id
-    else:
-        reviewed_company_id = proposal.from_company_id
-        my_company_id = proposal.to_company_id
-    
-    reviewed_company = Company.query.get(reviewed_company_id)
-    
-    if request.method == 'POST':
-        rating = int(request.form.get('rating'))
-        comment = request.form.get('comment', '').strip()
-        
-        if rating < 1 or rating > 5:
-            flash('Rating must be between 1 and 5', 'error')
-            return redirect(url_for('main.review_deal', deal_id=deal_id))
-        
-        review = Review(
-            review_id=uuid.uuid4(),
-            deal_id=deal_id,
-            reviewer_id=uid,
-            rating=rating,
-            comment=comment,
-            reviewed_company_id=reviewed_company_id,
-            created_at=datetime.datetime.now(datetime.timezone.utc)
-        )
-        
-        db.session.add(review)
-        db.session.commit()
-        
-        flash('Review added successfully!', 'success')
-        return redirect(url_for('main.workspace_overview', company_id=my_company_id))
-    
-    return render_template('review_deal.html',
-                         active_deal=active_deal,
-                         proposal=proposal,
-                         reviewed_company=reviewed_company)
-
-
-@main.route('/deal/<deal_id>/sign-contract', methods=['GET', 'POST'])
-def sign_contract(deal_id):
-    """Sign a contract for a barter deal."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    parts = deal_id.split('_')
-    if len(parts) != 2:
-        return 'Invalid deal ID', 400
-    
-    interest1 = ServiceInterest.query.get(parts[0])
-    interest2 = ServiceInterest.query.get(parts[1])
-    
-    if not interest1 or not interest2:
-        return 'Interests not found', 404
-    
-    service_a = Service.query.get(interest1.offering_service_id)
-    service_b = Service.query.get(interest2.offering_service_id)
-    
-    if not service_a or not service_b:
-        return 'Services not found', 404
-    
-    if request.method == 'GET':
-        company_a = Company.query.get(service_a.company_id)
-        company_b = Company.query.get(service_b.company_id)
-        return render_template('sign_contract.html',
-                             deal_id=deal_id,
-                             service_a=service_a,
-                             service_b=service_b,
-                             company_a=company_a,
-                             company_b=company_b)
-    
-    barter_coins = request.form.get('barter_coins', 0, type=int)
-    message = request.form.get('message', '')
-    
-    user_id = uuid.UUID(session['user_id'])
-    
-    membership_a = CompanyMember.query.filter_by(
-        user_id=user_id,
-        company_id=service_a.company_id
-    ).first()
-    
-    membership_b = CompanyMember.query.filter_by(
-        user_id=user_id,
-        company_id=service_b.company_id
-    ).first()
-    
-    if membership_a:
-        from_service = service_a
-        to_service = service_b
-        from_company_id = service_a.company_id
-        to_company_id = service_b.company_id
-    elif membership_b:
-        from_service = service_b
-        to_service = service_a
-        from_company_id = service_b.company_id
-        to_company_id = service_a.company_id
-    else:
-        flash('You are not a member of either company', 'error')
-        return redirect(url_for('main.index'))
-    
-    proposal = DealProposal(
-        proposal_id=uuid.uuid4(),
-        from_service_id=from_service.service_id,
-        to_service_id=to_service.service_id,
-        from_company_id=from_company_id,
-        to_company_id=to_company_id,
-        barter_coins_offered=barter_coins,
-        message=message,
-        status='pending',
-        created_at=datetime.datetime.now(datetime.timezone.utc)
-    )
-    db.session.add(proposal)
-    
-    db.session.delete(interest1)
-    db.session.delete(interest2)
-    
-    db.session.commit()
-    
-    flash('Proposal sent successfully!', 'success')
-    return redirect(url_for('main.workspace_overview', company_id=from_company_id))
-
-
-@main.route('/contract/<contract_id>/mark-delivered', methods=['POST'])
-def mark_service_delivered(contract_id):
-    """Mark your service as delivered in an active deal."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    user_id = uuid.UUID(session['user_id'])
-    active_deal = ActiveDeal.query.get(contract_id)
-    
-    if not active_deal:
-        return 'Active deal not found', 404
-    
-    proposal = DealProposal.query.get(active_deal.proposal_id)
-    if not proposal:
-        return 'Proposal not found', 404
-    
-    membership_from = CompanyMember.query.filter_by(
-        user_id=user_id,
-        company_id=proposal.from_company_id
-    ).first()
-    membership_to = CompanyMember.query.filter_by(
-        user_id=user_id,
-        company_id=proposal.to_company_id
-    ).first()
-    
-    if not (membership_from or membership_to):
-        return 'Access denied', 403
-    
-    if membership_from:
-        active_deal.from_company_completed = True
-    else:
-        active_deal.to_company_completed = True
-    
-    if active_deal.from_company_completed and active_deal.to_company_completed:
-        active_deal.status = 'completed'
-        active_deal.completed_at = datetime.datetime.now(datetime.timezone.utc)
-    
-    db.session.commit()
-    flash('Service marked as delivered', 'success')
-    
-    return redirect(request.referrer or url_for('main.index'))
-
-
-@main.route('/proposal/<proposal_id>/message', methods=['POST'])
-def send_proposal_message(proposal_id):
-    """Send a message on a proposal for negotiation."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    
-    user_id = uuid.UUID(session['user_id'])
-    proposal = DealProposal.query.get(proposal_id)
-    
-    if not proposal:
-        flash('Proposal not found', 'error')
-        return redirect(request.referrer or url_for('main.index'))
-    
-    membership_from = CompanyMember.query.filter_by(
-        user_id=user_id,
-        company_id=proposal.from_company_id
-    ).first()
-    membership_to = CompanyMember.query.filter_by(
-        user_id=user_id,
-        company_id=proposal.to_company_id
-    ).first()
-    
-    if not (membership_from or membership_to):
-        flash('You are not part of either company in this proposal', 'error')
-        return redirect(request.referrer or url_for('main.index'))
-    
-    if not (membership_from and membership_from.is_admin) and not (membership_to and membership_to.is_admin):
-        flash('Only company admins can send messages', 'error')
-        return redirect(request.referrer or url_for('main.index'))
