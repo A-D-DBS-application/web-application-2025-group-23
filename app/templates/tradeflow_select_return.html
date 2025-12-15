@@ -28,7 +28,7 @@
     <div class="cards-grid">
       {% for service in services %}
       <a href="{{ url_for('main.tradeflow_select_return_detail', company_id=company.company_id, request_id=incoming_request.request_id, service_id=service.service_id) }}" class="card">
-        <div class="card-company">YOUR SERVICE</div>
+        <div class="card-company">RETURN SERVICE</div>
         <div class="card-title">{{ service.title }}</div>
         <div class="card-desc">{{ service.description[:70] }}{% if service.description|length > 70 %}...{% endif %}</div>
         <div class="card-meta">
