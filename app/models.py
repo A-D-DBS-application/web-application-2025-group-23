@@ -194,6 +194,27 @@ class Service(db.Model):
 
 
 # ==========================
+# SERVICE VIEW EVENT
+# ==========================
+class ServiceViewEvent(db.Model):
+    """
+    Track each time a service detail page is opened on the marketplace (public or logged-in).
+    """
+    __tablename__ = "service_view_event"
+
+    view_id = db.Column(UUID(as_uuid=True), primary_key=True)
+    service_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("service.service_id"),
+        nullable=False,
+    )
+    viewed_at = db.Column(DateTime(timezone=True), nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<ServiceViewEvent service={self.service_id} at={self.viewed_at}>"
+
+
+# ==========================
 # TRADE REQUEST
 # ==========================
 class TradeRequest(db.Model):

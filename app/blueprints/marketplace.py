@@ -4,6 +4,7 @@ import uuid
 from flask import request, redirect, url_for, render_template, session, flash
 from sqlalchemy import func
 
+from ..fairness import record_service_view
 from ..models import db, Service, Review, TradeRequest, Company
 from .core import main
 from .helpers import _marketplace_context, login_required
@@ -169,6 +170,8 @@ def marketplace_service_view(service_id):
         return resp
     service = Service.query.get_or_404(service_id)
 
+    record_service_view(service.service_id)
+
     reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
     avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
 
@@ -185,6 +188,7 @@ def marketplace_service_view(service_id):
 def marketplace_service_public(service_id):
     """Service detail page for non-logged-in users."""
     service = Service.query.get_or_404(service_id)
+    record_service_view(service.service_id)
     reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
     avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
 

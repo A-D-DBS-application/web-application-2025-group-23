@@ -83,7 +83,20 @@ import sys
 import datetime
 from werkzeug.security import generate_password_hash
 from app import create_app
-from app.models import db, User, Company, CompanyMember, CompanyJoinRequest, Service, DealProposal, ActiveDeal, Review, TradeRequest
+from app.models import (
+    db,
+    User,
+    Company,
+    CompanyMember,
+    CompanyJoinRequest,
+    Service,
+    DealProposal,
+    ActiveDeal,
+    Review,
+    TradeRequest,
+    TradeflowView,
+    ServiceViewEvent,
+)
 
 def seed_database(force_reset=False):
     """Populate database with example data"""
@@ -131,6 +144,8 @@ def seed_database(force_reset=False):
                 db.session.query(TradeRequest).delete()
                 db.session.query(ActiveDeal).delete()
                 db.session.query(DealProposal).delete()
+                db.session.query(ServiceViewEvent).delete()
+                db.session.query(TradeflowView).delete()
                 db.session.query(Service).delete()
                 db.session.query(CompanyJoinRequest).delete()
                 db.session.query(CompanyMember).delete()
@@ -451,10 +466,29 @@ def seed_database(force_reset=False):
         
         db.session.commit()
         print(f"✓ Created {total_services} services (5 per company)")
+
+        # Timestamp reference for the rest of the seed data
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        # Create marketplace view events to drive demand signals
+        print("Creating marketplace view events for demand signal...")
+        view_buckets = [30, 24, 18, 12, 8, 4, 2]  # descending counts to give variation
+        view_events = 0
+        for idx, service in enumerate(all_services):
+            bucket = view_buckets[idx % len(view_buckets)]
+            for m in range(bucket):
+                evt = ServiceViewEvent(
+                    view_id=uuid.uuid4(),
+                    service_id=service.service_id,
+                    viewed_at=now - datetime.timedelta(days=idx % 10, minutes=m)
+                )
+                db.session.add(evt)
+                view_events += 1
+        db.session.commit()
+        print(f"✓ Created {view_events} service view events")
         
         # Create trade flows for testing different statuses
         print("Creating trade flow test data...")
-        now = datetime.datetime.now(datetime.timezone.utc)
         
         # Group 1: ONE-SIDED INTEREST (Companies 0-3)
         # Company 0 requests services from Companies 10, 11
@@ -481,6 +515,26 @@ def seed_database(force_reset=False):
         
         db.session.commit()
         print(f"✓ Created {trade_requests_count} one-sided trade requests")
+
+        # Create matched proposals to simulate chosenAsReturn counts
+        matched_pairs = [(0, 10), (4, 11), (5, 12), (6, 13), (7, 14)]
+        matched_created = 0
+        for from_idx, to_idx in matched_pairs:
+            service_from = [s for s in all_services if s.company_id == companies[from_idx].company_id][0]
+            service_to = [s for s in all_services if s.company_id == companies[to_idx].company_id][1]
+            proposal = DealProposal(
+                proposal_id=uuid.uuid4(),
+                from_company_id=companies[from_idx].company_id,
+                to_company_id=companies[to_idx].company_id,
+                from_service_id=service_from.service_id,
+                to_service_id=service_to.service_id,
+                status='matched',
+                created_at=now - datetime.timedelta(days=4)
+            )
+            db.session.add(proposal)
+            matched_created += 1
+        db.session.commit()
+        print(f"✓ Created {matched_created} matched proposals (counts as chosenAsReturn)")
         
         # Group 2: MUTUAL INTEREST (Companies 4-7)
         # Create reciprocal trade requests (match made scenario)

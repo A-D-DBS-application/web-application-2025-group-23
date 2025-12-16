@@ -3,6 +3,7 @@ import uuid
 
 from flask import request, redirect, url_for, render_template, session, flash
 
+from ..fairness import compute_fairness
 from ..models import db, Service, TradeRequest, DealProposal, ActiveDeal, Review
 from .core import main
 from .helpers import (
@@ -358,6 +359,10 @@ def tradeflow_match_detail(company_id, proposal_id):
         flash('Not authorized to view this proposal.', 'danger')
         return redirect(url_for('main.tradeflow_match_made', company_id=company_id))
 
+    fairness_data = compute_fairness(proposal.from_service, proposal.to_service)
+
+    fairness_data = compute_fairness(proposal.from_service, proposal.to_service)
+
     if request.method == 'POST':
         message = request.form.get('message', '')
         money_amount = _parse_int(request.form.get('money_amount'), 0)
@@ -399,7 +404,7 @@ def tradeflow_match_detail(company_id, proposal_id):
         flash('Offer sent! Waiting for the other party to respond.', 'success')
         return redirect(url_for('main.tradeflow_awaiting_other_party', company_id=company_id))
 
-    return render_template('tradeflow_match_detail.html', company=company, proposal=proposal)
+    return render_template('tradeflow_match_detail.html', company=company, proposal=proposal, fairness_data=fairness_data)
 
 
 @main.route('/tradeflow/<uuid:company_id>/match/<uuid:proposal_id>/create-offer', methods=['GET', 'POST'])
@@ -447,7 +452,7 @@ def tradeflow_create_offer(company_id, proposal_id):
         flash('Offer accepted! Deal is now active.', 'success')
         return redirect(url_for('main.tradeflow_ongoing_deals', company_id=company_id))
 
-    return render_template('tradeflow_create_offer.html', company=company, proposal=proposal)
+    return render_template('tradeflow_create_offer.html', company=company, proposal=proposal, fairness_data=fairness_data)
 
 
 @main.route('/tradeflow/<uuid:company_id>/awaiting-signature', methods=['GET', 'POST'])
@@ -649,7 +654,9 @@ def tradeflow_awaiting_signature_detail(company_id, proposal_id):
     except Exception:
         pass
 
-    return render_template('tradeflow_awaiting_signature_detail.html', company=company, proposal=proposal)
+    fairness_data = compute_fairness(proposal.from_service, proposal.to_service)
+
+    return render_template('tradeflow_awaiting_signature_detail.html', company=company, proposal=proposal, fairness_data=fairness_data)
 
 
 @main.route('/tradeflow/<uuid:company_id>/awaiting-other-party', methods=['GET'])
@@ -723,7 +730,10 @@ def tradeflow_awaiting_other_party_detail(company_id, proposal_id):
     except Exception:
         pass
 
-    return render_template('tradeflow_awaiting_other_party_detail.html', company=company, proposal=proposal)
+    # Swap services for FROM company perspective: you offer from_service and want to_service
+    fairness_data = compute_fairness(proposal.to_service, proposal.from_service)
+
+    return render_template('tradeflow_awaiting_other_party_detail.html', company=company, proposal=proposal, fairness_data=fairness_data)
 
 
 @main.route('/tradeflow/<uuid:company_id>/ongoing-deals', methods=['GET'])

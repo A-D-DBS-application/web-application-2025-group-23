@@ -27,6 +27,33 @@
 
         <div style="border-top: 1px solid #e8eaed; padding-top: 20px; margin-top: 6px;">
           <div class="section-title">Offer Terms</div>
+
+          {% if fairness_data %}
+          <div class="fairness-card" style="border: 1px solid #e8eaed; border-radius: 12px; padding: 16px; margin-bottom: 20px; background: #f9fbff;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div class="section-title" style="margin-bottom: 6px;">Fairness Score</div>
+                <div style="color: #202124; font-weight: 600; font-size: 18px;">{{ fairness_data.fairness_ratio is not none and fairness_data.fairness_ratio|round(2) or 'N/A' }} ({{ fairness_data.label }})</div>
+                <div style="color: #5f6368; font-size: 13px;">Return ÷ Requested • ≈1.0 is balanced</div>
+              </div>
+              <div style="text-align: right; color: #5f6368; font-size: 13px;">
+                <div>Requested SVI: <strong>{{ fairness_data.requested.svi|round(3) }}</strong></div>
+                <div>Return SVI: <strong>{{ fairness_data.return.svi|round(3) }}</strong></div>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 12px;">
+              <div style="background: #fff; border: 1px solid #e8eaed; border-radius: 10px; padding: 10px;">
+                <div class="info-label">Requested mix</div>
+                <div class="info-value">Effort {{ fairness_data.requested.components.effort|round(2) }}, Demand {{ fairness_data.requested.components.demand|round(2) }}, Review {{ fairness_data.requested.components.review|round(2) }}, Trust {{ fairness_data.requested.components.trust|round(2) }}</div>
+              </div>
+              <div style="background: #fff; border: 1px solid #e8eaed; border-radius: 10px; padding: 10px;">
+                <div class="info-label">Return mix</div>
+                <div class="info-value">Effort {{ fairness_data.return.components.effort|round(2) }}, Demand {{ fairness_data.return.components.demand|round(2) }}, Review {{ fairness_data.return.components.review|round(2) }}, Trust {{ fairness_data.return.components.trust|round(2) }}</div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
           <div class="info-grid">
             <div class="info-item">
               <div class="info-label">Created</div>
