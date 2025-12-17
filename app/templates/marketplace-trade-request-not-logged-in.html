@@ -34,6 +34,15 @@
         </div>
 
         <div class="login-notice">
+            {% if is_logged_in %}
+            <h3>Join a company to trade</h3>
+            <p>You need to be part of a company to send trade requests.</p>
+            <p>Create or join a company to start trading services on Barter.</p>
+            <div class="notice-actions">
+                <a href="{{ url_for('main.create_company') }}" class="btn-login">Create company</a>
+                <a href="{{ url_for('main.join_company') }}" class="btn-register">Join company</a>
+            </div>
+            {% else %}
             <h3>Log in to trade</h3>
             <p>You must be logged in to send a trade request.</p>
             <p>Log in or create an account to start trading services on Barter.</p>
@@ -41,6 +50,7 @@
                 <a href="{{ url_for('main.login') }}" class="btn-login">Log in</a>
                 <a href="{{ url_for('main.register') }}" class="btn-register">Create account</a>
             </div>
+            {% endif %}
         </div>
     </div>
 

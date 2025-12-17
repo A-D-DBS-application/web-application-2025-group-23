@@ -191,12 +191,16 @@ def marketplace_service_public(service_id):
     record_service_view(service.service_id)
     reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
     avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
+    
+    # Check if user is logged in
+    is_logged_in = 'user_id' in session
 
     return render_template(
         'marketplace-trade-request-not-logged-in.html',
         service=service,
         reviews=reviews,
         avg_rating=avg_rating,
+        is_logged_in=is_logged_in,
     )
 
 
