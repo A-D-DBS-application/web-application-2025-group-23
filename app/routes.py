@@ -131,6 +131,10 @@ def select_company_for_marketplace():
     uid = uuid.UUID(session["user_id"])
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
 
+    # If user has no companies, redirect to public marketplace
+    if len(memberships) == 0:
+        return redirect(url_for('main.marketplace_public'))
+
     # If user is in only 1 company, automatically select it and go to marketplace
     if len(memberships) == 1:
         company = Company.query.get(memberships[0].company_id)
