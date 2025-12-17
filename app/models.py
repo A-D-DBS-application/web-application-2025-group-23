@@ -70,6 +70,8 @@ class Company(db.Model):
     company_id = db.Column(UUID(as_uuid=True), primary_key=True)
     name = db.Column(db.Text)  # in Supabase nullable = allowed
     description = db.Column(db.Text, nullable=True)  # Company description
+    category = db.Column(db.Text, nullable=True)  # Company category/industry
+    website = db.Column(db.Text, nullable=True)  # Company website URL
     created_at = db.Column(DateTime(timezone=True))
     # Code users can submit to request joining the company
     join_code = db.Column(db.Text, nullable=True, unique=True)

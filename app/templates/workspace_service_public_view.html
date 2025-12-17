@@ -1,63 +1,147 @@
 {% extends "base.html" %}
 {% block title %}{{ service.title }} - Barter.com{% endblock %}
-{% block nav_companies_active %}class="active"{% endblock %}
 
 {% block content %}
-<div class="service-container">
-    <a href="{{ url_for('main.workspace_services', company_id=company.company_id) }}" class="back-link">← Back to Services</a>
-    
-    <div class="service-detail-card">
-        <div class="service-header">
-            <h1>{{ service.title }}</h1>
-            <div class="service-provider">
-                <span class="label">offered by</span>
-                <span class="company-name">{{ company.name }}</span>
-            </div>
-        </div>
+<div class="app-page">
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="app-sidebar">
+            <div class="app-sidebar-inner">
+                <div class="sidebar-profile">
+                    <div class="sidebar-avatar" style="display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="sidebar-user-name">Hi, {{ current_user.username if current_user else 'User' }}</div>
+                </div>
 
-        <div class="service-info-grid">
-            <div class="info-item">
-                <span class="info-label">SERVICE DESCRIPTION</span>
-                <span class="info-value">{{ service.description or 'No description' }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">CATEGORY</span>
-                <div class="category-tags-container">
-                    {% if service.categories %}
-                        {% for cat in service.categories.split(',') %}
-                            <span class="category-tag">{{ cat.strip() }}</span>
+                <div class="sidebar-user-sub" style="margin-top: 24px; margin-bottom: 16px;">My companies</div>
+                
+                <div class="sidebar-companies">
+                    {% if user_companies %}
+                        {% for comp in user_companies %}
+                        <a href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}" 
+                           class="sidebar-company-card {% if company and comp.company_id == company.company_id %}sidebar-company-card--active{% endif %}" 
+                           style="text-decoration: none; display: block;">
+                            <div class="sidebar-company-name">{{ comp.name }}</div>
+                            <div class="sidebar-company-role tag">{% if comp.is_admin %}Admin{% else %}Member{% endif %}</div>
+                            <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
+                        </a>
                         {% endfor %}
-                    {% else %}
-                        <span class="category-tag">Uncategorized</span>
                     {% endif %}
                 </div>
             </div>
-        </div>
+        </aside>
+        
+        <!-- MAIN CONTENT -->
+        <main class="app-main">
+            <div class="app-content">
+                <div class="app-content-inner">
+                    <div class="workspace-header-left" style="margin-bottom: 24px;">
+                        <a href="{{ url_for('main.workspace_services', company_id=company.company_id if company else service.company_id) }}" class="link-back" style="text-decoration: none;">← Back to Services</a>
+                    </div>
+                    
+                    <div class="page-header">
+                        <h1 class="page-title">{{ service.title }}</h1>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                            <p class="page-subtitle" style="margin: 0;">Preview mode – This is how other companies see your service.</p>
+                            <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" 
+                               style="background: #e8e8e8; color: #0066cc; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; white-space: nowrap; margin-left: 16px;">
+                                Edit Service
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="service-form">
+                        <div class="form-field form-field--full">
+                            <label>Service Title</label>
+                            <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333;">
+                                {{ service.title }}
+                            </div>
+                        </div>
 
-        <div class="service-description">
-            <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" class="btn-submit" style="display: inline-block; text-align: center; text-decoration: none;">Edit Service</a>
-        </div>
-    </div>
+                        <div class="form-field form-field--full">
+                            <label>Description</label>
+                            <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333; min-height: 80px;">
+                                {{ service.description or 'No description' }}
+                            </div>
+                        </div>
 
-    {% if reviews and reviews|length > 0 %}
-    <div class="reviews-section">
-        <h2>Reviews</h2>
-        <div class="reviews-list">
-            {% for review in reviews %}
-            <div class="review-card">
-                <div class="review-header">
-                    <span class="reviewer-name">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
-                    <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+                        <div class="form-field">
+                            <label>Duration (hours)</label>
+                            <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333; max-width: 300px;">
+                                {{ service.duration_hours }}
+                            </div>
+                        </div>
+
+                        <div class="form-field form-field--full">
+                            <label>Categories</label>
+                            <div class="category-grid" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                                {% if service.categories %}
+                                    {% for cat in service.categories.split(',') %}
+                                        <div class="category-item" style="pointer-events: none;">
+                                            <input type="checkbox" id="cat_{{ loop.index }}" checked disabled>
+                                            <label for="cat_{{ loop.index }}">{{ cat.strip() }}</label>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #666;">
+                                        No categories selected
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-field form-field--full">
+                            <label>Reviews</label>
+                            {% if reviews and reviews|length > 0 %}
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    {% for review in reviews %}
+                                    <div style="background: #f8f9fa; padding: 16px; border-radius: 6px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                            <span style="font-weight: 500; color: #333;">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <div style="color: #ffa500; font-size: 16px;">
+                                                    {% for i in range(review.rating) %}★{% endfor %}
+                                                    {% for i in range(5 - review.rating) %}☆{% endfor %}
+                                                </div>
+                                                <span style="color: #999; font-size: 13px;">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+                                            </div>
+                                        </div>
+                                        <p style="margin: 0; color: #666; line-height: 1.5;">{{ review.comment }}</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div style="padding: 16px; background: #f5f5f5; border-radius: 4px; color: #666; text-align: center;">
+                                    No reviews yet for this service
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if reviews and reviews|length > 0 %}
+                    <div style="margin-top: 40px; padding: 24px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <h2 style="margin-top: 0; margin-bottom: 20px;">Reviews</h2>
+                        {% for review in reviews %}
+                        <div style="background: #f8f9fa; padding: 16px; border-radius: 6px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-weight: 500;">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
+                                <span style="color: #666; font-size: 14px;">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+                            </div>
+                            <div style="color: #ffa500; margin-bottom: 8px;">
+                                {% for i in range(review.rating) %}★{% endfor %}
+                                {% for i in range(5 - review.rating) %}☆{% endfor %}
+                            </div>
+                            <p style="margin: 0; color: #666;">{{ review.comment }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="review-rating">
-                    {% for i in range(review.rating) %}★{% endfor %}
-                    {% for i in range(5 - review.rating) %}☆{% endfor %}
-                </div>
-                <p class="review-text">{{ review.comment }}</p>
             </div>
-            {% endfor %}
-        </div>
+        </main>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

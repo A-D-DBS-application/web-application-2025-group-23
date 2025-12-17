@@ -525,8 +525,8 @@ button:disabled {
 
 /* BUTTON VARIANTS */
 .btn-danger {
-    background: #d32f2f;
-    color: white;
+    background: #ffebee; /* veel lichtere rode kleur */
+    color: #c62828; /* donkerder rood voor de tekst zodat het leesbaar blijft */
     border: none;
     border-radius: 8px;
     padding: 10px 20px;
@@ -535,7 +535,7 @@ button:disabled {
     display: inline-block;
 }
 .btn-danger:hover {
-    background: #c82333;
+    background: #ef9a9a; /* iets donkerder bij hover */
 }
 .btn-danger.small {
     padding: 6px 12px;
@@ -593,7 +593,7 @@ button:disabled {
 /* LEFT PANEL */
 .auth-left {
     flex: 0 0 40%;
-    background: linear-gradient(135deg, #1A73E8 0%, #1A73E8 100%);
+    background: linear-gradient(135deg, rgba(26,115,232,0.04) 0%, rgba(26,115,232,0.04) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -622,8 +622,7 @@ button:disabled {
 .auth-brand-name {
     font-size: 56px;
     font-weight: 700;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    color: #1A73E8; /* gewijzigd: was white */
 }
 
 /* RIGHT PANEL */
@@ -642,7 +641,7 @@ button:disabled {
 }
 
 .auth-title {
-    font-size: 32px;
+    font-size: 40px;
     font-weight: 700;
     color: #1a202c;
     margin-bottom: 0.75rem;
@@ -765,7 +764,7 @@ button:disabled {
 /* ====== MY COMPANIES PAGE ====== */
 .my-companies-layout {
     display: grid;
-    grid-template-columns: 360px 1fr;
+    grid-template-columns: 420px 1fr; /* aangepast */
     min-height: 100vh;
     background: #fff;
 }
@@ -815,7 +814,18 @@ button:disabled {
 .sidebar-actions {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0; /* geen algemene gap — we regelen spacing per element zodat beschrijving direct bij knop hoort */
+}
+
+/* Zorg dat elke knop direct gevolgd wordt door zijn beschrijving dicht daarbij */
+.sidebar-actions .sidebar-btn {
+    margin-bottom: 6px; /* iets ruimte onder de knop */
+}
+.sidebar-actions .sidebar-btn + .sidebar-btn-desc {
+    margin-top: 1px;    /* zeer dicht bij de knop */
+    margin-bottom: 16px;/* ruimte vóór de volgende knop */
+    text-align: center;
+    line-height: 1.3;
 }
 
 .sidebar-btn {
@@ -841,8 +851,9 @@ button:disabled {
 }
 
 .sidebar-btn-desc {
-    text-align: center;
-    margin: 0 0 16px;
+    /* links uitlijnen onder de CTA-knoppen */
+    text-align: left; /* gewijzigd: was center */
+    margin: 8px 0 16px;
     font-size: 15px;
     color: #636161;
     line-height: 1.4;
@@ -901,161 +912,205 @@ button:disabled {
 .page-heading {
     font-size: 42px;
     font-weight: 700;
-    margin: 0 0 32px;
+    margin: 0 0 1px; /* verkleind zodat empty-state direct onder de titel komt */
     color: #000;
-    text-align: center;
+    text-align: left;
 }
 
 .companies-list {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    margin-top: 28px; /* extra ruimte wanneer er wél company cards zijn */
 }
 
 .company-item {
     background: #fff;
-    border: 1px solid rgba(142, 142, 142, 0.3);
-    border-radius: 10px;
-    padding: 24px 28px;
+    border-radius: 16px;
+    border: 1.5px solid rgba(26, 115, 232, 0.10);
+    box-shadow: 0 4px 24px 0 rgba(26, 115, 232, 0.07), 0 1.5px 6px 0 rgba(0,0,0,0.03);
+    padding: 32px 36px 28px 36px;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    flex-direction: column;
+    gap: 0;
+    transition: box-shadow 0.18s, border-color 0.18s;
+    position: relative;
 }
 
-.company-item--admin {
-    border: 2px solid #1A73E8;
+.company-item:hover {
+    box-shadow: 0 8px 32px 0 rgba(26, 115, 232, 0.13), 0 2px 8px 0 rgba(0,0,0,0.06);
+    border-color: #1A73E8;
 }
 
 .company-info {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
 }
 
-.company-title {
+.company-name {
     font-size: 26px;
     font-weight: 700;
-    margin: 0 0 8px;
-    color: #000;
+    color: #1A73E8;
+    margin-bottom: 2px;
+    letter-spacing: -0.5px;
 }
 
 .company-desc {
-    font-size: 16px;
+    font-size: 17px;
     color: #636161;
-    margin: 0 0 12px;
-    line-height: 1.4;
+    margin-bottom: 0;
+    line-height: 1.5;
+    max-width: 100%; /* veranderd van 90% naar 100% */
+}
+
+.company-bottom-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    margin-top: 18px;
 }
 
 .company-meta {
-    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1; /* toegevoegd: vult ruimte aan linkerkant */
 }
 
 .company-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 12px;
-    border-radius: 5px;
-    background: rgba(217, 217, 217, 0.3);
-    color: #636161;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.company-badge--admin {
-    background: rgba(26, 115, 232, 0.15);
+    padding: 5px 16px;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #e3f0fd 0%, #f7fbff 100%);
     color: #1A73E8;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(26,115,232,0.07);
+    border: 1px solid #dbeafe;
+    margin-right: 6px;
 }
 
 .company-stats {
-    font-size: 16px;
+    font-size: 15px;
     color: #636161;
     margin: 0;
+    font-weight: 500;
+}
+
+.company-actions {
+    display: flex;
+    flex-direction: row; /* veranderd van column naar row */
+    gap: 10px;
+    align-items: center; /* veranderd van flex-end naar center */
+    margin: 0;
+    flex-shrink: 0; /* toegevoegd: voorkom krimpen */
 }
 
 .company-open-btn {
-    min-width: 180px;
+    min-width: 160px;
     height: 44px;
-    background: #1A73E8;
+    background: linear-gradient(90deg, #1A73E8 60%, #4285F4 100%);
     color: #fff;
     border: none;
     border-radius: 10px;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    transition: background 0.2s;
-    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.10);
+    transition: background 0.18s, box-shadow 0.18s;
+    flex-shrink: 0; /* toegevoegd */
 }
 
 .company-open-btn:hover {
-    background: #1A73E8;
-}
-
-.company-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-end;
-    margin-top: 6px;
+    background: linear-gradient(90deg, #2563eb 60%, #1A73E8 100%);
+    box-shadow: 0 4px 16px rgba(26, 115, 232, 0.18);
 }
 
 .company-open-btn--secondary {
-    background: #1A73E8;
-    color: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    background: #fff;
+    color: #1A73E8;
+    border: 1.5px solid #1A73E8;
+    font-weight: 500;
+    box-shadow: none;
 }
 
 .company-open-btn--secondary:hover {
-    background: #1A73E8;
+    background: #f0f7ff;
+    color: #174ea6;
+    border-color: #174ea6;
 }
 
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
+/* Responsive: stack bottom row op mobiel */
+@media (max-width: 600px) {
+    .company-item {
+        padding: 18px 10px 18px 10px;
+    }
+    .company-bottom-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        margin-top: 10px;
+    }
+    .company-meta {
+        gap: 10px;
+    }
+    .company-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+    .company-name {
+        font-size: 20px;
+    }
+    .company-desc {
+        font-size: 15px;
+    }
 }
 
-.empty-state__text {
-    font-size: 18px;
-    color: #636161;
-}
-
-/* Keep old classes for backwards compatibility */
-.my-companies-page {
-    min-height: 100vh;
-    background: rgba(31, 115, 226, 0.06);
-}
-
-.site-header {
-    background: #fff;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    padding: 16px 0;
-}
-
-.site-header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.site-logo {
-    font-size: 25px;
-    font-weight: 700;
-    color: #1A73E8;
-    text-decoration: none;
-}
-
-.company-card-large {
-    background: #fff;
-    border-radius: 10px;
-    border: 1px solid rgba(142, 142, 142, 0.3);
-    padding: 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+/* ====== NAVIGATION PAGES */
+.nav-page {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 24px;
+    padding: 32px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.nav-page h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1A73E8;
+    margin: 0;
+}
+
+.nav-page p {
+    font-size: 18px;
+    color: #333;
+    line-height: 1.6;
+}
+
+.nav-page a {
+    color: #1A73E8;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.nav-page a:hover {
+    text-decoration: underline;
+}
+
+.nav-page .btn {
+    max-width: 200px;
+    margin-top: 16px;
 }
 
 /* ====== ONBOARDING PAGE ====== */
@@ -1297,13 +1352,38 @@ button:disabled {
     min-height: 120px;
 }
 
-.form-select {
-    cursor: pointer;
+/* Toegevoegd: zorg dat de category dropdown dezelfde grijstint en tekstkleur heeft,
+   en toon een pijltje rechts (SVG) – styling centraal in styles.css, niet inline. */
+.form-field select.form-select {
+    background: #F5F5F5; /*zelfde lichte grijs als andere velden*/
+    color: #636161;      /*zelfde kleur als placeholders / hinttekst*/
+    padding-right: 40px; /*ruimte voor het pijltje*/
+    -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23636' stroke-width='1.5'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
-    padding-right: 36px;
+    box-sizing: border-box;
+}
+
+/* Opties in de geopende lijst tonen we zwart voor leesbaarheid */
+.form-field select.form-select option {
+    color: #000;
+}
+
+/* placeholder-optie (disabled) toont grijze hintkleur */
+.form-field select.form-select option[disabled] {
+    color: #636161;
+}
+
+/* focus: maak consistent met andere velden (wit achtergrond + accent-border) */
+.form-field select.form-select:focus {
+    outline: none;
+    background: #fff;
+    box-shadow: none;
+    border: 1px solid var(--blue);
+    border-radius: 10px;
 }
 
 .btn-full-width {
@@ -1548,10 +1628,9 @@ button:disabled {
     border: none;
     background: none;
     padding: 0;
-    font-size: 16px;
+    font-size: 20px;
     cursor: pointer;
     color: #000;
-    font-family: inherit;
 }
 
 .link-back:hover {
@@ -1996,15 +2075,15 @@ button:disabled {
 }
 
 .page-title {
-    font-size: 50px;
-    font-weight: 600;
+    font-size: 40px;
+    font-weight: 700;
     margin: 0;
     line-height: 1;
 }
 
 .page-subtitle {
     margin: 0;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 400;
     color: #636161;
     line-height: 1.4;
@@ -2118,7 +2197,7 @@ button:disabled {
 }
 
 .form-field label {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 500;
     color: #636161;
 }
@@ -2132,40 +2211,41 @@ button:disabled {
     border: none;
     background: #F5F5F5;
     outline: none;
-    font-size: 20px;
+    font-size: 18px;
 }
 
-.form-field input::placeholder,
-.form-field textarea::placeholder {
-    color: #636161;
-}
-
-.form-field textarea {
-    resize: vertical;
-    min-height: 105px;
-}
-
-.select-wrapper {
-    position: relative;
-    display: inline-flex;
-    width: 100%;
-}
-
-.select-wrapper select {
+/* Toegevoegd: zorg dat de category dropdown dezelfde grijstint en tekstkleur heeft,
+   en toon een pijltje rechts (SVG) – styling centraal in styles.css, niet inline. */
+.form-field select.form-select {
+    background: #F5F5F5; /*zelfde lichte grijs als andere velden*/
+    color: #636161;      /*zelfde kleur als placeholders / hinttekst*/
+    padding-right: 40px; /*ruimte voor het pijltje*/
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    width: 100%;
-    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23636' stroke-width='1.5'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    box-sizing: border-box;
 }
 
-.select-arrow {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    font-size: 16px;
+/* Opties in de geopende lijst tonen we zwart voor leesbaarheid */
+.form-field select.form-select option {
+    color: #000;
+}
+
+/* placeholder-optie (disabled) toont grijze hintkleur */
+.form-field select.form-select option[disabled] {
+    color: #636161;
+}
+
+/* focus: maak consistent met andere velden (wit achtergrond + accent-border) */
+.form-field select.form-select:focus {
+    outline: none;
+    background: #fff;
+    box-shadow: none;
+    border: 1px solid var(--blue);
+    border-radius: 10px;
 }
 
 .btn-create,
@@ -2308,5 +2388,27 @@ button:disabled {
     .category-tag {
         font-size: 12px;
         padding: 5px 11px;
+    }
+}
+
+/* Responsive: op kleinere schermen stapelen en tekst centreren terugzetten */
+@media (max-width: 968px) {
+    .my-companies-layout {
+        grid-template-columns: 1fr;
+    }
+    .sidebar-content {
+        padding: 32px 20px;
+    }
+    .my-companies-content {
+        padding: 24px 20px 40px;
+    }
+    .page-heading,
+    .empty-state,
+    .empty-state__text {
+        text-align: center;
+    }
+    /* sidebar beschrijvingen centreren op smalle schermen */
+    .sidebar-btn-desc {
+        text-align: center;
     }
 }

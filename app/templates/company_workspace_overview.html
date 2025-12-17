@@ -7,20 +7,23 @@
   <div class="app-layout">
     <aside class="app-sidebar">
       <div class="app-sidebar-inner">
-        <div class="sidebar-profile sidebar-profile--compact">
-          <div class="sidebar-avatar sidebar-avatar--small"></div>
-          <div>
-            <div class="sidebar-user-name sidebar-user-name--small">Hi, {{ username }}</div>
-            <div class="sidebar-user-sub">My companies</div>
+        <div class="sidebar-profile">
+          <div class="sidebar-avatar" style="display: flex; align-items: center; justify-content: center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"/>
+            </svg>
           </div>
+          <div class="sidebar-user-name">Hi, {{ username }}</div>
         </div>
+
+        <div class="sidebar-user-sub" style="margin-top: 24px; margin-bottom: 16px;">My companies</div>
 
         <div class="sidebar-companies">
           {% for comp in companies %}
-          <a href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}" class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}" style="text-decoration: none; display: block;">
+          <a href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}" class="sidebar-company-card {% if comp.is_selected %}sidebar-company-card--active{% endif %}" style="text-decoration: none; display: block; color: #0066cc;">
             <div class="sidebar-company-name">{{ comp.name }}</div>
+            <div class="sidebar-company-role tag">{{ comp.role }}</div>
             <div class="sidebar-company-meta">{{ comp.member_count }} members • {{ comp.service_count }} services</div>
-            <span class="sidebar-company-role tag">{{ comp.role }}</span>
           </a>
           {% endfor %}
         </div>
@@ -36,22 +39,28 @@
             </a>
           </div>
           
-          <section class="workspace-header">
-            <div class="workspace-header-left">
-              <div class="company-logo-placeholder"></div>
+          <section class="workspace-header" style="padding-left: 0;">
+            <div class="workspace-header-left" style="padding-left: 0;">
               <div>
-                <h1 class="workspace-company-name">{{ company.name }}</h1>
-                <p class="workspace-company-description">
+                <h1 class="workspace-company-name" style="margin-left: 0;">{{ company.name }}</h1>
+                <p class="workspace-company-description" style="margin-left: 0;">
                   {{ company.description if company.description else 'No description provided' }}
                 </p>
-                <div class="workspace-company-stats">
+                {% if company.website %}
+                <p class="workspace-company-website" style="margin-left: 0; margin-top: 8px;">
+                  <a href="{{ company.website }}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: none;">
+                    {{ company.website }}
+                  </a>
+                </p>
+                {% endif %}
+                <div class="workspace-company-stats" style="margin-left: 0;">
                   <span>{{ member_count }} members • {{ service_count }} services</span>
                 </div>
               </div>
             </div>
           </section>
 
-          <nav class="workspace-tabs">
+          <nav class="workspace-tabs" style="padding-left: 0; margin-left: 0;">
             <div class="tabs-left">
               <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
                  class="tab-link tab-link--active">Overview</a>

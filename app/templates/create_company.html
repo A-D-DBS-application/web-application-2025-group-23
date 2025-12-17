@@ -8,21 +8,26 @@
             <!-- SIDEBAR -->
             <aside class="workspace-sidebar">
                 <div class="sidebar-content">
-                    <div class="sidebar-profile sidebar-profile--compact">
-                        <div class="sidebar-avatar sidebar-avatar--small"></div>
-                        <div>
-                            <div class="sidebar-user-name sidebar-user-name--small">Hi, {{ username }}</div>
-                            <div class="sidebar-user-sub">My companies</div>
+                    <div class="sidebar-profile">
+                        <div class="sidebar-avatar" style="display: flex; align-items: center; justify-content: center;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"/>
+                            </svg>
                         </div>
+                        <div class="sidebar-user-name">Hi, {{ username }}</div>
                     </div>
+
+                    <div class="sidebar-user-sub" style="margin-top: 24px; margin-bottom: 16px;">My companies</div>
                     
                     <div class="sidebar-companies">
                         {% if companies %}
                             {% for comp in companies %}
-                            <a href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}" class="sidebar-company-card" style="text-decoration: none; display: block;">
-                                <div class="sidebar-company-name">{{ comp.name }}</div>
-                                <div class="sidebar-company-meta">{{ comp.member_count }} members</div>
-                                <div class="sidebar-company-role">{{ comp.role }}</div>
+                            <a href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}" 
+                               class="sidebar-company-card"
+                               style="text-decoration: none;">
+                                <div class="sidebar-company-name" style="color: #0066cc;">{{ comp.name }}</div>
+                                <div class="sidebar-company-role tag">{{ comp.role }}</div>
+                                <div class="sidebar-company-meta" style="color: #666;">{{ comp.member_count }} members • {{ comp.service_count }} services</div>
                             </a>
                             {% endfor %}
                         {% endif %}
@@ -48,13 +53,35 @@
                         <form method="post" class="company-form">
                             <div class="form-fields">
                                 <div class="form-field form-field--full">
-                                    <label for="name">Company Name *</label>
+                                    <label for="name">Company Name </label>
                                     <input type="text" id="name" name="name" required placeholder="Enter company name">
                                 </div>
-                                
                                 <div class="form-field form-field--full">
                                     <label for="description">Description</label>
-                                    <textarea id="description" name="description" placeholder="Describe your company..."></textarea>
+                                    <textarea id="description" name="description" placeholder="Provide a brief desciription of your company "></textarea>
+                                </div>
+                                <!-- Added Category dropdown and Website URL input -->
+                                <div class="form-field form-field--full">
+                                    <label for="category">Category</label>
+                                    <select id="category" name="category" class="form-select">
+                                        <option value="" disabled {% if not category_filter %}selected{% endif %}>Choose an industry</option>
+                                        <option value="Finance" {% if category_filter == 'Finance' %}selected{% endif %}>Finance</option>
+                                        <option value="Accounting" {% if category_filter == 'Accounting' %}selected{% endif %}>Accounting</option>
+                                        <option value="IT" {% if category_filter == 'IT' %}selected{% endif %}>IT</option>
+                                        <option value="Marketing" {% if category_filter == 'Marketing' %}selected{% endif %}>Marketing</option>
+                                        <option value="Legal" {% if category_filter == 'Legal' %}selected{% endif %}>Legal</option>
+                                        <option value="Design" {% if category_filter == 'Design' %}selected{% endif %}>Design</option>
+                                        <option value="Development" {% if category_filter == 'Development' %}selected{% endif %}>Development</option>
+                                        <option value="Consulting" {% if category_filter == 'Consulting' %}selected{% endif %}>Consulting</option>
+                                        <option value="Sales" {% if category_filter == 'Sales' %}selected{% endif %}>Sales</option>
+                                        <option value="HR" {% if category_filter == 'HR' %}selected{% endif %}>HR</option>
+                                        <option value="Operations" {% if category_filter == 'Operations' %}selected{% endif %}>Operations</option>
+                                        <option value="Customer Support" {% if category_filter == 'Customer Support' %}selected{% endif %}>Customer Support</option>
+                                    </select>
+                                </div>
+                                <div class="form-field form-field--full">
+                                    <label for="website">Website</label>
+                                    <input type="url" id="website" name="website" placeholder="Enter your website URL link">
                                 </div>
                             </div>
                             

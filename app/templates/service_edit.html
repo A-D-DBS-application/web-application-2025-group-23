@@ -66,22 +66,16 @@
 
                             <div class="form-field form-field--full">
                                 <label>Categories (select all that apply)</label>
-                                <div class="category-grid">
+                                <div class="category-grid" style="display: flex; flex-wrap: wrap; gap: 12px;">
                                     {% for cat in categories %}
                                         <div class="category-item">
                                             <input type="checkbox" id="cat_{{ loop.index }}" name="categories" value="{{ cat }}" {% if cat in (form_categories or []) %}checked{% endif %}>
                                             <label for="cat_{{ loop.index }}">{{ cat }}</label>
                                         </div>
                                     {% endfor %}
-                                    <div class="category-item other-item">
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <input type="checkbox" id="cat_other" name="categories" value="Other" onchange="toggleCustomCategoryInput()" {% if 'Other' in (form_categories or []) %}checked{% endif %}>
-                                            <label for="cat_other">Other</label>
-                                        </div>
-                                        <div class="custom-category-wrapper">
-                                            <div class="error-message" id="custom_category_error">Vul dit veld in.</div>
-                                            <input type="text" id="custom_category_input" name="custom_category" placeholder="Specify your custom category here...">
-                                        </div>
+                                    <div class="category-item">
+                                        <input type="checkbox" id="cat_other" name="categories" value="Other" {% if 'Other' in (form_categories or []) %}checked{% endif %}>
+                                        <label for="cat_other">Other</label>
                                     </div>
                                 </div>
                             </div>
@@ -93,44 +87,4 @@
             </main>
         </div>
     </div>
-
-    <script>
-        function toggleCustomCategoryInput() {
-            const checkbox = document.getElementById('cat_other');
-            const customInput = document.getElementById('custom_category_input');
-            const errorMsg = document.getElementById('custom_category_error');
-            
-            if (checkbox.checked) {
-                customInput.classList.add('show');
-                customInput.focus();
-            } else {
-                customInput.classList.remove('show');
-                customInput.value = '';
-                customInput.classList.remove('error');
-                errorMsg.classList.remove('show');
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkbox = document.getElementById('cat_other');
-            if (checkbox.checked) {
-                toggleCustomCategoryInput();
-            }
-            
-            const form = document.querySelector('form');
-            form.addEventListener('submit', function(e) {
-                const catOther = document.getElementById('cat_other');
-                const customInput = document.getElementById('custom_category_input');
-                const errorMsg = document.getElementById('custom_category_error');
-                
-                if (catOther.checked && !customInput.value.trim()) {
-                    e.preventDefault();
-                    customInput.classList.add('error');
-                    errorMsg.classList.add('show');
-                    customInput.focus();
-                    return false;
-                }
-            });
-        });
-    </script>
 {% endblock %}
