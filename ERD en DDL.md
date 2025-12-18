@@ -1,7 +1,8 @@
 Ons ERD model:
 <img width="15074" height="8190" alt="Untitled diagram-2025-12-15-221146" src="https://github.com/user-attachments/assets/2f0dc943-2925-488e-a41a-d64546df3853" />
+bijhorende link voor Mermaid: https://www.mermaidchart.com/d/198462c0-295a-4b72-a721-0052daf83947
+DDL model:
 
-DDL:
 -- Enable UUID generator (usually on in Supabase)
 create extension if not exists "pgcrypto";
 
