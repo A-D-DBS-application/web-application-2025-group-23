@@ -901,11 +901,13 @@ def tradeflow_write_review(company_id, deal_id):
 
     # Review should target the service received from the counterparty
     if proposal.from_company_id == company_id:
+        # Your company is the "from" company, so you received the "to_service" from "to_company"
         reviewed_company_id = proposal.to_company_id
-        reviewed_service_id = proposal.from_service_id
-    else:
-        reviewed_company_id = proposal.from_company_id
         reviewed_service_id = proposal.to_service_id
+    else:
+        # Your company is the "to" company, so you received the "from_service" from "from_company"
+        reviewed_company_id = proposal.from_company_id
+        reviewed_service_id = proposal.from_service_id
 
     existing_review = Review.query.filter_by(
         deal_id=deal_id,
