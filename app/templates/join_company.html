@@ -9,7 +9,7 @@
         <aside class="workspace-sidebar">
             <div class="sidebar-content">
                 <div class="sidebar-profile">
-                    <div class="sidebar-avatar" style="display: flex; align-items: center; justify-content: center;">
+                    <div class="sidebar-avatar sidebar-avatar-centered">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"/>
                         </svg>
@@ -17,21 +17,20 @@
                     <div class="sidebar-user-name">Hi, {{ username if username else 'User' }}</div>
                 </div>
 
-                <div class="sidebar-user-sub" style="margin-top: 24px; margin-bottom: 16px;">My companies</div>
+                <div class="sidebar-user-sub sidebar-section-header">My companies</div>
                 
                 <div class="sidebar-companies">
                     {% if companies %}
                         {% for comp in companies %}
                         <a href="{{ url_for('main.workspace_overview', company_id=comp.company_id) }}" 
-                           class="sidebar-company-card"
-                           style="text-decoration: none;">
-                            <div class="sidebar-company-name" style="color: #0066cc;">{{ comp.name }}</div>
+                           class="sidebar-company-card sidebar-company-link">
+                            <div class="sidebar-company-name">{{ comp.name }}</div>
                             <div class="sidebar-company-role tag">{{ comp.role }}</div>
-                            <div class="sidebar-company-meta" style="color: #666;">{{ comp.member_count }} members • {{ comp.service_count }} services</div>
+                            <div class="sidebar-company-meta text-gray">{{ comp.member_count }} members • {{ comp.service_count }} services</div>
                         </a>
                         {% endfor %}
                     {% else %}
-                        <p style="color: #999; font-size: 14px; padding: 0 16px;">No companies yet</p>
+                        <p class="sidebar-empty">No companies yet</p>
                     {% endif %}
                 </div>
             </div>
@@ -46,19 +45,19 @@
                         <p class="page-subtitle page-subtitle--bold">
                             Join a company using an invite code provided by an existing admin.
                         </p>
-                        <p class="page-subtitle" style="color: #666; font-weight: normal;">
+                        <p class="page-subtitle text-gray font-normal">
                             You will join this company as a Member. Members can manage services and trade, but cannot edit company details or manage other members.
                         </p>
                     </div>
                     
-                    <form method="post" class="form form--centered join-form" style="margin-top: 2rem;">
+                    <form method="post" class="form form--centered join-form form--mt-2rem">
                         <div class="form-field form-field--full">
                             <input type="text" id="join_code" name="join_code" required placeholder="Enter invite code" maxlength="8" class="input input--large input--centered">
                         </div>
                         
                         <button type="submit" class="btn btn-primary btn-block btn-join">Join Company</button>
                         
-                        <p class="helper-text" style="margin-top: 0.5rem;">Don't have an invite code? Ask an admin of the company.</p>
+                        <p class="helper-text helper-text--mt-half">Don't have an invite code? Ask an admin of the company.</p>
                     </form>
                 </div>
             </div>

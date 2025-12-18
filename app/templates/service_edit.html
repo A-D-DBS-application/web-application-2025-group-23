@@ -36,8 +36,8 @@
             <main class="app-main">
                 <div class="app-content">
                     <div class="app-content-inner">
-                        <div class="workspace-header-left" style="margin-bottom: 24px;">
-                            <a href="{{ url_for('main.workspace_services', company_id=service.company_id) }}" class="link-back" style="text-decoration: none;">← Back to Services</a>
+                        <div class="workspace-header-left workspace-back-wrapper">
+                            <a href="{{ url_for('main.workspace_services', company_id=service.company_id) }}" class="link-back">← Back to Services</a>
                         </div>
                         
                         
@@ -59,14 +59,14 @@
 
                             <div class="form-field">
                                 <label for="duration_hours">Duration (hours) *</label>
-                                <input type="number" id="duration_hours" name="duration_hours" required step="0.5" min="0.5" placeholder="e.g., 2.5" value="{{ form_duration or '' }}" style="max-width: 300px;">
+                                <input type="number" id="duration_hours" name="duration_hours" required step="0.5" min="0.5" placeholder="e.g., 2.5" value="{{ form_duration or '' }}" class="input--narrow">
                             </div>
 
                             <input type="hidden" name="is_offered" value="true">
 
                             <div class="form-field form-field--full">
                                 <label>Categories (select all that apply)</label>
-                                <div class="category-grid" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                                <div class="category-grid">
                                     {% for cat in categories %}
                                         <div class="category-item">
                                             <input type="checkbox" id="cat_{{ loop.index }}" name="categories" value="{{ cat }}" {% if cat in (form_categories or []) %}checked{% endif %}>

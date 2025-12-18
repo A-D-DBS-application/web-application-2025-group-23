@@ -18,10 +18,10 @@
       <div class="form-card">
         <div class="deal-summary">
           <div class="summary-title">Service You're Reviewing</div>
-          <div style="padding: 16px 0;">
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">{{ reviewed_service.title }}</h3>
-            <p style="color: #5f6368; font-size: 14px; line-height: 1.6; margin-bottom: 12px;">{{ reviewed_service.description }}</p>
-            <div style="display: flex; gap: 20px; font-size: 13px; color: #5f6368;">
+          <div class="review-service-card">
+            <h3 class="review-service-title">{{ reviewed_service.title }}</h3>
+            <p class="review-service-desc">{{ reviewed_service.description }}</p>
+            <div class="review-service-meta">
               <div><strong>Provider:</strong> {{ reviewed_service.company.name }}</div>
               <div><strong>Category:</strong> {{ reviewed_service.category }}</div>
             </div>
@@ -29,10 +29,10 @@
         </div>
 
         {% if existing_review %}
-        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
+        <div class="warning-box--yellow">
           <strong>You've already reviewed this service</strong>
-          <p style="margin-top: 8px; font-size: 14px;">Rating: {{ existing_review.rating }} stars</p>
-          <p style="margin-top: 4px; font-size: 14px;">{{ existing_review.comment }}</p>
+          <p class="mt-8">Rating: {{ existing_review.rating }} stars</p>
+          <p class="mt-4">{{ existing_review.comment }}</p>
         </div>
         {% endif %}
 

@@ -80,36 +80,36 @@
         <div class="content-card">
             <!-- BACK LINK -->
             {% if back_link %}
-            <a href="{{ back_link }}" style="display: inline-flex; align-items: center; color: #1a73e8; text-decoration: none; margin-bottom: 20px; font-size: 14px; gap: 6px;">
-                <span style="font-size: 18px;">←</span> Back to Trade Requests
+            <a href="{{ back_link }}" class="back-link--inline">
+                <span class="font-size-18">←</span> Back to Trade Requests
             </a>
             {% endif %}
 
             <!-- SERVICE HEADER -->
             <div class="service-header">
-                <h1 style="margin: 0 0 8px 0; color: white; font-size: 32px; font-weight: 600;">{{ service.title }}</h1>
-                <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 16px; font-weight: 500;">Service Offering</p>
+                <h1 class="service-header__title">{{ service.title }}</h1>
+                <p class="service-header__subtitle">Service Offering</p>
             </div>
 
             <!-- COMPANY INFO -->
             <div class="company-info">
-                <h3 style="margin-top: 0; color: var(--blue);">{{ company.name }}</h3>
+                <h3 class="company-name--blue">{{ company.name }}</h3>
                 {% if avg_rating %}
                     <div class="rating">★ {{ avg_rating }} / 5 ({{ total_reviews }} reviews)</div>
                 {% else %}
-                    <p style="color: var(--gray);">No reviews yet</p>
+                    <p class="text-muted">No reviews yet</p>
                 {% endif %}
             </div>
 
             <!-- SERVICE DETAILS -->
             <div class="detail-section">
-                <h3 style="margin-top: 0;">Service Description</h3>
-                <p style="line-height: 1.6; color: var(--gray);">{{ service.description }}</p>
+                <h3 class="section-title--top">Service Description</h3>
+                <p class="text-line-height text-muted">{{ service.description }}</p>
             </div>
 
             <div class="detail-section">
-                <h3 style="margin-top: 0;">Details</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <h3 class="section-title--top">Details</h3>
+                <div class="detail-grid">
                     <div>
                         <strong>Duration:</strong> {{ service.duration_hours }} hours
                     </div>
@@ -119,7 +119,7 @@
                 </div>
                 
                 {% if service.categories %}
-                    <div style="margin-top: 16px;">
+                    <div class="categories-block">
                         <strong>Categories:</strong><br>
                         {% for cat in service.categories.split(',') %}
                             <span class="category-tag">{{ cat.strip() }}</span>
@@ -134,15 +134,15 @@
                 
                 {% if already_interested %}
                 <div class="interest-form">
-                    <h3 style="margin-top: 0;">Already Interested</h3>
-                    <p style="color: #28a745; font-weight: 500;">
+                    <h3 class="section-title--top">Already Interested</h3>
+                    <p class="text-success">
                         ✓ Your company has already expressed interest in this service!
                     </p>
                 </div>
                 {% else %}
                 <div class="interest-form">
-                    <h3 style="margin-top: 0;">Express Interest</h3>
-                    <p style="color: var(--gray); margin-bottom: 12px;">
+                    <h3 class="section-title--top">Express Interest</h3>
+                    <p class="text-muted mb-12">
                         Interested in this service? Let {{ company.name }} know!
                     </p>
                     
@@ -150,8 +150,8 @@
                         {% if selected_company_id %}
                         <input type="hidden" name="company_id" value="{{ selected_company_id }}">
                         {% else %}
-                        <p style="color: #dc3545; margin-bottom: 12px;">Please select a company from the marketplace first.</p>
-                        <a href="{{ url_for('main.marketplace') }}" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                        <p class="error-text">Please select a company from the marketplace first.</p>
+                        <a href="{{ url_for('main.marketplace') }}" class="btn-primary btn-inline">
                             Select Company
                         </a>
                         {% endif %}
@@ -164,154 +164,43 @@
                 {% endif %}
             {% elif is_own_company %}
                 <div class="interested-companies">
-                    <h3 style="margin-top: 0;">Companies Interested in This Service</h3>
+                    <h3 class="section-title--top">Companies Interested in This Service</h3>
                     {% if interests %}
-                        <ul style="margin: 0; padding-left: 20px;">
+                        <ul class="interest-list">
                             {% for interest in interests %}
-                                <li style="margin-bottom: 8px;">
+                                <li>
                                     <strong>{{ interest.company.name }}</strong> 
-                                    <span style="color: var(--gray);">
+                                    <span class="text-muted">
                                         (interested since {{ interest.created_at.strftime('%Y-%m-%d') }})
                                     </span>
                                 </li>
                             {% endfor %}
                         </ul>
                     {% else %}
-                        <p style="color: var(--gray); margin: 0;">No companies have expressed interest yet.</p>
+                        <p class="text-muted no-margin">No companies have expressed interest yet.</p>
                     {% endif %}
                 </div>
             {% endif %}
 
             <!-- REVIEWS -->
             {% if reviews %}
-                <div class="detail-section" style="margin-top: 24px;">
-                    <h3 style="margin-top: 0;">Company Reviews</h3>
+                <div class="detail-section mt-24">
+                    <h3 class="section-title--top">Company Reviews</h3>
                     {% for review in reviews[:5] %}
                         <div class="review-card">
                             <div class="rating">★ {{ review.rating }} / 5</div>
-                            <p style="margin: 8px 0 0 0; color: var(--gray);">{{ review.comment }}</p>
+                            <p class="review-card__text--padded text-muted">{{ review.comment }}</p>
                         </div>
                     {% endfor %}
                     {% if reviews|length > 5 %}
-                        <p style="color: var(--gray); margin-top: 12px;">Showing 5 of {{ reviews|length }} reviews</p>
+                        <p class="text-muted mt-12">Showing 5 of {{ reviews|length }} reviews</p>
                     {% endif %}
                 </div>
             {% endif %}
 
-            <div class="form-links" style="margin-top: 24px;">
+            <div class="form-links form-links--mt">
                 <a href="{{ url_for('main.browse_deals') }}">Back to Browse</a>
             </div>
-        </div>
-    </section>
-{% endblock %}
-
-            <!-- COMPANY INFO -->
-            <div class="company-info">
-                <h3 style="margin-top: 0; color: var(--blue);">{{ company.name }}</h3>
-                {% if avg_rating %}
-                    <div class="rating">★ {{ avg_rating }} / 5 ({{ total_reviews }} reviews)</div>
-                {% else %}
-                    <p style="color: var(--gray);">No reviews yet</p>
-                {% endif %}
-            </div>
-
-            <!-- SERVICE DETAILS -->
-            <div class="detail-section">
-                <h3 style="margin-top: 0;">Service Description</h3>
-                <p style="line-height: 1.6; color: var(--gray);">{{ service.description }}</p>
-            </div>
-
-            <div class="detail-section">
-                <h3 style="margin-top: 0;">Details</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                    <div>
-                        <strong>Duration:</strong> {{ service.duration_hours }} hours
-                    </div>
-                    <div>
-                        <strong>Status:</strong> {% if service.is_active %}Active{% else %}Inactive{% endif %}
-                    </div>
-                </div>
-                
-                {% if service.categories %}
-                    <div style="margin-top: 16px;">
-                        <strong>Categories:</strong><br>
-                        {% for cat in service.categories.split(',') %}
-                            <span class="category-tag">{{ cat.strip() }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- EXPRESS INTEREST (for non-members of this company) -->
-            {% if not is_own_company and user_companies %}
-                {% set already_interested = selected_company_id and selected_company_id in existing_interests %}
-                
-                {% if already_interested %}
-                <div class="interest-form">
-                    <h3 style="margin-top: 0;">Already Interested</h3>
-                    <p style="color: #28a745; font-weight: 500;">
-                        ✓ Your company has already expressed interest in this service!
-                    </p>
-                </div>
-                {% else %}
-                <div class="interest-form">
-                    <h3 style="margin-top: 0;">Express Interest</h3>
-                    <p style="color: var(--gray); margin-bottom: 12px;">
-                        Interested in this service? Let {{ company.name }} know!
-                    </p>
-                    
-                    <form method="post" action="{{ url_for('main.express_interest', service_id=service.service_id) }}">
-                        {% if selected_company_id %}
-                        <input type="hidden" name="company_id" value="{{ selected_company_id }}">
-                        {% else %}
-                        <p style="color: #dc3545; margin-bottom: 12px;">Please select a company from the marketplace first.</p>
-                        <a href="{{ url_for('main.marketplace') }}" class="btn-primary" style="display: inline-block; text-decoration: none;">
-                            Select Company
-                        </a>
-                        {% endif %}
-                        
-                        {% if selected_company_id %}
-                        <button type="submit" class="btn-primary">Express Interest</button>
-                        {% endif %}
-                    </form>
-                </div>
-                {% endif %}
-            {% elif is_own_company %}
-                <div class="interested-companies">
-                    <h3 style="margin-top: 0;">Companies Interested in This Service</h3>
-                    {% if interests %}
-                        <ul style="margin: 0; padding-left: 20px;">
-                            {% for interest in interests %}
-                                <li style="margin-bottom: 8px;">
-                                    <strong>{{ interest.company.name }}</strong> 
-                                    <span style="color: var(--gray);">
-                                        (interested since {{ interest.created_at.strftime('%Y-%m-%d') }})
-                                    </span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p style="color: var(--gray); margin: 0;">No companies have expressed interest yet.</p>
-                    {% endif %}
-                </div>
-            {% endif %}
-
-            <!-- REVIEWS -->
-            {% if reviews %}
-                <div class="detail-section" style="margin-top: 24px;">
-                    <h3 style="margin-top: 0;">Company Reviews</h3>
-                    {% for review in reviews[:5] %}
-                        <div class="review-card">
-                            <div class="rating">★ {{ review.rating }} / 5</div>
-                            <p style="margin: 8px 0 0 0; color: var(--gray);">{{ review.comment }}</p>
-                        </div>
-                    {% endfor %}
-                    {% if reviews|length > 5 %}
-                        <p style="color: var(--gray); margin-top: 12px;">Showing 5 of {{ reviews|length }} reviews</p>
-                    {% endif %}
-                </div>
-            {% endif %}
-
         </div>
     </section>
 {% endblock %}

@@ -11,7 +11,7 @@
         <div class="tradeflow-sidebar-header">
             <div class="tradeflow-sidebar-company">
                 <div class="tradeflow-sidebar-company-label">Company</div>
-                <p style="font-size: 13px; color: #5f6368; margin: 0 0 12px 0; line-height: 1.4;">Select the company you want to browse as.</p>
+                <p class="sidebar-helper">Select the company you want to browse as.</p>
                 <div class="tradeflow-sidebar-company-dropdown">
                     {% if user_companies %}
                     <button type="button" class="tradeflow-sidebar-company-select" id="marketplace-company-select-btn" aria-expanded="false" aria-haspopup="true">
@@ -38,10 +38,10 @@
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="tradeflow-sidebar-company-select" style="cursor: default;">
+                    <div class="tradeflow-sidebar-company-select tradeflow-sidebar-company-select--disabled">
                         <div class="tradeflow-sidebar-company-select-text">
                             <span class="tradeflow-sidebar-company-select-prefix">Browsing as:</span>
-                            <span class="tradeflow-sidebar-company-select-name" style="color: #9aa0a6; font-size: 13px;">Not a member yet</span>
+                            <span class="tradeflow-sidebar-company-select-name tradeflow-sidebar-company-select-name--muted">Not a member yet</span>
                         </div>
                     </div>
                     {% endif %}
@@ -98,49 +98,49 @@
     
     <!-- Main Content -->
     <main class="main">
-        <div style="margin-bottom: 24px;">
-            <a href="{{ url_for('main.marketplace') }}" class="link-back" style="text-decoration: none;">← Back to marketplace</a>
+        <div class="mb-24">
+            <a href="{{ url_for('main.marketplace') }}" class="link-back link-back--plain">← Back to marketplace</a>
         </div>
         
         <div class="page-header">
             <h1 class="page-title">{{ service.title }}</h1>
-            <p class="page-subtitle" style="margin-top: 8px;">offered by {{ service.company.name if service.company else 'Unknown Company' }}</p>
+            <p class="page-subtitle mt-8">offered by {{ service.company.name if service.company else 'Unknown Company' }}</p>
         </div>
         
         <form method="post" action="{{ url_for('main.marketplace_request_service', service_id=service.service_id) }}" class="service-form">
             <div class="form-field form-field--full">
                 <label>Service Title</label>
-                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333;">
+                <div class="service-info-display">
                     {{ service.title }}
                 </div>
             </div>
 
             <div class="form-field form-field--full">
                 <label>Description</label>
-                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333; min-height: 80px;">
+                <div class="service-info-display service-info-display--tall">
                     {{ service.description or 'No description' }}
                 </div>
             </div>
 
             <div class="form-field">
                 <label>Duration (hours)</label>
-                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333; max-width: 300px;">
+                <div class="service-info-display service-info-display--narrow">
                     {{ service.duration_hours }}
                 </div>
             </div>
 
             <div class="form-field form-field--full">
                 <label>Categories</label>
-                <div class="category-grid" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                <div class="category-grid category-grid--inline">
                     {% if service.categories %}
                         {% for cat in service.categories.split(',') %}
-                            <div class="category-item" style="pointer-events: none;">
+                            <div class="category-item category-item--readonly">
                                 <input type="checkbox" id="cat_{{ loop.index }}" checked disabled>
                                 <label for="cat_{{ loop.index }}">{{ cat.strip() }}</label>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #666;">
+                        <div class="no-categories-box">
                             No categories selected
                         </div>
                     {% endif %}
@@ -150,25 +150,25 @@
             <div class="form-field form-field--full">
                 <label>Reviews</label>
                 {% if reviews and reviews|length > 0 %}
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="reviews-stack">
                         {% for review in reviews %}
-                        <div style="background: #f8f9fa; padding: 16px; border-radius: 6px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="font-weight: 500; color: #333;">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="color: #ffa500; font-size: 16px;">
+                        <div class="review-card--inline">
+                            <div class="review-card__header--flex">
+                                <span class="reviewer-name--bold">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
+                                <div class="review-meta-flex">
+                                    <div class="review-stars--orange">
                                         {% for i in range(review.rating) %}★{% endfor %}
                                         {% for i in range(5 - review.rating) %}☆{% endfor %}
                                     </div>
-                                    <span style="color: #999; font-size: 13px;">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+                                    <span class="review-date--muted">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
                                 </div>
                             </div>
-                            <p style="margin: 0; color: #666; line-height: 1.5;">{{ review.comment }}</p>
+                            <p class="review-comment">{{ review.comment }}</p>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div style="padding: 16px; background: #f5f5f5; border-radius: 4px; color: #666; text-align: center;">
+                    <div class="empty-state-box">
                         No reviews yet for this service
                     </div>
                 {% endif %}
@@ -179,13 +179,13 @@
                 <input type="hidden" name="to_company_id" value="{{ service.company.company_id if service.company else '' }}">
                 <input type="hidden" name="to_service_id" value="{{ service.service_id }}">
 
-                <button type="submit" class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px; font-weight: 600; margin-top: 24px; background: #1A73E8;">Send Trade Request</button>
+<button type="submit" class="btn-primary btn-send-trade">Send Trade Request</button>
                 
-                <p style="margin-top: 16px; font-size: 13px; color: #5f6368; line-height: 1.5; text-align: center;">
+                <p class="trade-request-helper">
                     Sending a trade request shows your interest in this service. The other company will review your request and can respond with a proposal. You can track this in your Incoming Requests.
                 </p>
             {% else %}
-                <div style="padding: 20px; background: #fff3cd; border-radius: 8px; color: #856404; margin-top: 24px; text-align: center; border: 1px solid #ffeaa7;">
+                <div class="warning-box">
                     You must select a company before sending a trade request. Choose a company from the “Browse as” dropdown in the sidebar.
                 </div>
             {% endif %}

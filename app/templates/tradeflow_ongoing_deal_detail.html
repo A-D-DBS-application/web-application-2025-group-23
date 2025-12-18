@@ -10,8 +10,8 @@
     <main class="main">
       <a href="{{ url_for('main.tradeflow_ongoing_deals', company_id=company.company_id) }}" class="back-link">← Back to Deals</a>
       <div class="detail-card">
-        <h1 style="font-size: 28px; margin-bottom: 8px;">Ongoing Deal</h1>
-        <p style="color: #5f6368; margin-bottom: 28px;">Track service delivery and confirm when received</p>
+        <h1 class="tradeflow-header-title">Ongoing Deal</h1>
+        <p class="tradeflow-header-subtitle">Track service delivery and confirm when received</p>
         
         <div class="pair-grid">
           <div class="pair-side">
@@ -26,8 +26,8 @@
           </div>
         </div>
 
-        <div style="border-top: 1px solid #e8eaed; padding-top: 24px; margin-top: 24px;">
-          <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">Delivery Status</h2>
+        <div class="section-divider--top-mt24">
+          <h2 class="delivery-section-title">Delivery Status</h2>
           <div class="status-grid">
             <div class="status-item">
               <div class="status-label">{{ proposal.from_company.name }} delivered?</div>
@@ -53,8 +53,8 @@
             </form>
           </div>
           {% else %}
-          <div style="background: #e8f5e9; border-left: 4px solid #34a853; padding: 16px; border-radius: 6px; margin-top: 20px;">
-            <p style="color: #1b5e20; font-weight: 600;">✓ You've confirmed {{ other_company_name }} delivered their service</p>
+          <div class="delivery-success-box">
+            <p class="delivery-success-text">✓ You've confirmed {{ other_company_name }} delivered their service</p>
           </div>
           {% endif %}
         </div>

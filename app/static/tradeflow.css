@@ -251,7 +251,7 @@
 .tradeflow-container .card-side { flex: 1; }
 .tradeflow-container .card-side-label { font-size: 12px; color: #9aa0a6; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
 .tradeflow-container .card-side-title { font-size: 18px; font-weight: 600; }
-.tradeflow-container .arrows { color: #1A73E8; font-size: 18px; font-weight: 700; }
+.tradeflow-container .arrows { color: #667eea; font-size: 32px; font-weight: 800; }
 
 /* Empty state */
 .tradeflow-container .empty { text-align: center; padding: 60px 20px; }
