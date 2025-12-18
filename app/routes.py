@@ -778,7 +778,6 @@ def add_service(company_id):
             categories=','.join(categories) if categories else None,
             is_offered=is_offered,
             is_active=True,
-            status='active',
             created_at=datetime.datetime.now(datetime.timezone.utc),
             updated_at=datetime.datetime.now(datetime.timezone.utc)
         )
