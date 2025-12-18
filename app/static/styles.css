@@ -1,3 +1,23 @@
+/* ==========================================================================
+   BARTER.COM - Custom Styles
+   ==========================================================================
+   
+   Bootstrap 5 is loaded BEFORE this file in base.html.
+   This means:
+   - Bootstrap provides the base styles (grid, components, utilities)
+   - Our custom CSS overrides Bootstrap where needed
+   - Use Bootstrap classes in HTML when possible (e.g., btn, card, container)
+   - Only write custom CSS for unique Barter.com styling
+   
+   Bootstrap utilities you can use in templates:
+   - Spacing: mt-3, mb-4, p-2, mx-auto (margin/padding)
+   - Flexbox: d-flex, justify-content-between, align-items-center
+   - Grid: container, row, col-md-6, col-lg-4
+   - Text: text-center, text-muted, fw-bold
+   - Display: d-none, d-md-block (responsive hiding)
+   
+   ========================================================================== */
+
 /* GLOBAL */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
