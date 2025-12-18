@@ -29,6 +29,13 @@ flaskdb_migrate "describe your change - your name"
 flaskdb_upgrade
 ```
 
+## Database Design
+
+The Entity-Relationship Diagram (ERD) represents the conceptual data model of the application and is provided in `erd.md`.
+
+The physical database schema is implemented in PostgreSQL and defined using Data Definition Language (DDL). The complete DDL used in Supabase can be found in `schema.sql`.
+
+
 ## Delivered Documents Case 
 
 Information on how to install/use the application barter.com 
