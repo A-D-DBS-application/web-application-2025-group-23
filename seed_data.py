@@ -454,7 +454,6 @@ def seed_database(force_reset=False):
                     categories=service_info['categories'],
                     is_offered=True,
                     is_active=True,
-                    status='active',
                     created_at=datetime.datetime.now(datetime.timezone.utc),
                     updated_at=datetime.datetime.now(datetime.timezone.utc)
                 )
