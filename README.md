@@ -32,13 +32,23 @@ flaskdb_upgrade
 ## Delivered Documents Case 
 
 Information on how to install/use the application barter.com 
+[+......]
 
-Link to Kanban Board 
+Link to Kanban Board: 
+https://flyer-tray-35034484.figma.site 
 
-Link to User Interface prototype 
+Link to Application Structure:
+https://punch-guide-99957516.figma.site 
 
-Link to audio/video recording of feedback seesions with external partner 
+Link to Final User Stories: 
 
-Link to Zones of Application 
+Link to Flowchart [+flowtabllen?]
+https://amused-clip-14241862.figma.site 
 
-Link to Flowchart
+Link to User Interface prototype:
+https://www.figma.com/design/qhGCSW6y5SfgpUuQqfOpyZ/Barter.com---group-23---User-Interface?node-id=5-59&p=f 
+
+Link to audio/video recording of feedback sessions with external partner + Meeting Summaries:
+
+Link to Explanation Algorithm [figma+docu]
+
