@@ -857,6 +857,7 @@ def edit_service(service_id):
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
+        duration_hours = request.form.get('duration_hours')
         categories_list = request.form.getlist('categories')
         custom_category = request.form.get('custom_category', '').strip()
         
@@ -866,8 +867,9 @@ def edit_service(service_id):
             categories_list.append(custom_category)
         
         category = ','.join(categories_list) if categories_list else ''
-        
-        if not title or not description or not category:
+
+        # Validate required fields including duration
+        if not title or not description or not category or not duration_hours:
             flash('Vul alle velden in', 'error')
             return render_template('service_edit.html',
                                  username=usr.username,
@@ -877,10 +879,27 @@ def edit_service(service_id):
                                  categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
                                  form_title=title,
                                  form_description=description,
+                                 form_duration=duration_hours,
                                  form_categories=categories_list)
-        
+        # Parse duration as float
+        try:
+            duration = float(duration_hours)
+        except (TypeError, ValueError):
+            flash('Invalid duration', 'error')
+            return render_template('service_edit.html',
+                                 username=usr.username,
+                                 companies=companies,
+                                 company=company,
+                                 service=service,
+                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 form_title=title,
+                                 form_description=description,
+                                 form_duration=duration_hours,
+                                 form_categories=categories_list)
+
         service.title = title
         service.description = description
+        service.duration_hours = duration
         service.categories = category
         service.updated_at = datetime.datetime.now(datetime.timezone.utc)
         

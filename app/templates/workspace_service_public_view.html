@@ -93,32 +93,7 @@
                             </div>
                         </div>
 
-                        <div class="form-field form-field--full">
-                            <label>Reviews</label>
-                            {% if reviews and reviews|length > 0 %}
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    {% for review in reviews %}
-                                    <div style="background: #f8f9fa; padding: 16px; border-radius: 6px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                            <span style="font-weight: 500; color: #333;">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
-                                            <div style="display: flex; align-items: center; gap: 12px;">
-                                                <div style="color: #ffa500; font-size: 16px;">
-                                                    {% for i in range(review.rating) %}★{% endfor %}
-                                                    {% for i in range(5 - review.rating) %}☆{% endfor %}
-                                                </div>
-                                                <span style="color: #999; font-size: 13px;">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
-                                            </div>
-                                        </div>
-                                        <p style="margin: 0; color: #666; line-height: 1.5;">{{ review.comment }}</p>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <div style="padding: 16px; background: #f5f5f5; border-radius: 4px; color: #666; text-align: center;">
-                                    No reviews yet for this service
-                                </div>
-                            {% endif %}
-                        </div>
+                        
                     </div>
 
                     {% if reviews and reviews|length > 0 %}
