@@ -134,7 +134,7 @@
 
             <div class="cards-grid" style="grid-template-columns: repeat(3, 1fr);">
                 {% for service in services %}
-                <div class="card" onclick="window.location.href='{% if is_logged_in %}{{ url_for('main.marketplace_service_view', service_id=service.service_id) }}{% else %}{{ url_for('main.marketplace_service_public', service_id=service.service_id) }}{% endif %}'">
+                <div class="card" onclick="window.location.href='{% if is_logged_in and user_companies %}{{ url_for('main.marketplace_service_view', service_id=service.service_id) }}{% else %}{{ url_for('main.marketplace_service_detail_view', service_id=service.service_id) }}{% endif %}'">
                     <div class="card-company">{{ service.company.name }}</div>
                     <div class="card-title">{{ service.title }}</div>
                     <div class="card-desc">{{ service.description[:120] }}{% if service.description|length > 120 %}...{% endif %}</div>

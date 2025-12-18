@@ -183,11 +183,11 @@ def marketplace_public():
     )
 
 
-@main.route('/marketplace/service/<uuid:service_id>')
+@main.route('/marketplace/service/<uuid:service_id>/trade')
 def marketplace_service_view(service_id):
-    """Service detail page for logged-in users."""
+    """Service detail page for logged-in users with trade request form."""
     if 'user_id' not in session:
-        return redirect(url_for('main.marketplace_service_public', service_id=service_id))
+        return redirect(url_for('main.marketplace_service_detail_view', service_id=service_id))
     uid = uuid.UUID(session['user_id'])
     
     # Get company info without redirecting
@@ -195,9 +195,18 @@ def marketplace_service_view(service_id):
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
     user_companies = [membership.company for membership in memberships]
     
-    # Try to get selected company from session
+    # Try to get selected company from query param or session
     selected_company = None
-    if 'marketplace_company_id' in session:
+    company_id_param = request.args.get('company_id')
+    if company_id_param:
+        try:
+            selected_company_id = uuid.UUID(company_id_param)
+            selected_company = next((c for c in user_companies if c and c.company_id == selected_company_id), None)
+            if selected_company:
+                session['marketplace_company_id'] = str(selected_company_id)
+        except ValueError:
+            pass
+    elif 'marketplace_company_id' in session:
         try:
             selected_company_id = uuid.UUID(session['marketplace_company_id'])
             selected_company = next((c for c in user_companies if c and c.company_id == selected_company_id), None)
@@ -215,28 +224,9 @@ def marketplace_service_view(service_id):
         'marketplace-trade-request.html',
         service=service,
         selected_company=selected_company,
+        user_companies=user_companies,
         reviews=reviews,
         avg_rating=avg_rating,
-    )
-
-
-@main.route('/marketplace/service/<uuid:service_id>/public')
-def marketplace_service_public(service_id):
-    """Service detail page for non-logged-in users."""
-    service = Service.query.get_or_404(service_id)
-    record_service_view(service.service_id)
-    reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
-    avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
-    
-    # Check if user is logged in
-    is_logged_in = 'user_id' in session
-
-    return render_template(
-        'marketplace-trade-request-not-logged-in.html',
-        service=service,
-        reviews=reviews,
-        avg_rating=avg_rating,
-        is_logged_in=is_logged_in,
     )
 
 
@@ -298,6 +288,11 @@ def marketplace_select_company(company_id):
     session['marketplace_company_id'] = str(company_id)
     session['selected_company_id'] = str(company_id)
     
+    # Check for redirect_to parameter
+    redirect_to = request.args.get('redirect_to')
+    if redirect_to:
+        return redirect(redirect_to)
+    
     return redirect(url_for('main.marketplace'))
 
 
@@ -306,30 +301,10 @@ def marketplace_select_company(company_id):
 def marketplace_clear_company():
     """Clear company selection for marketplace."""
     session.pop('marketplace_company_id', None)
-    return redirect(url_for('main.marketplace'))
-
-    try:
-        validity_days = int(request.form.get('validity_days', 14))
-        if validity_days not in [7, 14, 30, 60, 90]:
-            validity_days = 14
-    except Exception:
-        validity_days = 14
-
-    now = datetime.datetime.now(datetime.timezone.utc)
-    expires_at = now + datetime.timedelta(days=validity_days)
-
-    trade_request = TradeRequest(
-        request_id=uuid.uuid4(),
-        requesting_company_id=company_id,
-        requested_service_id=service_id,
-        validity_days=validity_days,
-        status='active',
-        created_at=now,
-        expires_at=expires_at,
-    )
-
-    db.session.add(trade_request)
-    db.session.commit()
-
-    flash('Trade request sent successfully!', 'success')
+    
+    # Check for redirect_to parameter
+    redirect_to = request.args.get('redirect_to')
+    if redirect_to:
+        return redirect(redirect_to)
+    
     return redirect(url_for('main.marketplace'))
