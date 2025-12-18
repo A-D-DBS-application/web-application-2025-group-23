@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_review_card.html' import review_card %}
 {% block title %}Completed Deal Detail – Barter.com{% endblock %}
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 {% set active_page = 'completed' %}
@@ -29,18 +30,7 @@
         <div class="review-section">
           <div class="review-title">Reviews</div>
           {% for review in reviews %}
-          <div class="review-item">
-            <div class="review-item__header">
-              <div>
-                <div class="review-item__title">Review for: {{ review.reviewed_service.title }}</div>
-                <div class="star-rating">
-                  {% for i in range(review.rating) %}<span class="star">★</span>{% endfor %}{% for i in range(5 - review.rating) %}<span class="star inactive">★</span>{% endfor %}
-                </div>
-              </div>
-              <div class="review-item__author">by {{ review.reviewer.username }}</div>
-            </div>
-            <div class="review-text">{{ review.comment }}</div>
-          </div>
+            {{ review_card(review, style='tradeflow') }}
           {% endfor %}
         </div>
         {% endif %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_service_card.html' import service_card_public %}
 {% block title %}Marketplace | Barter.com{% endblock %}
 {% block nav_marketplace_active %}class="active"{% endblock %}
 
@@ -45,29 +46,7 @@
 
         <div class="services-grid">
             {% for service in services %}
-            <div class="service-card" onclick="window.location.href='{{ url_for('main.marketplace_service_detail_view', service_id=service.service_id) }}'">
-                <div class="service-company">{{ service.company.name }}</div>
-                <h3 class="service-title">{{ service.title }}</h3>
-                <p class="service-desc">{{ service.description[:120] }}{% if service.description|length > 120 %}...{% endif %}</p>
-                
-                {% if service.categories %}
-                <div class="service-categories">
-                    {% for cat in service.categories.split(',') %}
-                    <span class="category-tag">{{ cat.strip() }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-                
-                <div class="service-meta">
-                    <span>{{ service.duration_hours }} hours</span>
-                    {% set rating_key = service.service_id|string %}
-                    {% if rating_key in service_ratings %}
-                    <span class="service-rating">★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }})</span>
-                    {% endif %}
-                </div>
-                
-                <button class="view-button">View Service</button>
-            </div>
+                {{ service_card_public(service, service_ratings, url_for('main.marketplace_service_detail_view', service_id=service.service_id)) }}
             {% else %}
             <div class="empty-state">
                 <div class="empty-icon">🔍</div>

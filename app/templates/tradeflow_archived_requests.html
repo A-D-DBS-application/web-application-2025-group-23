@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_tradeflow_card.html' import archived_request_card, empty_state %}
 {% block title %}Archived Requests – Barter.com{% endblock %}
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 {% set active_page = 'archived' %}
@@ -15,23 +16,11 @@
       {% if archived_requests %}
       <div class="cards-grid">
         {% for req in archived_requests %}
-        <div class="card" data-href="{{ url_for('main.tradeflow_archived_request_detail', company_id=company.company_id, request_id=req.request_id) }}">
-          <div class="card-company">{{ req.requesting_company.name if req.requesting_company else req.requested_service.company.name }}</div>
-          <div class="card-title">{{ req.requested_service.title }}</div>
-          <div class="card-desc">{{ req.requested_service.description[:70] }}{% if req.requested_service.description|length > 70 %}...{% endif %}</div>
-          <div class="card-meta">
-            <span>⏱ {{ req.requested_service.duration_hours }} hrs</span>
-            <span class="card-badge">Expired</span>
-          </div>
-          <button class="card-button">Archived</button>
-        </div>
+          {{ archived_request_card(req, url_for('main.tradeflow_archived_request_detail', company_id=company.company_id, request_id=req.request_id)) }}
         {% endfor %}
       </div>
       {% else %}
-      <div class="empty">
-        <div class="empty-icon">📦</div>
-        <div class="empty-text">No archived requests</div>
-      </div>
+        {{ empty_state('📦', 'No archived requests') }}
       {% endif %}
     </main>
   </div>

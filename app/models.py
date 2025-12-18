@@ -85,6 +85,10 @@ class User(db.Model):
     username = db.Column(db.Text, nullable=False, unique=True)
     email = db.Column(db.Text)
     password_hash = db.Column(db.Text, nullable=False)
+    
+    # Optional profile fields
+    location = db.Column(db.Text, nullable=True)
+    job_description = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(DateTime(timezone=True))
     updated_at = db.Column(DateTime(timezone=True))                

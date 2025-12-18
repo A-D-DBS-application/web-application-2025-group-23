@@ -1,0 +1,63 @@
+{# ==========================================================================
+   COMPANY CARD MACRO
+   ==========================================================================
+   
+   Reusable components for displaying company cards consistently.
+   
+   Available macros:
+     - company_card: Full company card for my_companies page
+     - company_card_compact: For dropdowns and lists
+   
+   ========================================================================== #}
+
+
+{# --------------------------------------------------------------------------
+   COMPANY CARD (Full)
+   Used on: my_companies.html
+   Features: Name, description, member badge, stats, action buttons
+   -------------------------------------------------------------------------- #}
+{% macro company_card(company, show_actions=true) %}
+<div class="company-item {% if company.is_admin %}company-item--admin{% endif %}">
+    <div class="company-info">
+        <h2 class="company-title">{{ company.name }}</h2>
+        <p class="company-desc">{{ company.description or 'Description of company ' ~ company.name }}</p>
+        <div class="company-meta">
+            <span class="company-badge {% if company.is_admin %}company-badge--admin{% endif %}">
+                {% if company.is_admin %}Admin{% else %}Member{% endif %}
+            </span>
+        </div>
+        <p class="company-stats">
+            {{ company.member_count }} members • {{ company.service_count }} services
+        </p>
+    </div>
+    {% if show_actions %}
+    <div class="company-actions">
+        <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
+           class="company-open-btn">
+            Open workspace
+        </a>
+        <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" 
+           class="company-open-btn company-open-btn--secondary">
+            Tradeflow
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   COMPANY CARD (Compact)
+   Used for: dropdowns, sidebar lists
+   -------------------------------------------------------------------------- #}
+{% macro company_card_compact(company, is_selected=false, click_url=none) %}
+<div class="company-card-compact {% if is_selected %}company-card-compact--selected{% endif %}"
+     {% if click_url %}onclick="window.location.href='{{ click_url }}'"{% endif %}>
+    <div class="company-card-compact__name">{{ company.name }}</div>
+    <div class="company-card-compact__meta">
+        <span class="company-card-compact__badge {% if company.is_admin %}company-card-compact__badge--admin{% endif %}">
+            {{ 'Admin' if company.is_admin else 'Member' }}
+        </span>
+    </div>
+</div>
+{% endmacro %}

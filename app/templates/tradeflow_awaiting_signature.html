@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_tradeflow_card.html' import offer_card, empty_state %}
 {% block title %}Waiting for Your Signature – Barter.com{% endblock %}
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 {% set active_page = 'awaiting_signature' %}
@@ -15,37 +16,11 @@
       {% if awaiting_signature %}
       <div class="cards-grid">
         {% for offer in awaiting_signature %}
-        <a class="card" href="{{ url_for('main.tradeflow_awaiting_signature_detail', company_id=company.company_id, proposal_id=offer.proposal_id) }}">
-          <div class="card-header">
-            <div class="card-header-label">⏳ Awaiting your action</div>
-          </div>
-          <div class="card-pair">
-            <div class="card-side">
-              <div class="card-side-label">{{ offer.from_company.name }}</div>
-              <div class="card-side-title">{{ offer.from_service.title }}</div>
-            </div>
-            <div class="arrows">→</div>
-            <div class="card-side">
-              <div class="card-side-label">{{ offer.to_company.name }}</div>
-              <div class="card-side-title">{{ offer.to_service.title }}</div>
-            </div>
-          </div>
-          <div class="card-meta">Created {{ offer.created_at.strftime('%d-%m-%Y') }}</div>
-          {% if offer.money_amount and offer.money_amount|int > 0 and offer.money_type %}
-          {% if offer.money_type == 'receive' %}
-            <div class="money-pill">💸 They ask: €{{ offer.money_amount }}</div>
-          {% else %}
-            <div class="money-pill">💰 They offer: €{{ offer.money_amount }}</div>
-          {% endif %}
-          {% endif %}
-        </a>
+          {{ offer_card(offer, url_for('main.tradeflow_awaiting_signature_detail', company_id=company.company_id, proposal_id=offer.proposal_id), '⏳ Awaiting your action', is_your_offer=false) }}
         {% endfor %}
       </div>
       {% else %}
-      <div class="empty">
-        <div class="empty-icon">✅</div>
-        <div class="empty-text">All caught up! No pending signatures</div>
-      </div>
+        {{ empty_state('✅', 'All caught up! No pending signatures') }}
       {% endif %}
     </main>
   </div>

@@ -1,0 +1,179 @@
+{# ==========================================================================
+   TRADEFLOW CARD MACROS
+   ==========================================================================
+   
+   Reusable components for tradeflow request/deal cards.
+   
+   Available macros:
+     - request_card: For incoming/outgoing trade requests
+     - deal_card: For ongoing/completed deals (shows both sides)
+     - match_card: For matched proposals
+   
+   ========================================================================== #}
+
+
+{# --------------------------------------------------------------------------
+   REQUEST CARD
+   Used on: tradeflow_incoming_requests.html, tradeflow_you_requested.html
+   Features: Company name, service title, description, duration, validity
+   -------------------------------------------------------------------------- #}
+{% macro request_card(request, click_url, button_text='View Request', show_requesting_company=true) %}
+<div class="card" data-href="{{ click_url }}">
+    {% if show_requesting_company %}
+    <div class="card-company">{{ request.requesting_company.name }}</div>
+    {% else %}
+    <div class="card-company">{{ request.requested_service.company.name }}</div>
+    {% endif %}
+    <div class="card-title">{{ request.requested_service.title }}</div>
+    <div class="card-desc">{{ request.requested_service.description[:70] }}{% if request.requested_service.description|length > 70 %}...{% endif %}</div>
+    <div class="card-meta">
+        <span>⏱ {{ request.requested_service.duration_hours }} hrs</span>
+        <span class="card-badge">{{ request.validity_days }}d</span>
+    </div>
+    <button class="card-button">{{ button_text }}</button>
+</div>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   DEAL CARD
+   Used on: tradeflow_ongoing_deals.html, tradeflow_completed_deals.html
+   Features: Two-sided display with arrows, status badge
+   -------------------------------------------------------------------------- #}
+{% macro deal_card(deal, click_url, status='ongoing', show_review=false) %}
+<div class="card" {% if click_url %}onclick="location.href='{{ click_url }}'"{% endif %}>
+    {% if status == 'ongoing' %}
+    <div class="card-status">🔄 In Progress</div>
+    {% elif status == 'completed' %}
+    <div class="card-status">✓ Completed</div>
+    {% endif %}
+    
+    <div class="card-pair">
+        <div class="card-side">
+            <div class="card-side-label">{{ deal.proposal.from_company.name }}</div>
+            <div class="card-side-title">{{ deal.proposal.from_service.title }}</div>
+        </div>
+        <div class="arrows">⇄</div>
+        <div class="card-side">
+            <div class="card-side-label">{{ deal.proposal.to_company.name }}</div>
+            <div class="card-side-title">{{ deal.proposal.to_service.title }}</div>
+        </div>
+    </div>
+    
+    {% if show_review and deal.review %}
+    <div class="star-rating">
+        {% for i in range(deal.review.rating) %}<span class="star">★</span>{% endfor %}
+        {% for i in range(5 - deal.review.rating) %}<span class="star inactive">★</span>{% endfor %}
+    </div>
+    {% endif %}
+    
+    <button class="card-button">{% if status == 'completed' %}View Details{% else %}View{% endif %}</button>
+</div>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   MATCH CARD
+   Used on: tradeflow_match_made.html
+   Features: Two-sided display, pending status handling
+   -------------------------------------------------------------------------- #}
+{% macro match_card(match_info, company_id) %}
+{% set match = match_info.proposal %}
+<div class="card {% if match_info.has_pending %}disabled{% endif %}" 
+     {% if not match_info.has_pending %}data-href="{{ url_for('main.tradeflow_match_detail', company_id=company_id, proposal_id=match.proposal_id) }}"{% endif %}>
+    <div class="card-pair">
+        <div class="card-side">
+            <div class="card-side-label">{{ match.from_company.name }}</div>
+            <div class="card-side-title">{{ match.from_service.title }}</div>
+        </div>
+        <div class="arrows">⇄</div>
+        <div class="card-side">
+            <div class="card-side-label">{{ match.to_company.name }}</div>
+            <div class="card-side-title">{{ match.to_service.title }}</div>
+        </div>
+    </div>
+    {% if match_info.has_pending %}
+        <button class="card-button disabled" disabled>
+            {% if match_info.pending_sent_by_you %}
+                Offer sent to them
+            {% else %}
+                Offer received from them
+            {% endif %}
+        </button>
+    {% else %}
+        <button class="card-button">View Details</button>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   EMPTY STATE
+   Reusable empty state component for tradeflow pages
+   -------------------------------------------------------------------------- #}
+{% macro empty_state(icon, message) %}
+<div class="empty">
+    <div class="empty-icon">{{ icon }}</div>
+    <div class="empty-text">{{ message }}</div>
+</div>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   OFFER CARD
+   Used on: tradeflow_awaiting_signature.html, tradeflow_awaiting_other_party.html
+   Features: Two-sided display, money pill, status header
+   -------------------------------------------------------------------------- #}
+{% macro offer_card(offer, click_url, header_label, is_your_offer=false) %}
+<a class="card" href="{{ click_url }}">
+    <div class="card-header">
+        <div class="card-header-label">{{ header_label }}</div>
+    </div>
+    <div class="card-pair">
+        <div class="card-side">
+            <div class="card-side-label">{{ offer.from_company.name }}</div>
+            <div class="card-side-title">{{ offer.from_service.title }}</div>
+        </div>
+        <div class="arrows">→</div>
+        <div class="card-side">
+            <div class="card-side-label">{{ offer.to_company.name }}</div>
+            <div class="card-side-title">{{ offer.to_service.title }}</div>
+        </div>
+    </div>
+    <div class="card-meta">Created {{ offer.created_at.strftime('%d-%m-%Y') }}</div>
+    {% if offer.money_amount and offer.money_amount|int > 0 and offer.money_type %}
+        {% if is_your_offer %}
+            {% if offer.money_type == 'receive' %}
+                <div class="money-pill">💸 You ask: €{{ offer.money_amount }}</div>
+            {% else %}
+                <div class="money-pill">💰 You offer: €{{ offer.money_amount }}</div>
+            {% endif %}
+        {% else %}
+            {% if offer.money_type == 'receive' %}
+                <div class="money-pill">💸 They ask: €{{ offer.money_amount }}</div>
+            {% else %}
+                <div class="money-pill">💰 They offer: €{{ offer.money_amount }}</div>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+</a>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   ARCHIVED REQUEST CARD
+   Used on: tradeflow_archived_requests.html
+   Features: Expired badge, non-actionable
+   -------------------------------------------------------------------------- #}
+{% macro archived_request_card(request, click_url) %}
+<div class="card" data-href="{{ click_url }}">
+    <div class="card-company">{{ request.requesting_company.name if request.requesting_company else request.requested_service.company.name }}</div>
+    <div class="card-title">{{ request.requested_service.title }}</div>
+    <div class="card-desc">{{ request.requested_service.description[:70] }}{% if request.requested_service.description|length > 70 %}...{% endif %}</div>
+    <div class="card-meta">
+        <span>⏱ {{ request.requested_service.duration_hours }} hrs</span>
+        <span class="card-badge">Expired</span>
+    </div>
+    <button class="card-button">Archived</button>
+</div>
+{% endmacro %}

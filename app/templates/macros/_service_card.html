@@ -1,0 +1,147 @@
+{# ==========================================================================
+   SERVICE CARD MACRO
+   ==========================================================================
+   
+   A reusable service card component for displaying services consistently
+   across marketplace, workspace, and other pages.
+   
+   Available macros:
+     - service_card: For marketplace (logged in users)
+     - service_card_workspace: For workspace with edit/delete buttons
+     - service_card_compact: For compact lists/sidebars
+     - service_card_public: For public marketplace page
+   
+   ========================================================================== #}
+
+
+{# --------------------------------------------------------------------------
+   MARKETPLACE SERVICE CARD
+   Used on: marketplace.html, marketplace-public.html
+   Features: Clickable card, rating display, categories
+   -------------------------------------------------------------------------- #}
+{% macro service_card(service, service_ratings=none, click_url=none, show_company=true) %}
+<div class="card" {% if click_url %}onclick="window.location.href='{{ click_url }}'"{% endif %}>
+    {% if show_company and service.company %}
+    <div class="card-company">{{ service.company.name }}</div>
+    {% endif %}
+    
+    <div class="card-title">{{ service.title }}</div>
+    
+    <div class="card-desc">
+        {{ service.description[:120] }}{% if service.description|length > 120 %}...{% endif %}
+    </div>
+    
+    {% if service.categories %}
+    <div class="card-categories">
+        {% for cat in service.categories.split(',') %}
+        <span class="card-category-tag">{{ cat.strip() }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="card-meta">
+        <span>{{ service.duration_hours }} hours</span>
+        {% if service_ratings %}
+            {% set rating_key = service.service_id|string %}
+            {% if rating_key in service_ratings %}
+            <span class="rating-star">★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }})</span>
+            {% endif %}
+        {% endif %}
+    </div>
+    
+    <button class="card-button">View Service</button>
+</div>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   WORKSPACE SERVICE CARD
+   Used on: company_workspace_services.html
+   Features: Edit/Delete buttons, admin controls
+   -------------------------------------------------------------------------- #}
+{% macro service_card_workspace(service, company, view_url, edit_url, delete_callback=none) %}
+<article class="service-card">
+    <h3 class="service-card__title">{{ service.title }}</h3>
+    
+    <div class="service-card__company">{{ company.name }}</div>
+    
+    <div class="service-card__description">
+        {{ service.description[:100] }}{% if service.description|length > 100 %}...{% endif %}
+    </div>
+
+    {% if service.categories %}
+    <div class="service-card__tags">
+        {% for category in service.categories.split(',') %}
+        <span class="tag">{{ category.strip() }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="service-card__footer">
+        <a href="{{ view_url }}" class="btn btn-secondary">View</a>
+        <a href="{{ edit_url }}" class="btn btn-primary">Edit</a>
+        {% if delete_callback %}
+        <button onclick="{{ delete_callback }}" class="btn btn-danger">Delete</button>
+        {% endif %}
+    </div>
+</article>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   COMPACT SERVICE CARD (for lists/sidebars)
+   Used on: tradeflow_select_return.html, service selectors
+   Features: Minimal info, selectable
+   -------------------------------------------------------------------------- #}
+{% macro service_card_compact(service, is_selected=false, click_url=none) %}
+<div class="service-card-compact {% if is_selected %}service-card-compact--selected{% endif %}" 
+     {% if click_url %}onclick="window.location.href='{{ click_url }}'"{% endif %}>
+    <div class="service-card-compact__title">{{ service.title }}</div>
+    <div class="service-card-compact__meta">
+        <span>{{ service.duration_hours }}h</span>
+        {% if service.categories %}
+        <span class="service-card-compact__category">{{ service.categories.split(',')[0] }}</span>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   PUBLIC MARKETPLACE SERVICE CARD
+   Used on: marketplace-public.html
+   Features: Different CSS classes for public styling
+   -------------------------------------------------------------------------- #}
+{% macro service_card_public(service, service_ratings=none, click_url=none) %}
+<div class="service-card" {% if click_url %}onclick="window.location.href='{{ click_url }}'"{% endif %}>
+    {% if service.company %}
+    <div class="service-company">{{ service.company.name }}</div>
+    {% endif %}
+    
+    <h3 class="service-title">{{ service.title }}</h3>
+    
+    <p class="service-desc">
+        {{ service.description[:120] }}{% if service.description|length > 120 %}...{% endif %}
+    </p>
+    
+    {% if service.categories %}
+    <div class="service-categories">
+        {% for cat in service.categories.split(',') %}
+        <span class="category-tag">{{ cat.strip() }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="service-meta">
+        <span>{{ service.duration_hours }} hours</span>
+        {% if service_ratings %}
+            {% set rating_key = service.service_id|string %}
+            {% if rating_key in service_ratings %}
+            <span class="service-rating">★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }})</span>
+            {% endif %}
+        {% endif %}
+    </div>
+    
+    <button class="view-button">View Service</button>
+</div>
+{% endmacro %}

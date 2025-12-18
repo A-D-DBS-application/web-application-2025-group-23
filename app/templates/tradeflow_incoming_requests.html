@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_tradeflow_card.html' import request_card, empty_state %}
 {% block title %}Incoming Requests – Barter.com{% endblock %}
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 
@@ -16,23 +17,11 @@
     {% if incoming_requests %}
     <div class="cards-grid">
       {% for req in incoming_requests %}
-      <div class="card" data-href="{{ url_for('main.tradeflow_select_return', company_id=company.company_id, request_id=req.request_id) }}">
-        <div class="card-company">{{ req.requesting_company.name }}</div>
-        <div class="card-title">{{ req.requested_service.title }}</div>
-        <div class="card-desc">{{ req.requested_service.description[:70] }}{% if req.requested_service.description|length > 70 %}...{% endif %}</div>
-        <div class="card-meta">
-          <span>⏱ {{ req.requested_service.duration_hours }} hrs</span>
-          <span class="card-badge">{{ req.validity_days }}d</span>
-        </div>
-        <button class="card-button">Select Return Service</button>
-      </div>
+        {{ request_card(req, url_for('main.tradeflow_select_return', company_id=company.company_id, request_id=req.request_id), 'Select Return Service', show_requesting_company=true) }}
       {% endfor %}
     </div>
     {% else %}
-    <div class="empty">
-      <div class="empty-icon">📭</div>
-      <div class="empty-text">No incoming requests yet</div>
-    </div>
+      {{ empty_state('📭', 'No incoming requests yet') }}
     {% endif %}
   </main>
 </div>

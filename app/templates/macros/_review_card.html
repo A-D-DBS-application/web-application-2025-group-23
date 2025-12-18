@@ -1,0 +1,106 @@
+{# ==========================================================================
+   REVIEW CARD MACRO
+   ==========================================================================
+   
+   Reusable components for displaying reviews consistently across pages.
+   
+   Available macros:
+     - review_card: Full review with name, stars, date, comment
+     - review_card_compact: Simpler version for lists
+     - star_rating: Just the star display
+   
+   ========================================================================== #}
+
+
+{# --------------------------------------------------------------------------
+   STAR RATING
+   Reusable star display component
+   -------------------------------------------------------------------------- #}
+{% macro star_rating(rating, max=5, style='default') %}
+{% if style == 'orange' %}
+<div class="review-stars--orange">
+    {% for i in range(rating) %}★{% endfor %}
+    {% for i in range(max - rating) %}☆{% endfor %}
+</div>
+{% elif style == 'inline' %}
+<span class="star-rating">
+    {% for i in range(rating) %}<span class="star">★</span>{% endfor %}
+    {% for i in range(max - rating) %}<span class="star inactive">★</span>{% endfor %}
+</span>
+{% else %}
+<div class="star-rating">
+    {% for i in range(rating) %}<span class="star">★</span>{% endfor %}
+    {% for i in range(max - rating) %}<span class="star inactive">★</span>{% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   REVIEW CARD (Full)
+   Used on: marketplace-trade-request.html, workspace_service_public_view.html
+   Features: Reviewer name, stars, date, comment
+   -------------------------------------------------------------------------- #}
+{% macro review_card(review, style='default') %}
+{% if style == 'inline' %}
+<div class="review-card--inline">
+    <div class="review-card__header--flex">
+        <span class="reviewer-name--bold">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
+        <div class="review-meta-flex">
+            {{ star_rating(review.rating, style='orange') }}
+            <span class="review-date--muted">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+        </div>
+    </div>
+    <p class="review-comment">{{ review.comment }}</p>
+</div>
+{% elif style == 'tradeflow' %}
+<div class="review-item">
+    <div class="review-item__header">
+        <div>
+            {% if review.reviewed_service %}
+            <div class="review-item__title">Review for: {{ review.reviewed_service.title }}</div>
+            {% endif %}
+            {{ star_rating(review.rating, style='inline') }}
+        </div>
+        <div class="review-item__author">by {{ review.reviewer.username if review.reviewer else 'Anonymous' }}</div>
+    </div>
+    <div class="review-text">{{ review.comment }}</div>
+</div>
+{% elif style == 'simple' %}
+<div class="review-card">
+    <div class="rating">★ {{ review.rating }} / 5</div>
+    <p class="review-card__text--padded text-muted">{{ review.comment }}</p>
+</div>
+{% else %}
+<div class="review-card">
+    <div class="review-card__header">
+        <span class="reviewer-name">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
+        <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+    </div>
+    {{ star_rating(review.rating) }}
+    <p class="review-comment">{{ review.comment }}</p>
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   REVIEWS LIST
+   Wrapper for displaying a list of reviews with empty state
+   -------------------------------------------------------------------------- #}
+{% macro reviews_list(reviews, style='default', max_reviews=none, empty_message='No reviews yet for this service') %}
+{% if reviews and reviews|length > 0 %}
+    <div class="reviews-stack">
+        {% for review in (reviews[:max_reviews] if max_reviews else reviews) %}
+            {{ review_card(review, style=style) }}
+        {% endfor %}
+    </div>
+    {% if max_reviews and reviews|length > max_reviews %}
+        <p class="text-muted mt-12">Showing {{ max_reviews }} of {{ reviews|length }} reviews</p>
+    {% endif %}
+{% else %}
+    <div class="empty-state-box">
+        {{ empty_message }}
+    </div>
+{% endif %}
+{% endmacro %}

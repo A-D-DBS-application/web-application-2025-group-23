@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_tradeflow_card.html' import match_card, empty_state %}
 {% block title %}Matches – Barter.com{% endblock %}
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 {% set active_page = 'matches' %}
@@ -15,38 +16,11 @@
       {% if matches %}
       <div class="cards-grid">
         {% for match_info in matches %}
-        {% set match = match_info.proposal %}
-        <div class="card {% if match_info.has_pending %}disabled{% endif %}" {% if not match_info.has_pending %}data-href="{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=match.proposal_id) }}"{% endif %}>
-          <div class="card-pair">
-            <div class="card-side">
-              <div class="card-side-label">{{ match.from_company.name }}</div>
-              <div class="card-side-title">{{ match.from_service.title }}</div>
-            </div>
-            <div class="arrows">⇄</div>
-            <div class="card-side">
-              <div class="card-side-label">{{ match.to_company.name }}</div>
-              <div class="card-side-title">{{ match.to_service.title }}</div>
-            </div>
-          </div>
-          {% if match_info.has_pending %}
-            <button class="card-button disabled" disabled>
-              {% if match_info.pending_sent_by_you %}
-                Offer sent to them
-              {% else %}
-                Offer received from them
-              {% endif %}
-            </button>
-          {% else %}
-            <button class="card-button">View Details</button>
-          {% endif %}
-        </div>
+          {{ match_card(match_info, company.company_id) }}
         {% endfor %}
       </div>
       {% else %}
-      <div class="empty">
-        <div class="empty-icon">🤝</div>
-        <div class="empty-text">No matches yet</div>
-      </div>
+        {{ empty_state('🤝', 'No matches yet') }}
       {% endif %}
     </main>
   </div>
