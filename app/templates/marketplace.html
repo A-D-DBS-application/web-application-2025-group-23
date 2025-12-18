@@ -3,91 +3,215 @@
 {% block nav_marketplace_active %}class="active"{% endblock %}
 
 {% block content %}
-    <div class="marketplace-container">
-        <div class="marketplace-header">
-            <h1>Service Marketplace</h1>
-            <div class="company-selector" style="gap: 0.5rem; align-items: center;">
-                <span style="font-size: 14px; color: #4a5568;">Browsing as <strong>{{ selected_company.name }}</strong></span>
-                <a href="{{ url_for('main.select_company_for_marketplace') }}" style="font-size: 14px; color: #1A73E8; text-decoration: none;">Switch company</a>
-            </div>
-        </div>
-
-        <div class="filters">
-            <form method="get" style="display: flex; gap: 1rem; width: 100%;">
-                <input type="hidden" name="company_id" value="{{ selected_company.company_id }}">
-                <input type="text" name="search" placeholder="Search services..." class="search-bar" value="{{ search_query or '' }}">
-                <select name="category" class="category-filter" onchange="this.form.submit()">
-                    <option value="">All Categories</option>
-                    <option value="Finance" {% if category_filter == 'Finance' %}selected{% endif %}>Finance</option>
-                    <option value="Accounting" {% if category_filter == 'Accounting' %}selected{% endif %}>Accounting</option>
-                    <option value="IT" {% if category_filter == 'IT' %}selected{% endif %}>IT</option>
-                    <option value="Marketing" {% if category_filter == 'Marketing' %}selected{% endif %}>Marketing</option>
-                    <option value="Legal" {% if category_filter == 'Legal' %}selected{% endif %}>Legal</option>
-                    <option value="Design" {% if category_filter == 'Design' %}selected{% endif %}>Design</option>
-                    <option value="Development" {% if category_filter == 'Development' %}selected{% endif %}>Development</option>
-                    <option value="Consulting" {% if category_filter == 'Consulting' %}selected{% endif %}>Consulting</option>
-                    <option value="Sales" {% if category_filter == 'Sales' %}selected{% endif %}>Sales</option>
-                    <option value="HR" {% if category_filter == 'HR' %}selected{% endif %}>HR</option>
-                    <option value="Operations" {% if category_filter == 'Operations' %}selected{% endif %}>Operations</option>
-                    <option value="Customer Support" {% if category_filter == 'Customer Support' %}selected{% endif %}>Customer Support</option>
-                </select>
-                <button type="submit" style="padding: 0.75rem 1.5rem; background: #1A73E8; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">Search</button>
-            </form>
-        </div>
-
-        <div class="services-grid">
-            {% for service in services %}
-            <div class="service-card" data-category="{{ service.categories }}">
-                <div class="service-header">
-                    <h3>{{ service.title }}</h3>
-                    <span class="service-company">by {{ service.company.name }}</span>
-                </div>
-                <div class="service-body">
-                    <p class="service-description">{{ service.description[:150] }}{% if service.description|length > 150 %}...{% endif %}</p>
-                    {% if service.categories %}
-                        <div class="service-categories">
-                            {% for cat in service.categories.split(',') %}
-                                <span class="category-tag">{{ cat.strip() }}</span>
+    <link rel="stylesheet" href="{{ url_for('static', filename='tradeflow.css') }}">
+    
+    <div class="tradeflow-container">
+        <!-- Left Sidebar with Tradeflow styling -->
+        <aside class="sidebar tradeflow-sidebar">
+            <div class="tradeflow-sidebar-header">
+                <div class="tradeflow-sidebar-company">
+                    <div class="tradeflow-sidebar-company-label">Company</div>
+                    <p style="font-size: 13px; color: #5f6368; margin: 0 0 12px 0; line-height: 1.4;">Select the company you want to browse as.</p>
+                    <div class="tradeflow-sidebar-company-dropdown">
+                        {% if is_logged_in and user_companies %}
+                        <button type="button" class="tradeflow-sidebar-company-select" id="marketplace-company-select-btn" aria-expanded="false" aria-haspopup="true">
+                            <div class="tradeflow-sidebar-company-select-text">
+                                <span class="tradeflow-sidebar-company-select-prefix">Browsing as:</span>
+                                <span class="tradeflow-sidebar-company-select-name">{% if selected_company %}{{ selected_company.name }}{% else %}No company selected{% endif %}</span>
+                            </div>
+                            <span class="tradeflow-sidebar-company-select-chevron">▾</span>
+                        </button>
+                        {% if user_companies|length > 1 or not selected_company %}
+                        <div class="tradeflow-sidebar-company-dropdown-menu" id="marketplace-company-dropdown-menu" role="menu">
+                            {% if selected_company %}
+                            <a href="{{ url_for('main.marketplace_clear_company') }}" 
+                               class="tradeflow-sidebar-company-dropdown-item {% if not selected_company %}active{% endif %}" 
+                               role="menuitem">
+                                <span class="company-dropdown-name">No company selected</span>
+                                {% if not selected_company %}<span class="company-dropdown-check">✓</span>{% endif %}
+                            </a>
+                            {% endif %}
+                            {% for company in user_companies %}
+                            <a href="{{ url_for('main.marketplace_select_company', company_id=company.company_id) }}" 
+                               class="tradeflow-sidebar-company-dropdown-item {% if selected_company and selected_company.company_id == company.company_id %}active{% endif %}" 
+                               role="menuitem">
+                                <span class="company-dropdown-name">{{ company.name }}</span>
+                                {% if selected_company and selected_company.company_id == company.company_id %}<span class="company-dropdown-check">✓</span>{% endif %}
+                            </a>
                             {% endfor %}
                         </div>
-                    {% endif %}
-                </div>
-                <div class="service-footer">
-                    <div class="service-meta">
-                        {% set rating_key = service.service_id|string %}
-                        {% if rating_key in service_ratings %}
-                        <div style="color: #fbbf24; font-size: 14px;">
-                            ★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }} reviews)
+                        {% endif %}
+                        {% elif is_logged_in %}
+                        <div class="tradeflow-sidebar-company-select" style="cursor: default;">
+                            <div class="tradeflow-sidebar-company-select-text">
+                                <span class="tradeflow-sidebar-company-select-prefix">Browsing as:</span>
+                                <span class="tradeflow-sidebar-company-select-name" style="color: #9aa0a6; font-size: 13px;">Not a member yet</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="tradeflow-sidebar-company-select" style="cursor: default;">
+                            <div class="tradeflow-sidebar-company-select-text">
+                                <span class="tradeflow-sidebar-company-select-prefix">Browsing as:</span>
+                                <span class="tradeflow-sidebar-company-select-name">No company selected</span>
+                            </div>
                         </div>
                         {% endif %}
-                        <span class="duration">{{ service.duration_hours }} hours</span>
                     </div>
-                    <a href="{{ url_for('main.marketplace_service_view', service_id=service.service_id) }}" class="btn-view">View Details</a>
                 </div>
             </div>
-            {% else %}
-            <div class="no-services">
-                <p>No services available in the marketplace yet.</p>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Categories</div>
+                <a href="{{ url_for('main.marketplace', category='') }}" class="sidebar-link {% if not category_filter %}active{% endif %}">
+                    <span>All</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Marketing') }}" class="sidebar-link {% if category_filter == 'Marketing' %}active{% endif %}">
+                    <span>Marketing</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Development') }}" class="sidebar-link {% if category_filter == 'Development' %}active{% endif %}">
+                    <span>Development</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Writing') }}" class="sidebar-link {% if category_filter == 'Writing' %}active{% endif %}">
+                    <span>Writing</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Design') }}" class="sidebar-link {% if category_filter == 'Design' %}active{% endif %}">
+                    <span>Design</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Finance') }}" class="sidebar-link {% if category_filter == 'Finance' %}active{% endif %}">
+                    <span>Finance</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Accounting') }}" class="sidebar-link {% if category_filter == 'Accounting' %}active{% endif %}">
+                    <span>Accounting</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='IT') }}" class="sidebar-link {% if category_filter == 'IT' %}active{% endif %}">
+                    <span>IT</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Legal') }}" class="sidebar-link {% if category_filter == 'Legal' %}active{% endif %}">
+                    <span>Legal</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Consulting') }}" class="sidebar-link {% if category_filter == 'Consulting' %}active{% endif %}">
+                    <span>Consulting</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Sales') }}" class="sidebar-link {% if category_filter == 'Sales' %}active{% endif %}">
+                    <span>Sales</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='HR') }}" class="sidebar-link {% if category_filter == 'HR' %}active{% endif %}">
+                    <span>HR</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Operations') }}" class="sidebar-link {% if category_filter == 'Operations' %}active{% endif %}">
+                    <span>Operations</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Customer Support') }}" class="sidebar-link {% if category_filter == 'Customer Support' %}active{% endif %}">
+                    <span>Customer Support</span>
+                </a>
             </div>
-            {% endfor %}
-        </div>
+        </aside>
 
-        {% if pagination and pagination.pages > 1 %}
-        <div class="pagination" style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem; justify-content: center;">
-            {% if pagination.has_prev %}
-                <a class="page-link" href="{{ url_for('main.marketplace', page=pagination.prev_num, company_id=selected_company.company_id, search=search_query, category=category_filter) }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; color: #4a5568; text-decoration: none;">&larr; Previous</a>
-            {% else %}
-                <span class="page-link disabled" style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; color: #cbd5e0;">&larr; Previous</span>
+        <!-- Main Content -->
+        <main class="main">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Marketplace</h1>
+                    <p class="page-desc">
+                        Active filters: 
+                        <strong>Browse as: {% if selected_company %}{{ selected_company.name }}{% else %}No company selected{% endif %}</strong>
+                        {% if category_filter %}
+                        • <strong>Category: {{ category_filter }}</strong>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 32px;">
+                <form method="get" style="display: flex; gap: 12px;">
+                    {% if selected_company %}
+                    <input type="hidden" name="company_id" value="{{ selected_company.company_id }}">
+                    {% endif %}
+                    <input type="text" name="search" placeholder="Search services..." class="form-input" value="{{ search_query or '' }}" style="flex: 1;">
+                    <button type="submit" class="btn-primary">Search</button>
+                </form>
+            </div>
+
+            <div class="cards-grid" style="grid-template-columns: repeat(3, 1fr);">
+                {% for service in services %}
+                <div class="card" onclick="window.location.href='{% if is_logged_in %}{{ url_for('main.marketplace_service_view', service_id=service.service_id) }}{% else %}{{ url_for('main.marketplace_service_public', service_id=service.service_id) }}{% endif %}'">
+                    <div class="card-company">{{ service.company.name }}</div>
+                    <div class="card-title">{{ service.title }}</div>
+                    <div class="card-desc">{{ service.description[:120] }}{% if service.description|length > 120 %}...{% endif %}</div>
+                    
+                    {% if service.categories %}
+                    <div class="card-categories">
+                        {% for cat in service.categories.split(',') %}
+                        <span class="card-category-tag">{{ cat.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-meta">
+                        <span>{{ service.duration_hours }} hours</span>
+                        {% set rating_key = service.service_id|string %}
+                        {% if rating_key in service_ratings %}
+                        <span style="color: #fbbc04;">★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }})</span>
+                        {% endif %}
+                    </div>
+                    
+                    <button class="card-button">View Service</button>
+                </div>
+                {% else %}
+                <div class="empty">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-text">No services available in the marketplace yet.</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if pagination and pagination.pages > 1 %}
+            <div style="margin-top: 32px; display: flex; align-items: center; gap: 16px; justify-content: center;">
+                {% if pagination.has_prev %}
+                    <a href="{{ url_for('main.marketplace', page=pagination.prev_num, search=search_query, category=category_filter) }}" class="btn-secondary">&larr; Previous</a>
+                {% else %}
+                    <button class="btn-secondary" disabled style="opacity: 0.5; cursor: not-allowed;">&larr; Previous</button>
+                {% endif %}
+
+                <span style="font-size: 14px; color: #5f6368;">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+
+                {% if pagination.has_next %}
+                    <a href="{{ url_for('main.marketplace', page=pagination.next_num, search=search_query, category=category_filter) }}" class="btn-secondary">Next &rarr;</a>
+                {% else %}
+                    <button class="btn-secondary" disabled style="opacity: 0.5; cursor: not-allowed;">Next &rarr;</button>
+                {% endif %}
+            </div>
             {% endif %}
-
-            <span class="page-info" style="font-size: 14px; color: #4a5568;">Page {{ pagination.page }} of {{ pagination.pages }}</span>
-
-            {% if pagination.has_next %}
-                <a class="page-link" href="{{ url_for('main.marketplace', page=pagination.next_num, company_id=selected_company.company_id, search=search_query, category=category_filter) }}" style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; color: #4a5568; text-decoration: none;">Next &rarr;</a>
-            {% else %}
-                <span class="page-link disabled" style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; color: #cbd5e0;">Next &rarr;</span>
-            {% endif %}
-        </div>
-        {% endif %}
+        </main>
     </div>
+
+    <script>
+    (function() {
+        const companySelectBtn = document.getElementById('marketplace-company-select-btn');
+        const companyDropdownMenu = document.getElementById('marketplace-company-dropdown-menu');
+        
+        if (!companySelectBtn || !companyDropdownMenu) return;
+        
+        companySelectBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isExpanded = companySelectBtn.getAttribute('aria-expanded') === 'true';
+            companySelectBtn.setAttribute('aria-expanded', !isExpanded);
+            companyDropdownMenu.classList.toggle('show', !isExpanded);
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!companySelectBtn.contains(e.target) && !companyDropdownMenu.contains(e.target)) {
+                companySelectBtn.setAttribute('aria-expanded', 'false');
+                companyDropdownMenu.classList.remove('show');
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && companySelectBtn.getAttribute('aria-expanded') === 'true') {
+                companySelectBtn.setAttribute('aria-expanded', 'false');
+                companyDropdownMenu.classList.remove('show');
+            }
+        });
+    })();
+    </script>
 {% endblock %}
