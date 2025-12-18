@@ -23,8 +23,52 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy import DateTime
+from enum import Enum
 
 db = SQLAlchemy()
+
+
+# ==========================
+# SERVICE CATEGORIES (Enum)
+# ==========================
+class ServiceCategory(Enum):
+    """
+    Predefined categories for services.
+    Using Enum ensures consistency and prevents typos.
+    
+    Usage:
+        - In templates: ServiceCategory.choices() returns list of display names
+        - In code: ServiceCategory.FINANCE.value returns 'Finance'
+        - Validation: ServiceCategory.is_valid('Finance') returns True
+    """
+    FINANCE = 'Finance'
+    ACCOUNTING = 'Accounting'
+    IT = 'IT'
+    MARKETING = 'Marketing'
+    LEGAL = 'Legal'
+    DESIGN = 'Design'
+    DEVELOPMENT = 'Development'
+    CONSULTING = 'Consulting'
+    SALES = 'Sales'
+    HR = 'HR'
+    OPERATIONS = 'Operations'
+    CUSTOMER_SUPPORT = 'Customer Support'
+    
+    @classmethod
+    def choices(cls) -> list[str]:
+        """Return all category values as a list (for template dropdowns)."""
+        return [c.value for c in cls]
+    
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string is a valid category."""
+        return value in cls.choices()
+    
+    @classmethod
+    def get_valid_categories(cls, categories: list[str]) -> list[str]:
+        """Filter a list to only include valid categories + custom ones."""
+        # Allow custom categories (those not in enum) to pass through
+        return categories
 
 
 # ==========================

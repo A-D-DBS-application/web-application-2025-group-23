@@ -8,7 +8,7 @@ import string
 from flask import request, redirect, url_for, render_template, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from .blueprints.core import main
-from .models import db, User, Company, CompanyMember, Service, DealProposal, ActiveDeal, Review, CompanyJoinRequest
+from .models import db, User, Company, CompanyMember, Service, DealProposal, ActiveDeal, Review, CompanyJoinRequest, ServiceCategory
 
 
 def _workspace_context(company_id: uuid.UUID, uid: uuid.UUID):
@@ -739,7 +739,7 @@ def add_service(company_id):
             flash('Vul dit veld in.', 'error')
             return render_template('service_add.html',
                                  company=company,
-                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 categories=ServiceCategory.choices(),
                                  form_title=title,
                                  form_description=description,
                                  form_duration=duration_hours,
@@ -751,7 +751,7 @@ def add_service(company_id):
             flash('Vul dit veld in.', 'error')
             return render_template('service_add.html',
                                  company=company,
-                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 categories=ServiceCategory.choices(),
                                  form_title=title,
                                  form_description=description,
                                  form_duration=duration_hours,
@@ -788,9 +788,8 @@ def add_service(company_id):
         flash('Service added successfully', 'success')
         return redirect(url_for('main.workspace_services', company_id=company_id))
     
-    available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
-                           'Design', 'Development', 'Consulting', 'Sales', 'HR', 
-                           'Operations', 'Customer Support']
+    # Use ServiceCategory enum for consistent category options
+    available_categories = ServiceCategory.choices()
     
     usr = User.query.get(uid)
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
@@ -876,7 +875,7 @@ def edit_service(service_id):
                                  companies=companies,
                                  company=company,
                                  service=service,
-                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 categories=ServiceCategory.choices(),
                                  form_title=title,
                                  form_description=description,
                                  form_duration=duration_hours,
@@ -891,7 +890,7 @@ def edit_service(service_id):
                                  companies=companies,
                                  company=company,
                                  service=service,
-                                 categories=['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 'Design', 'Development', 'Consulting', 'Sales', 'HR', 'Operations', 'Customer Support'],
+                                 categories=ServiceCategory.choices(),
                                  form_title=title,
                                  form_description=description,
                                  form_duration=duration_hours,
@@ -908,9 +907,8 @@ def edit_service(service_id):
         flash('Service updated successfully', 'success')
         return redirect(url_for('main.workspace_services', company_id=service.company_id))
     
-    available_categories = ['Finance', 'Accounting', 'IT', 'Marketing', 'Legal', 
-                           'Design', 'Development', 'Consulting', 'Sales', 'HR', 
-                           'Operations', 'Customer Support']
+    # Use ServiceCategory enum for consistent category options
+    available_categories = ServiceCategory.choices()
     
     form_categories = service.categories.split(',') if service.categories else []
     
