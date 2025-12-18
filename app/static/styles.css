@@ -2412,3 +2412,1094 @@ button:disabled {
         text-align: center;
     }
 }
+
+/* ====== UTILITY CLASSES (replacing inline styles) ====== */
+
+/* Layout utilities */
+.d-flex { display: flex; }
+.d-block { display: block; }
+.d-inline { display: inline; }
+.d-inline-block { display: inline-block; }
+.flex-column { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.align-center { align-items: center; }
+.gap-8 { gap: 8px; }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+.w-100 { width: 100%; }
+
+/* Margin utilities */
+.mb-0 { margin-bottom: 0; }
+.mb-4 { margin-bottom: 4px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-28 { margin-bottom: 28px; }
+.mb-32 { margin-bottom: 32px; }
+.mt-0 { margin-top: 0; }
+.mt-6 { margin-top: 6px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+.mt-30 { margin-top: 30px; }
+.ml-0 { margin-left: 0; }
+
+/* Padding utilities */
+.p-10 { padding: 10px; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.pt-24 { padding-top: 24px; }
+.px-80 { padding-left: 80px; padding-right: 80px; }
+.py-16 { padding-top: 16px; padding-bottom: 16px; }
+
+/* Text utilities */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-decoration-none { text-decoration: none; }
+.font-weight-500 { font-weight: 500; }
+.font-weight-600 { font-weight: 600; }
+.font-size-13 { font-size: 13px; }
+.font-size-14 { font-size: 14px; }
+.font-size-16 { font-size: 16px; }
+.font-size-18 { font-size: 18px; }
+.font-size-28 { font-size: 28px; }
+.line-height-15 { line-height: 1.5; }
+
+/* Color utilities */
+.text-gray { color: #5f6368; }
+.text-gray-light { color: #999; }
+.text-gray-dark { color: #666; }
+.text-dark { color: #333; }
+.text-blue { color: #0066cc; }
+.text-orange { color: #ffa500; }
+.text-white { color: white; }
+.bg-gray-light { background: #f5f5f5; }
+.bg-gray-lighter { background: #f8f9fa; }
+.bg-blue { background: #1A73E8; }
+.bg-disabled { background: #d3d3d3; color: #888; }
+
+/* Border utilities */
+.border-radius-4 { border-radius: 4px; }
+.border-radius-6 { border-radius: 6px; }
+.border-radius-8 { border-radius: 8px; }
+.border-top { border-top: 1px solid #e8eaed; }
+.border-left-blue { border-left: 4px solid #1A73E8; }
+
+/* Form display boxes (readonly values) */
+.form-display-box {
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    color: #333;
+}
+.form-display-box--tall {
+    min-height: 80px;
+}
+
+/* Review card */
+.review-card-inline {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 6px;
+}
+.review-card-inline__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.review-card-inline__author {
+    font-weight: 500;
+    color: #333;
+}
+.review-card-inline__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.review-card-inline__rating {
+    color: #ffa500;
+    font-size: 16px;
+}
+.review-card-inline__date {
+    color: #999;
+    font-size: 13px;
+}
+.review-card-inline__comment {
+    margin: 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Empty state box */
+.empty-box {
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    color: #666;
+    text-align: center;
+}
+
+/* CTA button full width */
+.btn-cta-full {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+.btn-cta-full--primary {
+    background: #1A73E8;
+    color: white;
+}
+.btn-cta-full--disabled {
+    background: #d3d3d3;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* Info notice */
+.info-notice {
+    margin: 0 0 20px 0;
+    color: #5f6368;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* Category grid */
+.category-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.category-item--disabled {
+    pointer-events: none;
+}
+
+/* Request info box */
+.request-info-box {
+    background: #f5f7fa;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 32px;
+    border-left: 4px solid #1A73E8;
+}
+.request-info-box__label {
+    font-size: 13px;
+    color: #5f6368;
+    margin-bottom: 4px;
+}
+.request-info-box__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.request-info-box__desc {
+    font-size: 13px;
+    color: #5f6368;
+    margin-top: 6px;
+}
+
+/* Action header */
+.action-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+.action-header .page-header {
+    margin-bottom: 0;
+}
+
+/* Decline button */
+.btn-decline {
+    background: #e8eaed;
+    color: #1a1a1a;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-decline:hover {
+    background: #d2d4d7;
+}
+
+/* Service meta in grid */
+.service-meta-label {
+    font-size: 12px;
+    color: #9aa0a6;
+    margin-bottom: 8px;
+}
+
+/* Main content full width */
+.main-full-width {
+    max-width: 100%;
+    margin: 0;
+    padding: 40px 80px;
+}
+
+/* Inline forms */
+.form-inline {
+    display: inline;
+    margin: 0;
+}
+
+/* Button actions row */
+.btn-actions-row {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+}
+
+/* Section header with actions */
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Member actions row */
+.member-actions-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Link styled as blue */
+.link-blue {
+    color: var(--blue);
+    text-decoration: none;
+    cursor: pointer;
+}
+.link-blue:hover {
+    text-decoration: underline;
+}
+
+/* Leave company button full width */
+.btn-leave-full {
+    width: 100%;
+    padding: 12px;
+}
+
+/* Sidebar avatar centered */
+.sidebar-avatar-centered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Sidebar section header */
+.sidebar-section-header {
+    margin-top: 24px;
+    margin-bottom: 16px;
+}
+
+/* Sidebar company link */
+.sidebar-company-link {
+    text-decoration: none;
+    display: block;
+    color: #0066cc;
+}
+
+/* Workspace back link */
+.workspace-back-wrapper {
+    margin-bottom: 24px;
+}
+.link-back {
+    text-decoration: none;
+}
+
+/* Workspace header no padding */
+.workspace-header--no-padding {
+    padding-left: 0;
+}
+
+/* Workspace text no margin */
+.ml-0 {
+    margin-left: 0 !important;
+}
+.pl-0 {
+    padding-left: 0 !important;
+}
+
+/* Blue link */
+.text-blue {
+    color: #0066cc;
+}
+
+/* Website link */
+.website-link {
+    color: #0066cc;
+    text-decoration: none;
+}
+.website-link:hover {
+    text-decoration: underline;
+}
+
+/* Text color utilities */
+.text-gray {
+    color: #666;
+}
+.text-gray-light {
+    color: #999;
+}
+
+/* Font weight utilities */
+.font-normal {
+    font-weight: normal;
+}
+
+/* Sidebar empty state */
+.sidebar-empty {
+    color: #999;
+    font-size: 14px;
+    padding: 0 16px;
+}
+
+/* Form margin top */
+.form--mt-2rem {
+    margin-top: 2rem;
+}
+
+/* Helper text margin */
+.helper-text--mt-half {
+    margin-top: 0.5rem;
+}
+
+/* Detail page title */
+.detail-title {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+.detail-subtitle {
+    color: #5f6368;
+    margin-bottom: 28px;
+}
+
+/* Section divider */
+.section-divider {
+    border-top: 1px solid #e8eaed;
+    padding-top: 24px;
+}
+
+/* Review card for completed deals */
+.review-item {
+    background: #f5f7fa;
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+.review-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 8px;
+}
+.review-item__title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+.review-item__author {
+    font-size: 12px;
+    color: #5f6368;
+}
+
+/* Review section divider */
+.review-section-divider {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e8eaed;
+}
+
+/* Write review button */
+.btn-write-review {
+    display: inline-block;
+    background: #1A73E8;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+}
+.btn-write-review:hover {
+    background: #1557b0;
+}
+
+/* Action form section */
+.action-form-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e8eaed;
+}
+
+/* Full width action button */
+.action-btn--full {
+    width: 100%;
+}
+
+/* Service info display box */
+.service-info-box {
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    color: #333;
+}
+.service-info-box--tall {
+    min-height: 80px;
+}
+.service-info-box--narrow {
+    max-width: 300px;
+}
+
+/* Stars display */
+.stars-display {
+    color: #ffa500;
+    font-size: 16px;
+}
+
+/* Review metadata */
+.review-date {
+    color: #999;
+    font-size: 13px;
+}
+.reviewer-name {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Flex gap for reviews */
+.review-header-flex {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Preview header */
+.preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+.preview-header__text {
+    margin: 0;
+}
+.btn-edit-small {
+    background: #e8e8e8;
+    color: #0066cc;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: 16px;
+}
+.btn-edit-small:hover {
+    background: #d9d9d9;
+}
+
+/* Reviews list in public view */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Marketplace public main centered */
+.main--centered {
+    margin-left: 0;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+/* Profile button link */
+.btn-profile-link:hover {
+    background-color: #1557b0;
+}
+
+/* Reviews container in service view */
+.reviews-container {
+    margin-top: 40px;
+    padding: 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.reviews-container__title {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+/* Review card in public view */
+.review-card {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+.review-card__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.review-card__author {
+    font-weight: 500;
+}
+.review-card__date {
+    color: #666;
+    font-size: 14px;
+}
+.review-card__stars {
+    color: #ffa500;
+    margin-bottom: 8px;
+}
+.review-card__text {
+    margin: 0;
+    color: #666;
+}
+.review-card__text--padded {
+    line-height: 1.5;
+}
+
+/* Empty state box */
+.empty-state-box {
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    color: #666;
+    text-align: center;
+}
+
+/* Font size utilities */
+.font-size-18 {
+    font-size: 18px;
+}
+
+/* Margin bottom utilities */
+.mb-20 {
+    margin-bottom: 20px;
+}
+.mb-32 {
+    margin-bottom: 32px;
+}
+
+/* Login notice box */
+.login-notice {
+    margin-bottom: 32px;
+    padding: 16px 20px;
+    background: #e8f0fe;
+    border: 1px solid #d2e3fc;
+    border-radius: 12px;
+    text-align: center;
+}
+.notice-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.notice-text {
+    color: #1967d2;
+    font-size: 15px;
+}
+.notice-link {
+    font-weight: 600;
+    text-decoration: underline;
+    color: #1967d2;
+}
+.notice-link:hover {
+    color: #1557b0;
+}
+
+/* Search form row */
+.search-form-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.search-input-flex {
+    flex: 1;
+    min-width: 0;
+    border-radius: 24px;
+    padding: 12px 20px;
+}
+.search-select {
+    width: 180px;
+    flex-shrink: 0;
+    border-radius: 8px;
+}
+
+/* Cards grid 4 columns */
+.cards-grid--4col {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Card clickable */
+.card--clickable {
+    cursor: pointer;
+}
+
+/* Rating star color */
+.rating-star {
+    color: #fbbc04;
+}
+
+/* Pagination container */
+.pagination-container {
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+}
+.pagination-info {
+    font-size: 14px;
+    color: #5f6368;
+}
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Input max width */
+.input--narrow {
+    max-width: 300px;
+}
+
+/* Cards grid 3 columns */
+.cards-grid--3col {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* Sidebar helper text */
+.sidebar-helper {
+    font-size: 13px;
+    color: #5f6368;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+}
+
+/* Disabled states for company select */
+.tradeflow-sidebar-company-select--disabled {
+    cursor: default;
+}
+.tradeflow-sidebar-company-select-name--muted {
+    color: #9aa0a6;
+    font-size: 13px;
+}
+
+/* White button variant */
+.btn-primary--white {
+    background-color: white;
+    color: #2563eb;
+    margin-left: 16px;
+}
+
+/* Profile page */
+.profile-wrapper {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+.profile-form {
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.profile-field {
+    margin-bottom: 24px;
+}
+.profile-field--last {
+    margin-bottom: 32px;
+}
+.profile-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 8px;
+}
+.profile-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    font-size: 15px;
+}
+.profile-input--readonly {
+    background: #e2e8f0;
+    cursor: not-allowed;
+}
+.btn-save-profile {
+    width: 100%;
+    padding: 14px;
+    background-color: #4c6ef5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.btn-save-profile:hover {
+    background-color: #3b5bdb;
+}
+.profile-back-link {
+    text-align: center;
+    margin-top: 24px;
+    margin-bottom: 48px;
+}
+.profile-back-link a {
+    color: #718096;
+    text-decoration: none;
+    font-size: 15px;
+}
+.profile-back-link a:hover {
+    text-decoration: underline;
+}
+
+/* Trade request page utilities */
+.mb-24 {
+    margin-bottom: 24px;
+}
+.mt-8 {
+    margin-top: 8px;
+}
+.mt-24 {
+    margin-top: 24px;
+}
+.link-back--plain {
+    text-decoration: none;
+}
+.service-info-display {
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    color: #333;
+}
+.service-info-display--tall {
+    min-height: 80px;
+}
+.service-info-display--narrow {
+    max-width: 300px;
+}
+.category-grid--inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.category-item--readonly {
+    pointer-events: none;
+}
+.no-categories-box {
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    color: #666;
+}
+.reviews-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.review-card--inline {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 6px;
+}
+.review-card__header--flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.reviewer-name--bold {
+    font-weight: 500;
+    color: #333;
+}
+.review-meta-flex {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.review-stars--orange {
+    color: #ffa500;
+    font-size: 16px;
+}
+.review-date--muted {
+    color: #999;
+    font-size: 13px;
+}
+.review-comment {
+    margin: 0;
+    color: #666;
+    line-height: 1.5;
+}
+.btn-send-trade {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 24px;
+    background: #1A73E8;
+}
+.trade-request-helper {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #5f6368;
+    line-height: 1.5;
+    text-align: center;
+}
+.warning-box {
+    padding: 20px;
+    background: #fff3cd;
+    border-radius: 8px;
+    color: #856404;
+    margin-top: 24px;
+    text-align: center;
+    border: 1px solid #ffeaa7;
+}
+.error-text {
+    color: #dc3545;
+    margin-bottom: 12px;
+}
+
+/* Service detail page */
+.back-link--inline {
+    display: inline-flex;
+    align-items: center;
+    color: #1a73e8;
+    text-decoration: none;
+    margin-bottom: 20px;
+    font-size: 14px;
+    gap: 6px;
+}
+.service-header__title {
+    margin: 0 0 8px 0;
+    color: white;
+    font-size: 32px;
+    font-weight: 600;
+}
+.service-header__subtitle {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 16px;
+    font-weight: 500;
+}
+.company-name--blue {
+    margin-top: 0;
+    color: var(--blue);
+}
+.text-muted {
+    color: var(--gray);
+}
+.section-title--top {
+    margin-top: 0;
+}
+.text-line-height {
+    line-height: 1.6;
+}
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+.categories-block {
+    margin-top: 16px;
+}
+.interest-list {
+    margin: 0;
+    padding-left: 20px;
+}
+.interest-list li {
+    margin-bottom: 8px;
+}
+.form-links--mt {
+    margin-top: 24px;
+}
+
+/* Additional utility classes */
+.text-success {
+    color: #28a745;
+    font-weight: 500;
+}
+.mb-12 {
+    margin-bottom: 12px;
+}
+.mt-12 {
+    margin-top: 12px;
+}
+.no-margin {
+    margin: 0;
+}
+.btn-inline {
+    display: inline-block;
+    text-decoration: none;
+}
+
+/* Support page */
+.support-intro {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+.feature-card--first {
+    margin-top: 30px;
+}
+.feature-card--gap {
+    margin-top: 20px;
+}
+
+/* Tradeflow detail headers */
+.tradeflow-header-title {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+.tradeflow-header-subtitle {
+    color: #5f6368;
+    margin-bottom: 28px;
+}
+.tradeflow-subtitle--mb20 {
+    margin-bottom: 20px;
+}
+
+/* Fairness card component */
+.fairness-card {
+    border: 1px solid #e8eaed;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    background: #f9fbff;
+}
+.fairness-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.fairness-score-value {
+    color: #202124;
+    font-weight: 600;
+    font-size: 18px;
+}
+.fairness-explanation {
+    color: #5f6368;
+    font-size: 13px;
+}
+.fairness-svi-info {
+    text-align: right;
+    color: #5f6368;
+    font-size: 13px;
+}
+.fairness-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+.fairness-mix-card {
+    background: #fff;
+    border: 1px solid #e8eaed;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+/* Section dividers */
+.section-divider--top {
+    border-top: 1px solid #e8eaed;
+    padding-top: 24px;
+}
+.section-divider--top-mt6 {
+    border-top: 1px solid #e8eaed;
+    padding-top: 20px;
+    margin-top: 6px;
+}
+.section-divider--top-mt24 {
+    border-top: 1px solid #e8eaed;
+    padding-top: 24px;
+    margin-top: 24px;
+}
+
+/* Agreement section */
+.agreement-text {
+    color: #5f6368;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+/* Delivery status section */
+.delivery-section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+.delivery-success-box {
+    background: #e8f5e9;
+    border-left: 4px solid #34a853;
+    padding: 16px;
+    border-radius: 6px;
+    margin-top: 20px;
+}
+.delivery-success-text {
+    color: #1b5e20;
+    font-weight: 600;
+}
+
+/* Review write section */
+.review-service-card {
+    padding: 16px 0;
+}
+.review-service-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.review-service-desc {
+    color: #5f6368;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+.review-service-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: #5f6368;
+}
+.warning-box--yellow {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+/* Additional margin utilities */
+.mb-6 {
+    margin-bottom: 6px;
+}
+.mt-4 {
+    margin-top: 4px;
+}

@@ -27,38 +27,38 @@ body {
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 700px; margin: 0 auto; padding: 0 20px;">
+<div class="profile-wrapper">
     <div class="profile-header">
         <h1>My Profile</h1>
         <p>Manage your personal information and settings</p>
     </div>
                 
-    <form method="post" style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <div style="margin-bottom: 24px;">
-            <label for="username" style="display: block; font-size: 14px; font-weight: 600; color: #4a5568; margin-bottom: 8px;">Username</label>
-            <input type="text" id="username" name="username" value="{{ user.username or '' }}" readonly style="width: 100%; padding: 12px 16px; background: #e2e8f0; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 15px; cursor: not-allowed;">
+    <form method="post" class="profile-form">
+        <div class="profile-field">
+            <label for="username" class="profile-label">Username</label>
+            <input type="text" id="username" name="username" value="{{ user.username or '' }}" readonly class="profile-input profile-input--readonly">
         </div>
         
-        <div style="margin-bottom: 24px;">
-            <label for="email" style="display: block; font-size: 14px; font-weight: 600; color: #4a5568; margin-bottom: 8px;">Email</label>
-            <input type="email" id="email" name="email" value="{{ user.email or '' }}" placeholder="your.email@example.com" style="width: 100%; padding: 12px 16px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 15px;">
+        <div class="profile-field">
+            <label for="email" class="profile-label">Email</label>
+            <input type="email" id="email" name="email" value="{{ user.email or '' }}" placeholder="your.email@example.com" class="profile-input">
         </div>
         
-        <div style="margin-bottom: 24px;">
-            <label for="location" style="display: block; font-size: 14px; font-weight: 600; color: #4a5568; margin-bottom: 8px;">Location</label>
-            <input type="text" id="location" name="location" value="{{ user.location or '' }}" placeholder="e.g., Brussels, Belgium" style="width: 100%; padding: 12px 16px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 15px;">
+        <div class="profile-field">
+            <label for="location" class="profile-label">Location</label>
+            <input type="text" id="location" name="location" value="{{ user.location or '' }}" placeholder="e.g., Brussels, Belgium" class="profile-input">
         </div>
         
-        <div style="margin-bottom: 32px;">
-            <label for="jobdescription" style="display: block; font-size: 14px; font-weight: 600; color: #4a5568; margin-bottom: 8px;">Job Description</label>
-            <input type="text" id="jobdescription" name="jobdescription" value="{{ user.job_description or '' }}" placeholder="e.g., Software Engineer" style="width: 100%; padding: 12px 16px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 15px;">
+        <div class="profile-field profile-field--last">
+            <label for="jobdescription" class="profile-label">Job Description</label>
+            <input type="text" id="jobdescription" name="jobdescription" value="{{ user.job_description or '' }}" placeholder="e.g., Software Engineer" class="profile-input">
         </div>
         
-        <button type="submit" style="width: 100%; padding: 14px; background-color: #4c6ef5; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.2s;">Save Changes</button>
+        <button type="submit" class="btn-save-profile">Save Changes</button>
     </form>
     
-    <div style="text-align: center; margin-top: 24px; margin-bottom: 48px;">
-        <a href="{{ url_for('main.my_companies') }}" style="color: #718096; text-decoration: none; font-size: 15px;">← Back to My Companies</a>
+    <div class="profile-back-link">
+        <a href="{{ url_for('main.my_companies') }}">← Back to My Companies</a>
     </div>
 </div>
 {% endblock %}

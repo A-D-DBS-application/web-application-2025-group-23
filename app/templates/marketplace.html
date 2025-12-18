@@ -11,7 +11,7 @@
             <div class="tradeflow-sidebar-header">
                 <div class="tradeflow-sidebar-company">
                     <div class="tradeflow-sidebar-company-label">Company</div>
-                    <p style="font-size: 13px; color: #5f6368; margin: 0 0 12px 0; line-height: 1.4;">Select the company you want to browse as.</p>
+                    <p class="sidebar-helper">Select the company you want to browse as.</p>
                     <div class="tradeflow-sidebar-company-dropdown">
                         {% if is_logged_in and user_companies %}
                         <button type="button" class="tradeflow-sidebar-company-select" id="marketplace-company-select-btn" aria-expanded="false" aria-haspopup="true">
@@ -42,14 +42,14 @@
                         </div>
                         {% endif %}
                         {% elif is_logged_in %}
-                        <div class="tradeflow-sidebar-company-select" style="cursor: default;">
+                        <div class="tradeflow-sidebar-company-select tradeflow-sidebar-company-select--disabled">
                             <div class="tradeflow-sidebar-company-select-text">
                                 <span class="tradeflow-sidebar-company-select-prefix">Browsing as:</span>
-                                <span class="tradeflow-sidebar-company-select-name" style="color: #9aa0a6; font-size: 13px;">Not a member yet</span>
+                                <span class="tradeflow-sidebar-company-select-name tradeflow-sidebar-company-select-name--muted">Not a member yet</span>
                             </div>
                         </div>
                         {% else %}
-                        <div class="tradeflow-sidebar-company-select" style="cursor: default;">
+                        <div class="tradeflow-sidebar-company-select tradeflow-sidebar-company-select--disabled">
                             <div class="tradeflow-sidebar-company-select-text">
                                 <span class="tradeflow-sidebar-company-select-prefix">Browsing as:</span>
                                 <span class="tradeflow-sidebar-company-select-name">No company selected</span>
@@ -122,17 +122,17 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 32px;">
-                <form method="get" style="display: flex; gap: 12px;">
+            <div class="mb-32">
+                <form method="get" class="search-form-row">
                     {% if selected_company %}
                     <input type="hidden" name="company_id" value="{{ selected_company.company_id }}">
                     {% endif %}
-                    <input type="text" name="search" placeholder="Search services..." class="form-input" value="{{ search_query or '' }}" style="flex: 1;">
+                    <input type="text" name="search" placeholder="Search services..." class="form-input search-input-flex" value="{{ search_query or '' }}">
                     <button type="submit" class="btn-primary">Search</button>
                 </form>
             </div>
 
-            <div class="cards-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="cards-grid cards-grid--3col">
                 {% for service in services %}
                 <div class="card" onclick="window.location.href='{% if is_logged_in and user_companies %}{{ url_for('main.marketplace_service_view', service_id=service.service_id) }}{% else %}{{ url_for('main.marketplace_service_detail_view', service_id=service.service_id) }}{% endif %}'">
                     <div class="card-company">{{ service.company.name }}</div>
@@ -151,7 +151,7 @@
                         <span>{{ service.duration_hours }} hours</span>
                         {% set rating_key = service.service_id|string %}
                         {% if rating_key in service_ratings %}
-                        <span style="color: #fbbc04;">★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }})</span>
+                        <span class="rating-star">★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }})</span>
                         {% endif %}
                     </div>
                     
@@ -166,19 +166,19 @@
             </div>
 
             {% if pagination and pagination.pages > 1 %}
-            <div style="margin-top: 32px; display: flex; align-items: center; gap: 16px; justify-content: center;">
+            <div class="pagination-container">
                 {% if pagination.has_prev %}
                     <a href="{{ url_for('main.marketplace', page=pagination.prev_num, search=search_query, category=category_filter) }}" class="btn-secondary">&larr; Previous</a>
                 {% else %}
-                    <button class="btn-secondary" disabled style="opacity: 0.5; cursor: not-allowed;">&larr; Previous</button>
+                    <button class="btn-secondary btn-disabled" disabled>&larr; Previous</button>
                 {% endif %}
 
-                <span style="font-size: 14px; color: #5f6368;">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+                <span class="pagination-info">Page {{ pagination.page }} of {{ pagination.pages }}</span>
 
                 {% if pagination.has_next %}
                     <a href="{{ url_for('main.marketplace', page=pagination.next_num, search=search_query, category=category_filter) }}" class="btn-secondary">Next &rarr;</a>
                 {% else %}
-                    <button class="btn-secondary" disabled style="opacity: 0.5; cursor: not-allowed;">Next &rarr;</button>
+                    <button class="btn-secondary btn-disabled" disabled>Next &rarr;</button>
                 {% endif %}
             </div>
             {% endif %}

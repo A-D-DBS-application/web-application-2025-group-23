@@ -24,10 +24,10 @@
           </div>
         </div>
         
-        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e8eaed;">
+        <div class="action-form-section">
           <form method="POST" action="{{ url_for('main.tradeflow_select_return', company_id=company.company_id, request_id=request_id) }}">
             <input type="hidden" name="selected_service_id" value="{{ service.service_id }}">
-            <button type="submit" class="action-btn" style="width: 100%;">Create Match with this Service</button>
+            <button type="submit" class="action-btn action-btn--full">Create Match with this Service</button>
           </form>
         </div>
       </div>

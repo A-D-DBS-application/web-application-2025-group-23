@@ -29,15 +29,15 @@
         <div class="review-section">
           <div class="review-title">Reviews</div>
           {% for review in reviews %}
-          <div style="background: #f5f7fa; padding: 16px; border-radius: 6px; margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+          <div class="review-item">
+            <div class="review-item__header">
               <div>
-                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Review for: {{ review.reviewed_service.title }}</div>
+                <div class="review-item__title">Review for: {{ review.reviewed_service.title }}</div>
                 <div class="star-rating">
                   {% for i in range(review.rating) %}<span class="star">★</span>{% endfor %}{% for i in range(5 - review.rating) %}<span class="star inactive">★</span>{% endfor %}
                 </div>
               </div>
-              <div style="font-size: 12px; color: #5f6368;">by {{ review.reviewer.username }}</div>
+              <div class="review-item__author">by {{ review.reviewer.username }}</div>
             </div>
             <div class="review-text">{{ review.comment }}</div>
           </div>
@@ -45,8 +45,8 @@
         </div>
         {% endif %}
 
-        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e8eaed;">
-          <a href="{{ url_for('main.tradeflow_write_review', company_id=company.company_id, deal_id=active_deal.active_deal_id) }}" class="btn" style="display: inline-block; background: #1A73E8; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Write Review</a>
+        <div class="review-section-divider">
+          <a href="{{ url_for('main.tradeflow_write_review', company_id=company.company_id, deal_id=active_deal.active_deal_id) }}" class="btn-write-review">Write Review</a>
         </div>
       </div>
     </main>

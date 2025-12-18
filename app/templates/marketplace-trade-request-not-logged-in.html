@@ -7,50 +7,50 @@
 
 <div class="tradeflow-container">
     <!-- Main Content - Full Width -->
-    <main class="main" style="max-width: 100%; margin: 0; padding: 40px 80px;">
-        <div style="margin-bottom: 24px;">
-            <a href="{{ url_for('main.marketplace_public') }}" class="link-back" style="text-decoration: none;">← Back to marketplace</a>
+    <main class="main main-full-width">
+        <div class="mb-24">
+            <a href="{{ url_for('main.marketplace_public') }}" class="link-back text-decoration-none">← Back to marketplace</a>
         </div>
         
         <div class="page-header">
             <h1 class="page-title">{{ service.title }}</h1>
-            <p class="page-subtitle" style="margin-top: 8px;">offered by {{ service.company.name if service.company else 'Unknown Company' }}</p>
+            <p class="page-subtitle mt-8">offered by {{ service.company.name if service.company else 'Unknown Company' }}</p>
         </div>
         
         <div class="service-form">
             <div class="form-field form-field--full">
                 <label>Service Title</label>
-                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333;">
+                <div class="form-display-box">
                     {{ service.title }}
                 </div>
             </div>
 
             <div class="form-field form-field--full">
                 <label>Description</label>
-                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333; min-height: 80px;">
+                <div class="form-display-box form-display-box--tall">
                     {{ service.description or 'No description' }}
                 </div>
             </div>
 
             <div class="form-field form-field--full">
                 <label>Duration (hours)</label>
-                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333;">
+                <div class="form-display-box">
                     {{ service.duration_hours }}
                 </div>
             </div>
 
             <div class="form-field form-field--full">
                 <label>Categories</label>
-                <div class="category-grid" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                <div class="category-grid">
                     {% if service.categories %}
                         {% for cat in service.categories.split(',') %}
-                            <div class="category-item" style="pointer-events: none;">
+                            <div class="category-item category-item--disabled">
                                 <input type="checkbox" id="cat_{{ loop.index }}" checked disabled>
                                 <label for="cat_{{ loop.index }}">{{ cat.strip() }}</label>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #666;">
+                        <div class="empty-box">
                             No categories selected
                         </div>
                     {% endif %}
@@ -60,43 +60,43 @@
             <div class="form-field form-field--full">
                 <label>Reviews</label>
                 {% if reviews and reviews|length > 0 %}
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="d-flex flex-column gap-12">
                         {% for review in reviews %}
-                        <div style="background: #f8f9fa; padding: 16px; border-radius: 6px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="font-weight: 500; color: #333;">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="color: #ffa500; font-size: 16px;">
+                        <div class="review-card-inline">
+                            <div class="review-card-inline__header">
+                                <span class="review-card-inline__author">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
+                                <div class="review-card-inline__meta">
+                                    <div class="review-card-inline__rating">
                                         {% for i in range(review.rating) %}★{% endfor %}
                                         {% for i in range(5 - review.rating) %}☆{% endfor %}
                                     </div>
-                                    <span style="color: #999; font-size: 13px;">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+                                    <span class="review-card-inline__date">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
                                 </div>
                             </div>
-                            <p style="margin: 0; color: #666; line-height: 1.5;">{{ review.comment }}</p>
+                            <p class="review-card-inline__comment">{{ review.comment }}</p>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div style="padding: 16px; background: #f5f5f5; border-radius: 4px; color: #666; text-align: center;">
+                    <div class="empty-box">
                         No reviews yet for this service
                     </div>
                 {% endif %}
             </div>
 
             <!-- Disabled Send Trade Request Button -->
-            <button type="button" disabled class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px; font-weight: 600; margin-top: 24px; background: #d3d3d3; color: #888; cursor: not-allowed; border: none;">Send Trade Request</button>
+            <button type="button" disabled class="btn-cta-full btn-cta-full--disabled mt-24">Send Trade Request</button>
             
             <!-- Login/Register Notice -->
-            <div style="margin-top: 24px;">
+            <div class="mt-24">
                 {% if is_logged_in %}
-                <p style="margin: 0 0 20px 0; color: #5f6368; font-size: 14px; line-height: 1.5; text-align: center;">You need to be part of a company to send trade requests. Create or join a company to start trading services on Barter.com</p>
-                <a href="{{ url_for('main.create_company') }}" class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px; font-weight: 600; text-decoration: none; display: block; text-align: center; background: #1A73E8; color: white; border-radius: 4px; margin-bottom: 12px;">Create company</a>
-                <a href="{{ url_for('main.join_company') }}" class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px; font-weight: 600; text-decoration: none; display: block; text-align: center; background: #1A73E8; color: white; border-radius: 4px;">Join company</a>
+                <p class="info-notice">You need to be part of a company to send trade requests. Create or join a company to start trading services on Barter.com</p>
+                <a href="{{ url_for('main.create_company') }}" class="btn-cta-full btn-cta-full--primary mb-12">Create company</a>
+                <a href="{{ url_for('main.join_company') }}" class="btn-cta-full btn-cta-full--primary">Join company</a>
                 {% else %}
-                <p style="margin: 0 0 20px 0; color: #5f6368; font-size: 14px; line-height: 1.5; text-align: center;">You must be logged in to send a trade request. Log in or create an account to start trading services on Barter.com</p>
-                <a href="{{ url_for('main.login') }}" class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px; font-weight: 600; text-decoration: none; display: block; text-align: center; background: #1A73E8; color: white; border-radius: 4px; margin-bottom: 12px;">Log in</a>
-                <a href="{{ url_for('main.register') }}" class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px; font-weight: 600; text-decoration: none; display: block; text-align: center; background: #1A73E8; color: white; border-radius: 4px;">Create an Account</a>
+                <p class="info-notice">You must be logged in to send a trade request. Log in or create an account to start trading services on Barter.com</p>
+                <a href="{{ url_for('main.login') }}" class="btn-cta-full btn-cta-full--primary mb-12">Log in</a>
+                <a href="{{ url_for('main.register') }}" class="btn-cta-full btn-cta-full--primary">Create an Account</a>
                 {% endif %}
             </div>
         </div>
