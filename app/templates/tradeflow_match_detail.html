@@ -15,22 +15,38 @@
       
       <div class="detail-card" style="max-width: none; width: 100%;">
         <!-- Service Cards -->
+        {% if company.company_id == proposal.from_company.company_id %}
+          {# Current user is from_company - they made the proposal #}
+          {# They REQUEST from_service and OFFER to_service #}
+          {% set their_service = proposal.from_service %}
+          {% set their_company = proposal.from_company %}
+          {% set my_service = proposal.to_service %}
+          {% set my_company = proposal.to_company %}
+        {% else %}
+          {# Current user is to_company - they received the proposal #}
+          {# They REQUEST to_service and OFFER from_service #}
+          {% set their_service = proposal.to_service %}
+          {% set their_company = proposal.to_company %}
+          {% set my_service = proposal.from_service %}
+          {% set my_company = proposal.from_company %}
+        {% endif %}
+        
         <div class="pair-grid">
           <div class="pair-side" style="border: 2px solid #1A73E8; background: #f0f7ff;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
               <span style="background: #1A73E8; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase;">You Request</span>
             </div>
-            <div class="pair-label">{{ proposal.from_company.name }} offers</div>
-            <div class="pair-service" style="color: #1A73E8;">{{ proposal.from_service.title }}</div>
-            <div class="pair-desc">{{ proposal.from_service.description }}</div>
+            <div class="pair-label">{{ their_company.name }} offers</div>
+            <div class="pair-service" style="color: #1A73E8;">{{ their_service.title }}</div>
+            <div class="pair-desc">{{ their_service.description }}</div>
           </div>
           <div class="pair-side" style="border: 2px solid #9aa0a6; background: #f5f5f5;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
               <span style="background: #5f6368; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase;">You Offer</span>
             </div>
-            <div class="pair-label">{{ proposal.to_company.name }} offers</div>
-            <div class="pair-service" style="color: #5f6368;">{{ proposal.to_service.title }}</div>
-            <div class="pair-desc">{{ proposal.to_service.description }}</div>
+            <div class="pair-label">{{ my_company.name }} offers</div>
+            <div class="pair-service" style="color: #5f6368;">{{ my_service.title }}</div>
+            <div class="pair-desc">{{ my_service.description }}</div>
           </div>
         </div>
         
@@ -101,7 +117,7 @@
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
                 <div style="flex: 1; text-align: center;">
                   <div style="font-size: 14px; font-weight: 600; color: #5f6368; margin-bottom: 8px;">You request:</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #202124;">{{ proposal.from_service.title }}</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #202124;">{{ their_service.title }}</div>
                   <div style="display: flex; justify-content: center; gap: 4px; margin-top: 8px;">
                     {% for i in range(5) %}
                     <span style="width: 12px; height: 12px; border-radius: 50%; background: {% if i < (fairness_data.requested.svi * 5)|round|int %}#34a853{% else %}#dadce0{% endif %};"></span>
@@ -113,7 +129,7 @@
                 
                 <div style="flex: 1; text-align: center;">
                   <div style="font-size: 14px; font-weight: 600; color: #5f6368; margin-bottom: 8px;">You offer:</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #202124;">{{ proposal.to_service.title }}</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #202124;">{{ my_service.title }}</div>
                   <div style="display: flex; justify-content: center; gap: 4px; margin-top: 8px;">
                     {% for i in range(5) %}
                     <span style="width: 12px; height: 12px; border-radius: 50%; background: {% if i < (fairness_data.return.svi * 5)|round|int %}#34a853{% else %}#dadce0{% endif %};"></span>
