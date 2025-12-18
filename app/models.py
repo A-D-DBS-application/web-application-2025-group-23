@@ -42,17 +42,8 @@ class User(db.Model):
     email = db.Column(db.Text)
     password_hash = db.Column(db.Text, nullable=False)
 
-    # Korte beschrijving/omschrijving van iemands job / functie
-    job_description = db.Column(db.Text)
-
-    location = db.Column(db.Text)
-
-    verified = db.Column(db.Boolean)         # mag NULL zijn in Supabase
-
     created_at = db.Column(DateTime(timezone=True))
-    updated_at = db.Column(DateTime(timezone=True))
-
-    role = db.Column(db.Text)                
+    updated_at = db.Column(DateTime(timezone=True))                
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
@@ -179,12 +170,6 @@ class Service(db.Model):
 
     is_offered = db.Column(db.Boolean, nullable=False, default=True)  # True = offering service
     is_active = db.Column(db.Boolean, nullable=False, default=True)  # Can be deactivated
-
-    value_estimate = db.Column(db.Numeric)              # numeric, mag NULL
-    availability = db.Column(JSONB)                     # jsonb, bv. {"mon": ["evening"]}
-
-    # In Supabase: ENUM 'service_status' → hier gewoon Text
-    status = db.Column(db.Text, nullable=False, default='active')
 
     created_at = db.Column(DateTime(timezone=True))
     updated_at = db.Column(DateTime(timezone=True))

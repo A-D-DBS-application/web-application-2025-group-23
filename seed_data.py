@@ -184,8 +184,6 @@ def seed_database(force_reset=False):
                 username=username,
                 email=f"{username}@example.com",
                 password_hash=generate_password_hash('testgebruiker'),
-                location=f"City {i % 5 + 1}",
-                job_description=f"Professional in field {i % 3 + 1}",
                 created_at=datetime.datetime.now(datetime.timezone.utc),
                 updated_at=datetime.datetime.now(datetime.timezone.utc)
             )
