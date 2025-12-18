@@ -86,7 +86,7 @@ def company_choice():
 
 @main.route("/select-company-tradeflow")
 def select_company_for_tradeflow():
-    """Let the user pick which company to use for tradeflow."""
+    """Redirect directly to tradeflow with auto-selected company."""
     if "user_id" not in session:
         return redirect(url_for("main.login"))
 
@@ -97,67 +97,26 @@ def select_company_for_tradeflow():
         flash('You need to be a member of a company to access Tradeflow', 'error')
         return redirect(url_for('main.my_companies'))
 
-    # If user is in only 1 company, automatically select it
-    if len(memberships) == 1:
-        company = Company.query.get(memberships[0].company_id)
-        if company:
-            return redirect(url_for('main.tradeflow_incoming_requests', company_id=company.company_id))
-
-    # Multiple companies - always show selection page
-    companies = []
-    for membership in memberships:
-        comp = Company.query.get(membership.company_id)
-        if comp:
-            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
-            service_count = Service.query.filter_by(company_id=comp.company_id).count()
-            companies.append({
-                "company_id": comp.company_id,
-                "name": comp.name,
-                "description": comp.description,
-                "member_count": member_count,
-                "service_count": service_count,
-                "is_admin": membership.is_admin
-            })
-
-    return render_template("select_company.html", companies=companies, destination='tradeflow')
-
-
-@main.route("/select-company-marketplace")
-def select_company_for_marketplace():
-    """Let the user pick which company to use for the marketplace."""
-    if "user_id" not in session:
-        return redirect(url_for("main.login"))
-
-    uid = uuid.UUID(session["user_id"])
-    memberships = CompanyMember.query.filter_by(user_id=uid).all()
-
-    # If user has no companies, redirect to public marketplace
-    if len(memberships) == 0:
-        return redirect(url_for('main.marketplace_public'))
-
-    # If user is in only 1 company, automatically select it and go to marketplace
-    if len(memberships) == 1:
-        company = Company.query.get(memberships[0].company_id)
-        if company:
-            return redirect(url_for('main.marketplace', company_id=company.company_id))
-
-    # Multiple companies - always show selection page
-    companies = []
-    for membership in memberships:
-        comp = Company.query.get(membership.company_id)
-        if comp:
-            member_count = CompanyMember.query.filter_by(company_id=comp.company_id).count()
-            service_count = Service.query.filter_by(company_id=comp.company_id).count()
-            companies.append({
-                "company_id": comp.company_id,
-                "name": comp.name,
-                "description": comp.description,
-                "member_count": member_count,
-                "service_count": service_count,
-                "is_admin": membership.is_admin
-            })
-
-    return render_template("select_company.html", companies=companies, destination='marketplace')
+    # Auto-select company logic
+    selected_company_id = session.get('selected_company_id')
+    
+    # If user has a selected company in session and is still a member, use it
+    if selected_company_id:
+        selected_membership = CompanyMember.query.filter_by(
+            user_id=uid, 
+            company_id=uuid.UUID(selected_company_id)
+        ).first()
+        if selected_membership:
+            return redirect(url_for('main.tradeflow_incoming_requests', company_id=selected_company_id))
+    
+    # Otherwise, use the first company
+    first_company = Company.query.get(memberships[0].company_id)
+    if first_company:
+        return redirect(url_for('main.tradeflow_incoming_requests', company_id=first_company.company_id))
+    
+    # Fallback
+    flash('Unable to access Tradeflow', 'error')
+    return redirect(url_for('main.my_companies'))
 
 
 # ==================== AUTHENTICATION ROUTES ====================
@@ -210,8 +169,8 @@ def login():
                 company = Company.query.get(memberships[0].company_id)
                 return redirect(url_for('main.marketplace', company_id=company.company_id))
             else:
-                # Multiple companies, go to select company screen
-                return redirect(url_for('main.select_company_for_marketplace'))
+                # Multiple companies, go to marketplace (user can select company from sidebar)
+                return redirect(url_for('main.marketplace'))
         
         flash('Invalid username or password', 'error')
         return render_template('login.html')
@@ -710,13 +669,16 @@ def workspace_service_view(company_id, service_id):
         flash('Service does not belong to this company', 'error')
         return redirect(url_for('main.workspace_services', company_id=company_id))
 
+    reviews = Review.query.filter_by(reviewed_service_id=service_id).all()
+
     return render_template(
         'workspace_service_public_view.html',
         company=company,
         service=service,
+        reviews=reviews,
         is_admin=membership.is_admin,
         username=User.query.get(uid).username if User.query.get(uid) else '',
-        companies=companies,
+        user_companies=companies,
     )
 
 
@@ -975,6 +937,39 @@ def delete_service(service_id):
     
     flash('Service deleted successfully', 'success')
     return redirect(url_for('main.workspace_services', company_id=company_id))
+
+
+@main.route('/marketplace/service/<uuid:service_id>')
+def marketplace_service_detail_view(service_id):
+    """Public service detail view for marketplace (no login required to view)."""
+    service = Service.query.get_or_404(service_id)
+    company = Company.query.get(service.company_id)
+    
+    # Get reviews for this service
+    reviews = Review.query.filter_by(reviewed_service_id=service_id).all()
+    
+    # Check if user is logged in
+    is_logged_in = 'user_id' in session
+    user_company_id = None
+    is_admin = False
+    
+    if is_logged_in:
+        uid = uuid.UUID(session['user_id'])
+        # Check if user has a company
+        membership = CompanyMember.query.filter_by(user_id=uid).first()
+        if membership:
+            user_company_id = membership.company_id
+            is_admin = membership.is_admin
+    
+    return render_template(
+        'marketplace-trade-request-not-logged-in.html',
+        service=service,
+        company=company,
+        reviews=reviews,
+        is_logged_in=is_logged_in,
+        user_company_id=user_company_id,
+        is_admin=is_admin
+    )
 
 
 # ==================== DEAL ROUTES ====================

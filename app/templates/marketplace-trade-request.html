@@ -1,72 +1,225 @@
 {% extends "base.html" %}
-{% block title %}{{ service.title }} - Barter.com{% endblock %}
+{% block title %}{{ service.title }} - Marketplace | Barter.com{% endblock %}
 {% block nav_marketplace_active %}class="active"{% endblock %}
 
 {% block content %}
-<div class="service-container">
-    <a href="{{ url_for('main.marketplace') }}" class="back-link">← Back to marketplace</a>
-    
-    <div class="service-detail-card">
-        <div class="service-header">
-            <h1>{{ service.title }}</h1>
-            <div class="service-provider">
-                <span class="label">offered by</span>
-                <span class="company-name">{{ service.company.name if service.company else 'Unknown Company' }}</span>
-            </div>
-        </div>
+<link rel="stylesheet" href="{{ url_for('static', filename='tradeflow.css') }}">
 
-        <div class="service-info-grid">
-            <div class="info-item">
-                <span class="info-label">SERVICE DESCRIPTION</span>
-                <span class="info-value">{{ service.description or 'No description' }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">CATEGORY</span>
-                <div class="category-tags-container">
-                    {% if service.categories %}
-                        {% for cat in service.categories.split(',') %}
-                            <span class="category-tag">{{ cat.strip() }}</span>
+<div class="tradeflow-container">
+    <!-- Left Sidebar - Same as marketplace -->
+    <aside class="sidebar tradeflow-sidebar">
+        <div class="tradeflow-sidebar-header">
+            <div class="tradeflow-sidebar-company">
+                <div class="tradeflow-sidebar-company-label">Company</div>
+                <p style="font-size: 13px; color: #5f6368; margin: 0 0 12px 0; line-height: 1.4;">Select the company you want to browse as.</p>
+                <div class="tradeflow-sidebar-company-dropdown">
+                    {% if user_companies %}
+                    <button type="button" class="tradeflow-sidebar-company-select" id="marketplace-company-select-btn" aria-expanded="false" aria-haspopup="true">
+                        <div class="tradeflow-sidebar-company-select-text">
+                            <span class="tradeflow-sidebar-company-select-prefix">Browsing as:</span>
+                            <span class="tradeflow-sidebar-company-select-name">{% if selected_company %}{{ selected_company.name }}{% else %}No company selected{% endif %}</span>
+                        </div>
+                        <span class="tradeflow-sidebar-company-select-chevron">▾</span>
+                    </button>
+                    <div class="tradeflow-sidebar-company-dropdown-menu" id="marketplace-company-dropdown-menu" role="menu">
+                        <a href="{{ url_for('main.marketplace_clear_company') }}?redirect_to={{ url_for('main.marketplace_service_view', service_id=service.service_id) }}" 
+                           class="tradeflow-sidebar-company-dropdown-item {% if not selected_company %}active{% endif %}" 
+                           role="menuitem">
+                            <span class="company-dropdown-name">No company selected</span>
+                            {% if not selected_company %}<span class="company-dropdown-check">✓</span>{% endif %}
+                        </a>
+                        {% for company in user_companies %}
+                        <a href="{{ url_for('main.marketplace_select_company', company_id=company.company_id) }}?redirect_to={{ url_for('main.marketplace_service_view', service_id=service.service_id) }}" 
+                           class="tradeflow-sidebar-company-dropdown-item {% if selected_company and selected_company.company_id == company.company_id %}active{% endif %}" 
+                           role="menuitem">
+                            <span class="company-dropdown-name">{{ company.name }}</span>
+                            {% if selected_company and selected_company.company_id == company.company_id %}<span class="company-dropdown-check">✓</span>{% endif %}
+                        </a>
                         {% endfor %}
+                    </div>
                     {% else %}
-                        <span class="category-tag">Uncategorized</span>
+                    <div class="tradeflow-sidebar-company-select" style="cursor: default;">
+                        <div class="tradeflow-sidebar-company-select-text">
+                            <span class="tradeflow-sidebar-company-select-prefix">Browsing as:</span>
+                            <span class="tradeflow-sidebar-company-select-name" style="color: #9aa0a6; font-size: 13px;">Not a member yet</span>
+                        </div>
+                    </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <div class="service-description">
-            <p><strong>Trading as:</strong> {{ selected_company.name if selected_company else 'N/A' }}</p>
-            <p><strong>Request validity (days)</strong></p>
-            <form method="post" action="{{ url_for('main.marketplace_request_service', service_id=service.service_id) }}">
-                <select name="validity_days" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 1rem;">
-                    <option value="14">14 days</option>
-                    <option value="7">7 days</option>
-                    <option value="30">30 days</option>
-                </select>
-                <button type="submit" class="btn-submit">Send Trade Request</button>
-            </form>
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Categories</div>
+            <a href="{{ url_for('main.marketplace', category='') }}" class="sidebar-link">
+                <span>All</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Marketing') }}" class="sidebar-link">
+                <span>Marketing</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Development') }}" class="sidebar-link">
+                <span>Development</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Writing') }}" class="sidebar-link">
+                <span>Writing</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Design') }}" class="sidebar-link">
+                <span>Design</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Finance') }}" class="sidebar-link">
+                <span>Finance</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Accounting') }}" class="sidebar-link">
+                <span>Accounting</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='IT') }}" class="sidebar-link">
+                <span>IT</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Legal') }}" class="sidebar-link">
+                <span>Legal</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Consulting') }}" class="sidebar-link">
+                <span>Consulting</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Sales') }}" class="sidebar-link">
+                <span>Sales</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='HR') }}" class="sidebar-link">
+                <span>HR</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Operations') }}" class="sidebar-link">
+                <span>Operations</span>
+            </a>
+            <a href="{{ url_for('main.marketplace', category='Customer Support') }}" class="sidebar-link">
+                <span>Customer Support</span>
+            </a>
         </div>
-    </div>
-
-    {% if reviews and reviews|length > 0 %}
-    <div class="reviews-section">
-        <h2>Reviews</h2>
-        <div class="reviews-list">
-            {% for review in reviews %}
-            <div class="review-card">
-                <div class="review-header">
-                    <span class="reviewer-name">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
-                    <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main">
+        <div style="margin-bottom: 24px;">
+            <a href="{{ url_for('main.marketplace') }}" class="link-back" style="text-decoration: none;">← Back to marketplace</a>
+        </div>
+        
+        <div class="page-header">
+            <h1 class="page-title">{{ service.title }}</h1>
+            <p class="page-subtitle" style="margin-top: 8px;">offered by {{ service.company.name if service.company else 'Unknown Company' }}</p>
+        </div>
+        
+        <form method="post" action="{{ url_for('main.marketplace_request_service', service_id=service.service_id) }}" class="service-form">
+            <div class="form-field form-field--full">
+                <label>Service Title</label>
+                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333;">
+                    {{ service.title }}
                 </div>
-                <div class="review-rating">
-                    {% for i in range(review.rating) %}★{% endfor %}
-                    {% for i in range(5 - review.rating) %}☆{% endfor %}
-                </div>
-                <p class="review-text">{{ review.comment }}</p>
             </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
+
+            <div class="form-field form-field--full">
+                <label>Description</label>
+                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333; min-height: 80px;">
+                    {{ service.description or 'No description' }}
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label>Duration (hours)</label>
+                <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #333; max-width: 300px;">
+                    {{ service.duration_hours }}
+                </div>
+            </div>
+
+            <div class="form-field form-field--full">
+                <label>Categories</label>
+                <div class="category-grid" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                    {% if service.categories %}
+                        {% for cat in service.categories.split(',') %}
+                            <div class="category-item" style="pointer-events: none;">
+                                <input type="checkbox" id="cat_{{ loop.index }}" checked disabled>
+                                <label for="cat_{{ loop.index }}">{{ cat.strip() }}</label>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="padding: 10px; background: #f5f5f5; border-radius: 4px; color: #666;">
+                            No categories selected
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-field form-field--full">
+                <label>Reviews</label>
+                {% if reviews and reviews|length > 0 %}
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        {% for review in reviews %}
+                        <div style="background: #f8f9fa; padding: 16px; border-radius: 6px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-weight: 500; color: #333;">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="color: #ffa500; font-size: 16px;">
+                                        {% for i in range(review.rating) %}★{% endfor %}
+                                        {% for i in range(5 - review.rating) %}☆{% endfor %}
+                                    </div>
+                                    <span style="color: #999; font-size: 13px;">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
+                                </div>
+                            </div>
+                            <p style="margin: 0; color: #666; line-height: 1.5;">{{ review.comment }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="padding: 16px; background: #f5f5f5; border-radius: 4px; color: #666; text-align: center;">
+                        No reviews yet for this service
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if selected_company %}
+                <input type="hidden" name="from_company_id" value="{{ selected_company.company_id }}">
+                <input type="hidden" name="to_company_id" value="{{ service.company.company_id if service.company else '' }}">
+                <input type="hidden" name="to_service_id" value="{{ service.service_id }}">
+
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px; font-weight: 600; margin-top: 24px; background: #1A73E8;">Send Trade Request</button>
+                
+                <p style="margin-top: 16px; font-size: 13px; color: #5f6368; line-height: 1.5; text-align: center;">
+                    Sending a trade request shows your interest in this service. The other company will review your request and can respond with a proposal. You can track this in your Incoming Requests.
+                </p>
+            {% else %}
+                <div style="padding: 20px; background: #fff3cd; border-radius: 8px; color: #856404; margin-top: 24px; text-align: center; border: 1px solid #ffeaa7;">
+                    You must select a company before sending a trade request. Choose a company from the “Browse as” dropdown in the sidebar.
+                </div>
+            {% endif %}
+        </form>
+    </main>
 </div>
+
+<script>
+(function() {
+    const companySelectBtn = document.getElementById('marketplace-company-select-btn');
+    const companyDropdownMenu = document.getElementById('marketplace-company-dropdown-menu');
+    
+    if (!companySelectBtn || !companyDropdownMenu) return;
+    
+    companySelectBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isExpanded = companySelectBtn.getAttribute('aria-expanded') === 'true';
+        companySelectBtn.setAttribute('aria-expanded', !isExpanded);
+        companyDropdownMenu.classList.toggle('show', !isExpanded);
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!companySelectBtn.contains(e.target) && !companyDropdownMenu.contains(e.target)) {
+            companySelectBtn.setAttribute('aria-expanded', 'false');
+            companyDropdownMenu.classList.remove('show');
+        }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && companySelectBtn.getAttribute('aria-expanded') === 'true') {
+            companySelectBtn.setAttribute('aria-expanded', 'false');
+            companyDropdownMenu.classList.remove('show');
+        }
+    });
+})();
+</script>
 {% endblock %}

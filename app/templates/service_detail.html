@@ -151,7 +151,7 @@
                         <input type="hidden" name="company_id" value="{{ selected_company_id }}">
                         {% else %}
                         <p style="color: #dc3545; margin-bottom: 12px;">Please select a company from the marketplace first.</p>
-                        <a href="{{ url_for('main.select_company_for_marketplace') }}" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                        <a href="{{ url_for('main.marketplace') }}" class="btn-primary" style="display: inline-block; text-decoration: none;">
                             Select Company
                         </a>
                         {% endif %}
@@ -265,7 +265,7 @@
                         <input type="hidden" name="company_id" value="{{ selected_company_id }}">
                         {% else %}
                         <p style="color: #dc3545; margin-bottom: 12px;">Please select a company from the marketplace first.</p>
-                        <a href="{{ url_for('main.select_company_for_marketplace') }}" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                        <a href="{{ url_for('main.marketplace') }}" class="btn-primary" style="display: inline-block; text-decoration: none;">
                             Select Company
                         </a>
                         {% endif %}

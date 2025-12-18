@@ -223,10 +223,10 @@
 }
 .tradeflow-container .page-header { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: flex-start; }
 .tradeflow-container .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
-.tradeflow-container .page-desc { font-size: 15px; color: #5f6368; line-height: 1.6; max-width: 600px; }
+.tradeflow-container .page-desc { font-size: 15px; color: #5f6368; line-height: 1.6; }
 
 /* Cards grid */
-.tradeflow-container .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.tradeflow-container .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .tradeflow-container a.card { text-decoration: none; color: inherit; display: block; }
 .tradeflow-container .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 20px; transition: all 0.2s; cursor: pointer; }
 .tradeflow-container .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #1A73E8; }

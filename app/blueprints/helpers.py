@@ -159,24 +159,21 @@ def _workspace_context(company_id, require_admin=False):
     return user, membership, company, companies, member_count, service_count, None
 
 
-def _marketplace_context(selected_company_id_str=None, redirect_missing='main.select_company_for_marketplace', logged_in_uid=None):
-    """Load marketplace user, companies, and selected company with consistent redirects."""
+def _marketplace_context(selected_company_id_str=None, redirect_missing=None, logged_in_uid=None, require_company=False):
+    """Load marketplace user, companies, and selected company with optional company selection."""
     if logged_in_uid is None:
         if 'user_id' not in session:
-            return None, None, None, redirect(url_for('main.marketplace_public'))
+            return None, None, None, None
         try:
             logged_in_uid = uuid.UUID(session['user_id'])
         except ValueError:
             session.clear()
-            return None, None, None, redirect(url_for('main.marketplace_public'))
+            return None, None, None, None
 
     uid = logged_in_uid
     memberships = CompanyMember.query.filter_by(user_id=uid).all()
     user_companies = [membership.company for membership in memberships]
-    if not user_companies:
-        # Redirect to public marketplace for logged-in users without a company
-        return uid, user_companies, None, redirect(url_for('main.marketplace_public'))
-
+    
     selected_company_id = None
     if selected_company_id_str:
         try:
@@ -191,13 +188,13 @@ def _marketplace_context(selected_company_id_str=None, redirect_missing='main.se
         except ValueError:
             selected_company_id = None
 
-    if not selected_company_id:
-        return uid, user_companies, None, redirect(url_for(redirect_missing))
-
-    selected_company = next((c for c in user_companies if c and c.company_id == selected_company_id), None)
-    if not selected_company:
-        flash('Select a valid company to browse the marketplace', 'warning')
-        return uid, user_companies, None, redirect(url_for(redirect_missing))
+    selected_company = None
+    if selected_company_id:
+        selected_company = next((c for c in user_companies if c and c.company_id == selected_company_id), None)
+        if not selected_company and require_company:
+            flash('Select a valid company to browse the marketplace', 'warning')
+            if redirect_missing:
+                return uid, user_companies, None, redirect(url_for(redirect_missing))
 
     return uid, user_companies, selected_company, None
 

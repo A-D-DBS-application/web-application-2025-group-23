@@ -14,12 +14,33 @@ PAGE_LIMIT = 60  # cap result set to keep marketplace snappy
 
 @main.route('/marketplace')
 def marketplace():
-    """Main marketplace page for logged-in users with company selection."""
-    uid, user_companies, selected_company, resp = _marketplace_context(request.args.get('company_id'))
-    if resp:
-        return resp
-    user_company_ids = [c.company_id for c in user_companies]
-
+    """Main marketplace page with optional company selection via sidebar."""
+    # Get user info and companies (no redirect if not logged in or no company)
+    uid = None
+    user_companies = []
+    selected_company = None
+    
+    if 'user_id' in session:
+        try:
+            uid = uuid.UUID(session['user_id'])
+            from ..models import CompanyMember
+            memberships = CompanyMember.query.filter_by(user_id=uid).all()
+            user_companies = [membership.company for membership in memberships]
+            
+            # Check for selected company in session or query param
+            selected_company_id_str = request.args.get('company_id') or session.get('marketplace_company_id')
+            if selected_company_id_str:
+                try:
+                    selected_company_id = uuid.UUID(selected_company_id_str)
+                    selected_company = next((c for c in user_companies if c and c.company_id == selected_company_id), None)
+                    if selected_company:
+                        session['marketplace_company_id'] = str(selected_company_id)
+                        session['selected_company_id'] = str(selected_company_id)
+                except ValueError:
+                    pass
+        except ValueError:
+            session.clear()
+    
     # Get filter parameters
     search_query = request.args.get('search', '').strip()
     category_filter = request.args.get('category', '').strip()
@@ -29,11 +50,15 @@ def marketplace():
         page = 1
     page = max(page, 1)
 
-    # Base query: active services from OTHER companies
+    # Base query: active services
     query = Service.query.join(Company, Service.company_id == Company.company_id).filter(
-        Service.is_active == True,  # noqa: E712
-        ~Service.company_id.in_(user_company_ids)
+        Service.is_active == True  # noqa: E712
     )
+    
+    # Exclude services from user's companies if logged in
+    if user_companies:
+        user_company_ids = [c.company_id for c in user_companies]
+        query = query.filter(~Service.company_id.in_(user_company_ids))
 
     # Apply search filter (including category search and company name)
     if search_query:
@@ -81,6 +106,8 @@ def marketplace():
         services=services,
         pagination=pagination,
         selected_company=selected_company,
+        user_companies=user_companies,
+        is_logged_in=(uid is not None),
         search_query=search_query,
         category_filter=category_filter,
         service_ratings=service_ratings,
@@ -156,18 +183,36 @@ def marketplace_public():
     )
 
 
-@main.route('/marketplace/service/<uuid:service_id>')
+@main.route('/marketplace/service/<uuid:service_id>/trade')
 def marketplace_service_view(service_id):
-    """Service detail page for logged-in users."""
+    """Service detail page for logged-in users with trade request form."""
     if 'user_id' not in session:
-        return redirect(url_for('main.marketplace_service_public', service_id=service_id))
+        return redirect(url_for('main.marketplace_service_detail_view', service_id=service_id))
     uid = uuid.UUID(session['user_id'])
-    uid, user_companies, selected_company, resp = _marketplace_context(
-        logged_in_uid=uid, redirect_missing='main.marketplace'
-    )
-    if resp:
-        flash('Please select a company first to view service details', 'info')
-        return resp
+    
+    # Get company info without redirecting
+    from ..models import CompanyMember
+    memberships = CompanyMember.query.filter_by(user_id=uid).all()
+    user_companies = [membership.company for membership in memberships]
+    
+    # Try to get selected company from query param or session
+    selected_company = None
+    company_id_param = request.args.get('company_id')
+    if company_id_param:
+        try:
+            selected_company_id = uuid.UUID(company_id_param)
+            selected_company = next((c for c in user_companies if c and c.company_id == selected_company_id), None)
+            if selected_company:
+                session['marketplace_company_id'] = str(selected_company_id)
+        except ValueError:
+            pass
+    elif 'marketplace_company_id' in session:
+        try:
+            selected_company_id = uuid.UUID(session['marketplace_company_id'])
+            selected_company = next((c for c in user_companies if c and c.company_id == selected_company_id), None)
+        except ValueError:
+            pass
+    
     service = Service.query.get_or_404(service_id)
 
     record_service_view(service.service_id)
@@ -179,28 +224,9 @@ def marketplace_service_view(service_id):
         'marketplace-trade-request.html',
         service=service,
         selected_company=selected_company,
+        user_companies=user_companies,
         reviews=reviews,
         avg_rating=avg_rating,
-    )
-
-
-@main.route('/marketplace/service/<uuid:service_id>/public')
-def marketplace_service_public(service_id):
-    """Service detail page for non-logged-in users."""
-    service = Service.query.get_or_404(service_id)
-    record_service_view(service.service_id)
-    reviews = Review.query.filter_by(reviewed_service_id=service_id).order_by(Review.created_at.desc()).all()
-    avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
-    
-    # Check if user is logged in
-    is_logged_in = 'user_id' in session
-
-    return render_template(
-        'marketplace-trade-request-not-logged-in.html',
-        service=service,
-        reviews=reviews,
-        avg_rating=avg_rating,
-        is_logged_in=is_logged_in,
     )
 
 
@@ -211,11 +237,11 @@ def marketplace_request_service(service_id):
     uid = uuid.UUID(session['user_id'])
     service = Service.query.get_or_404(service_id)
     uid, user_companies, selected_company, resp = _marketplace_context(
-        logged_in_uid=uid, redirect_missing='main.marketplace'
+        logged_in_uid=uid, require_company=True
     )
-    if resp:
+    if not selected_company:
         flash('Please select a company first', 'error')
-        return resp
+        return redirect(url_for('main.marketplace'))
     company_id = selected_company.company_id
 
     try:
@@ -242,4 +268,43 @@ def marketplace_request_service(service_id):
     db.session.commit()
 
     flash('Trade request sent successfully!', 'success')
+    return redirect(url_for('main.marketplace'))
+
+
+@main.route('/marketplace/select-company/<uuid:company_id>')
+@login_required
+def marketplace_select_company(company_id):
+    """Select a company for marketplace browsing."""
+    uid = uuid.UUID(session['user_id'])
+    from ..models import CompanyMember
+    
+    # Verify user is member of this company
+    membership = CompanyMember.query.filter_by(user_id=uid, company_id=company_id).first()
+    if not membership:
+        flash('You are not a member of that company', 'error')
+        return redirect(url_for('main.marketplace'))
+    
+    # Store in session
+    session['marketplace_company_id'] = str(company_id)
+    session['selected_company_id'] = str(company_id)
+    
+    # Check for redirect_to parameter
+    redirect_to = request.args.get('redirect_to')
+    if redirect_to:
+        return redirect(redirect_to)
+    
+    return redirect(url_for('main.marketplace'))
+
+
+@main.route('/marketplace/clear-company')
+@login_required
+def marketplace_clear_company():
+    """Clear company selection for marketplace."""
+    session.pop('marketplace_company_id', None)
+    
+    # Check for redirect_to parameter
+    redirect_to = request.args.get('redirect_to')
+    if redirect_to:
+        return redirect(redirect_to)
+    
     return redirect(url_for('main.marketplace'))
