@@ -29,4 +29,16 @@ flaskdb_migrate "describe your change - your name"
 flaskdb_upgrade
 ```
 
+## Delivered Documents Case 
 
+Information on how to install/use the application barter.com 
+
+Link to Kanban Board 
+
+Link to User Interface prototype 
+
+Link to audio/video recording of feedback seesions with external partner 
+
+Link to Zones of Application 
+
+Link to Flowchart
