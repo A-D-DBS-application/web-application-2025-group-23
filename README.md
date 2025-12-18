@@ -48,7 +48,7 @@ https://amused-clip-14241862.figma.site
 Link to User Interface prototype:
 https://www.figma.com/design/qhGCSW6y5SfgpUuQqfOpyZ/Barter.com---group-23---User-Interface?node-id=5-59&p=f 
 
-Link to audio/video recording of feedback sessions with external partner + Meeting Summaries:
+Link to audio/video recording of feedback sessions with external partner + Meeting Summaries [+presentatiesGebruiktTijdensCall?]:
 
 Link to Explanation Algorithm [figma+docu]
 
