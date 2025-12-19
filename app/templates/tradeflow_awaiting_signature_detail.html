@@ -59,6 +59,10 @@
           {% set is_favorable = ratio < 0.9 %}
           {% set is_unfavorable = ratio > 1.1 %}
           
+          {# Check if money improves or worsens the deal #}
+          {% set money_improves_deal = (proposal.money_type == 'give' and proposal.money_amount > 0) %}
+          {% set money_worsens_deal = (proposal.money_type == 'receive' and proposal.money_amount > 0) %}
+          
           <div class="deal-balance-card {% if is_balanced %}deal-balance-card--balanced{% elif is_favorable %}deal-balance-card--favorable{% else %}deal-balance-card--unbalanced{% endif %}">
             <div class="balance-status-header">
               <h3 class="balance-status-title">Balance Status</h3>
@@ -67,13 +71,21 @@
               </div>
             </div>
             
-            <div class="balance-verdict {% if is_balanced %}balance-verdict--balanced{% elif is_favorable %}balance-verdict--favorable{% else %}balance-verdict--unbalanced{% endif %}">
+            <div class="balance-verdict {% if is_balanced %}balance-verdict--balanced{% elif (is_favorable and not money_worsens_deal) or (is_unfavorable and money_improves_deal) %}balance-verdict--favorable{% else %}balance-verdict--unbalanced{% endif %}">
               {% if is_balanced %}
                 ✅ Balanced
               {% elif is_favorable %}
-                ⚠️ Unbalanced (in your favor)
+                {% if money_worsens_deal %}
+                  ❌ Unbalanced (in your favor, but you pay extra)
+                {% else %}
+                  ⚠️ Unbalanced (in your favor)
+                {% endif %}
               {% else %}
-                ❌ Unbalanced (not in your favor)
+                {% if money_improves_deal %}
+                  ⚠️ Unbalanced (not in your favor, but they offer extra payment)
+                {% else %}
+                  ❌ Unbalanced (not in your favor)
+                {% endif %}
               {% endif %}
             </div>
             
@@ -81,9 +93,17 @@
               {% if is_balanced %}
                 This is a fair trade. Both services have similar value.
               {% elif is_favorable %}
-                You are receiving much more value than you give.
+                {% if money_worsens_deal %}
+                  You receive more value, but you also need to pay €{{ proposal.money_amount }}.
+                {% else %}
+                  You are receiving much more value than you give.
+                {% endif %}
               {% else %}
-                You are giving much more value than you receive. Consider negotiating.
+                {% if money_improves_deal %}
+                  You give more value, but they're offering €{{ proposal.money_amount }} to compensate - this could be a good deal.
+                {% else %}
+                  You are giving much more value than you receive.
+                {% endif %}
               {% endif %}
             </p>
             
@@ -118,51 +138,110 @@
               <h4 class="balance-info-title">What does this mean?</h4>
               <ul class="balance-info-list">
                 {% if is_favorable %}
-                  <li>You receive significantly more value</li>
-                  <li>This deal might be seen as unfair</li>
+                  <li>You receive significantly more value in the services</li>
+                  {% if money_worsens_deal %}
+                    <li>However, you need to pay €{{ proposal.money_amount }}</li>
+                    <li>This could still be a reasonable trade if you value their service highly</li>
+                  {% else %}
+                    <li>This deal might be seen as unfair to them</li>
+                  {% endif %}
                 {% elif is_unfavorable %}
-                  <li>You give significantly more value</li>
-                  <li>Consider making a counter offer or declining</li>
+                  <li>You give significantly more value in the services</li>
+                  {% if money_improves_deal %}
+                    <li>They offer €{{ proposal.money_amount }} to compensate for the difference</li>
+                    <li>This makes the deal fairer - consider if it's acceptable</li>
+                  {% else %}
+                    <li>Consider declining and making a counter offer</li>
+                  {% endif %}
                 {% else %}
                   <li>Both parties receive similar value</li>
                   <li>This is a fair and balanced trade</li>
                 {% endif %}
               </ul>
             </div>
+            
+            {% if not is_balanced %}
+            <div class="balance-info-section">
+              <h4 class="balance-info-title">Your options:</h4>
+              <ul class="balance-info-list">
+                {% if is_favorable %}
+                  <li>Accept the offer if you value their service</li>
+                  <li>Decline if you think they should offer more</li>
+                {% else %}
+                  {% if money_improves_deal %}
+                    <li>Accept if you think the €{{ proposal.money_amount }} compensation is fair</li>
+                    <li>Decline if you want a better deal</li>
+                  {% else %}
+                    <li>Decline and suggest a counter offer</li>
+                  {% endif %}
+                {% endif %}
+              </ul>
+            </div>
+            {% endif %}
+            
+            <details class="balance-details">
+              <summary class="balance-details-summary">How is this calculated? ▼</summary>
+              <div class="balance-details-content">
+                <p class="balance-details-text">The score is calculated by comparing the Service Value Index (SVI) of the offered service with that of the requested service.</p>
+                <div class="balance-details-grid">
+                  <div>
+                    <div class="balance-details-label">You request</div>
+                    <div class="balance-details-value">Service Value: {{ requested_svi|round(2) }}</div>
+                  </div>
+                  <div>
+                    <div class="balance-details-label">You offer</div>
+                    <div class="balance-details-value">Service Value: {{ offered_svi|round(2) }}</div>
+                  </div>
+                </div>
+                <p class="balance-details-footnote">Calculated from effort, demand, reviews and trust</p>
+              </div>
+            </details>
           </div>
         </div>
         {% endif %}
         
         <div class="section-divider">
-          <div class="section-header">Offer Terms</div>
+          <h2 class="section-header">Offer Terms</h2>
+          
           <div class="info-grid">
-            <div class="info-box-bordered">
-              <div class="info-box-label">Extra Payment</div>
-              <div class="info-box-value">€{{ proposal.barter_coins_offered }}</div>
+            <div class="info-item">
+              <div class="info-label">Status</div>
+              <div class="info-value">Pending your signature</div>
             </div>
-            <div class="info-box-bordered">
-              <div class="info-box-label">Created</div>
-              <div class="info-box-value">{{ proposal.created_at.strftime('%d-%m-%Y') }}</div>
+            <div class="info-item">
+              <div class="info-label">Created</div>
+              <div class="info-value">{{ proposal.created_at.strftime('%d-%m-%Y') }}</div>
             </div>
+            {% if proposal.money_type and proposal.money_amount %}
+            <div class="info-item">
+              {% if proposal.money_type == 'receive' %}
+              <div class="info-label">You Pay</div>
+              <div class="info-value">€{{ proposal.money_amount }}</div>
+              {% else %}
+              <div class="info-label">You Get</div>
+              <div class="info-value">€{{ proposal.money_amount }}</div>
+              {% endif %}
+            </div>
+            {% endif %}
+            {% if proposal.message %}
+            <div class="info-item info-item--full">
+              <div class="info-label">Message from {{ proposal.from_company.name }}</div>
+              <div class="info-value">{{ proposal.message }}</div>
+            </div>
+            {% endif %}
           </div>
-          
-          {% if proposal.message %}
-          <div class="message-box">
-            <div class="message-label">Message from {{ proposal.from_company.name }}</div>
-            <div class="message-text">{{ proposal.message }}</div>
+        </div>
+        
+        <div class="section-divider">
+          <h2 class="section-header">Your Response</h2>
+          <div class="action-buttons-group">
+            <form method="POST" style="display: inline;">
+              <button type="submit" name="action" value="accept" class="btn btn-success">✓ Accept Offer</button>
+            </form>
+            <form method="POST" style="display: inline;">
+              <button type="submit" name="action" value="decline" class="btn btn-danger" onclick="return confirm('Are you sure you want to decline this offer?');">✕ Decline Offer</button>
+            </form>
           </div>
-          {% endif %}
-          
-          <form method="POST">
-            <div class="form-actions">
-              <button type="submit" name="action" value="accept" class="btn-accept">Accept Offer</button>
-              <a href="{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=proposal.proposal_id) }}" class="btn-counter">Make Counter Offer</a>
-            </div>
-          </form>
-          
-          <form method="POST" action="{{ url_for('main.tradeflow_cancel_deal', company_id=company.company_id, proposal_id=proposal.proposal_id) }}" class="form-cancel">
-            <button type="submit" class="btn-cancel" onclick="return confirm('Are you sure you want to cancel this deal? This will remove it completely from matches.');">Cancel Deal</button>
-          </form>
         </div>
       </div>
   </main>

@@ -660,6 +660,92 @@ def tradeflow_awaiting_signature_detail(company_id, proposal_id):
     return render_template('tradeflow_awaiting_signature_detail.html', company=company, proposal=proposal, fairness_data=fairness_data)
 
 
+@main.route('/tradeflow/<uuid:company_id>/counter-offer/<uuid:proposal_id>', methods=['GET', 'POST'])
+def tradeflow_counter_offer(company_id, proposal_id):
+    """Create a counter offer from a pending proposal"""
+    if (resp := _require_login()):
+        return resp
+    company, resp = _require_company_member(company_id)
+    if resp:
+        return resp
+    
+    proposal = DealProposal.query.get_or_404(proposal_id)
+    
+    # Verify this company is the recipient of the proposal (to_company)
+    if proposal.to_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Compute fairness for display
+    fairness_data = compute_fairness(proposal.to_service, proposal.from_service)
+    
+    if request.method == 'POST':
+        message = request.form.get('message', '')
+        money_amount = _parse_int(request.form.get('money_amount'), 0)
+        money_type = request.form.get('money_type') if request.form.get('money_type') in ('receive', 'give') else None
+
+        # Create counter offer - swap the direction
+        # Original: from_company sends to to_company
+        # Counter: to_company (current user) sends back to from_company
+        new_from_company_id = proposal.to_company_id
+        new_to_company_id = proposal.from_company_id
+        new_from_service_id = proposal.to_service_id
+        new_to_service_id = proposal.from_service_id
+
+        # Persist money info inside message
+        money_prefix = ''
+        if money_type and money_amount and money_amount > 0:
+            money_prefix = f"[MONEY:{money_type}:{money_amount}] "
+
+        full_message = (money_prefix + message).strip()
+
+        # Create new counter proposal
+        counter_proposal = DealProposal(
+            proposal_id=uuid.uuid4(),
+            from_company_id=new_from_company_id,
+            to_company_id=new_to_company_id,
+            from_service_id=new_from_service_id,
+            to_service_id=new_to_service_id,
+            status='pending',
+            message=full_message if full_message else None,
+            created_at=datetime.datetime.now(datetime.timezone.utc)
+        )
+        db.session.add(counter_proposal)
+        
+        # Delete the original proposal
+        db.session.delete(proposal)
+        db.session.commit()
+
+        flash('Counter offer sent! Waiting for the other party to respond.', 'success')
+        return redirect(url_for('main.tradeflow_awaiting_other_party', company_id=company_id))
+    
+    return render_template('tradeflow_create_offer.html', company=company, proposal=proposal, fairness_data=fairness_data)
+
+
+@main.route('/tradeflow/<uuid:company_id>/cancel-deal/<uuid:proposal_id>', methods=['POST'])
+def tradeflow_cancel_deal(company_id, proposal_id):
+    """Cancel a deal proposal"""
+    if (resp := _require_login()):
+        return resp
+    company, resp = _require_company_member(company_id)
+    if resp:
+        return resp
+    
+    proposal = DealProposal.query.get_or_404(proposal_id)
+    
+    # Verify this company is involved in the proposal
+    if proposal.from_company_id != company_id and proposal.to_company_id != company_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.my_companies'))
+    
+    # Delete the proposal
+    db.session.delete(proposal)
+    db.session.commit()
+    
+    flash('Deal cancelled successfully.', 'info')
+    return redirect(url_for('main.tradeflow_match_made', company_id=company_id))
+
+
 @main.route('/tradeflow/<uuid:company_id>/awaiting-other-party', methods=['GET'])
 def tradeflow_awaiting_other_party(company_id):
     """View offers sent by this company awaiting other party's response"""
@@ -901,14 +987,15 @@ def tradeflow_write_review(company_id, deal_id):
         return resp
 
     # Review should target the service received from the counterparty
+    # Note: from_service belongs to to_company, to_service belongs to from_company
     if proposal.from_company_id == company_id:
-        # Your company is the "from" company, so you received the "to_service" from "to_company"
+        # Your company is the "from" company, so you offered "to_service" and received "from_service"
         reviewed_company_id = proposal.to_company_id
-        reviewed_service_id = proposal.to_service_id
-    else:
-        # Your company is the "to" company, so you received the "from_service" from "from_company"
-        reviewed_company_id = proposal.from_company_id
         reviewed_service_id = proposal.from_service_id
+    else:
+        # Your company is the "to" company, so you offered "from_service" and received "to_service"
+        reviewed_company_id = proposal.from_company_id
+        reviewed_service_id = proposal.to_service_id
 
     existing_review = Review.query.filter_by(
         deal_id=deal_id,
