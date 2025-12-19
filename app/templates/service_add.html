@@ -72,10 +72,6 @@
                                             <label for="cat_{{ loop.index }}">{{ cat }}</label>
                                         </div>
                                     {% endfor %}
-                                    <div class="category-item">
-                                        <input type="checkbox" id="cat_other" name="categories" value="Other" {% if 'Other' in (form_categories or []) %}checked{% endif %}>
-                                        <label for="cat_other">Other</label>
-                                    </div>
                                 </div>
                             </div>
 

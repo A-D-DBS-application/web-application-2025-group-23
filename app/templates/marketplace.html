@@ -66,18 +66,6 @@
                 <a href="{{ url_for('main.marketplace', category='') }}" class="sidebar-link {% if not category_filter %}active{% endif %}">
                     <span>All</span>
                 </a>
-                <a href="{{ url_for('main.marketplace', category='Marketing') }}" class="sidebar-link {% if category_filter == 'Marketing' %}active{% endif %}">
-                    <span>Marketing</span>
-                </a>
-                <a href="{{ url_for('main.marketplace', category='Development') }}" class="sidebar-link {% if category_filter == 'Development' %}active{% endif %}">
-                    <span>Development</span>
-                </a>
-                <a href="{{ url_for('main.marketplace', category='Writing') }}" class="sidebar-link {% if category_filter == 'Writing' %}active{% endif %}">
-                    <span>Writing</span>
-                </a>
-                <a href="{{ url_for('main.marketplace', category='Design') }}" class="sidebar-link {% if category_filter == 'Design' %}active{% endif %}">
-                    <span>Design</span>
-                </a>
                 <a href="{{ url_for('main.marketplace', category='Finance') }}" class="sidebar-link {% if category_filter == 'Finance' %}active{% endif %}">
                     <span>Finance</span>
                 </a>
@@ -87,8 +75,17 @@
                 <a href="{{ url_for('main.marketplace', category='IT') }}" class="sidebar-link {% if category_filter == 'IT' %}active{% endif %}">
                     <span>IT</span>
                 </a>
+                <a href="{{ url_for('main.marketplace', category='Marketing') }}" class="sidebar-link {% if category_filter == 'Marketing' %}active{% endif %}">
+                    <span>Marketing</span>
+                </a>
                 <a href="{{ url_for('main.marketplace', category='Legal') }}" class="sidebar-link {% if category_filter == 'Legal' %}active{% endif %}">
                     <span>Legal</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Design') }}" class="sidebar-link {% if category_filter == 'Design' %}active{% endif %}">
+                    <span>Design</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Development') }}" class="sidebar-link {% if category_filter == 'Development' %}active{% endif %}">
+                    <span>Development</span>
                 </a>
                 <a href="{{ url_for('main.marketplace', category='Consulting') }}" class="sidebar-link {% if category_filter == 'Consulting' %}active{% endif %}">
                     <span>Consulting</span>
