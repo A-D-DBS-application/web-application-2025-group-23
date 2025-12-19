@@ -227,8 +227,8 @@
 
 /* Cards grid */
 .tradeflow-container .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-.tradeflow-container a.card { text-decoration: none; color: inherit; display: block; }
-.tradeflow-container .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 20px; transition: all 0.2s; cursor: pointer; }
+.tradeflow-container a.card { text-decoration: none; color: inherit; display: flex; }
+.tradeflow-container .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 20px; transition: all 0.2s; cursor: pointer; display: flex; flex-direction: column; height: 100%; }
 .tradeflow-container .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #1A73E8; }
 .tradeflow-container .card.disabled { background: #f5f5f5; border-color: #d0d0d0; cursor: not-allowed; opacity: 0.7; }
 .tradeflow-container .card.disabled:hover { box-shadow: none; border-color: #d0d0d0; }
@@ -236,11 +236,13 @@
 .tradeflow-container .card.archived:hover { opacity: 1; }
 .tradeflow-container .card-company { font-size: 13px; font-weight: 600; color: #5f6368; text-transform: uppercase; margin-bottom: 6px; }
 .tradeflow-container .card-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-.tradeflow-container .card-desc { font-size: 13px; color: #5f6368; line-height: 1.5; margin-bottom: 12px; }
+.tradeflow-container .card-desc { font-size: 13px; color: #5f6368; line-height: 1.5; margin-bottom: 12px; flex-grow: 1; }
 .tradeflow-container .card-meta { display: flex; justify-content: space-between; font-size: 12px; color: #9aa0a6; margin-bottom: 14px; }
 .tradeflow-container .card-badge { background: #f0f0f0; color: #1A73E8; padding: 6px 14px; border-radius: 20px; font-weight: 500; font-size: 13px; }
 .tradeflow-container .card-badge.expired { background: #fce8e6; color: #d33425; }
-.tradeflow-container .card-button { display: block; width: 100%; background: #1A73E8; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; margin-top: 12px; text-align: center; text-decoration: none; }
+.tradeflow-container .card-categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tradeflow-container .card-category-tag { background: #f0f0f0; color: #1A73E8; padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 500; }
+.tradeflow-container .card-button { display: block; width: 100%; background: #1A73E8; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; margin-top: auto; text-align: center; text-decoration: none; }
 .tradeflow-container .card-button:hover { background: #1A73E8; }
 .tradeflow-container .card-button.disabled { background: #9aa0a6; cursor: not-allowed; }
 .tradeflow-container .card-button.disabled:hover { background: #9aa0a6; }

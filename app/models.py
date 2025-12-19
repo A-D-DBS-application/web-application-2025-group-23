@@ -22,10 +22,58 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, CheckConstraint, Index, text
+from sqlalchemy.sql import func
 from enum import Enum
 
 db = SQLAlchemy()
+
+
+# ==========================
+# STATUS ENUMS
+# ==========================
+class TradeRequestStatus(Enum):
+    """Status values for trade requests."""
+    ACTIVE = 'active'
+    ARCHIVED = 'archived'
+    
+    @classmethod
+    def choices(cls) -> list[str]:
+        return [c.value for c in cls]
+
+
+class DealProposalStatus(Enum):
+    """Status values for deal proposals."""
+    PENDING = 'pending'
+    ACCEPTED = 'accepted'
+    REJECTED = 'rejected'
+    
+    @classmethod
+    def choices(cls) -> list[str]:
+        return [c.value for c in cls]
+
+
+class ActiveDealStatus(Enum):
+    """Status values for active deals."""
+    IN_PROGRESS = 'in_progress'
+    COMPLETED = 'completed'
+    
+    @classmethod
+    def choices(cls) -> list[str]:
+        return [c.value for c in cls]
+
+
+class ValidityDays(Enum):
+    """Valid options for trade request validity period."""
+    WEEK = 7
+    TWO_WEEKS = 14
+    MONTH = 30
+    TWO_MONTHS = 60
+    THREE_MONTHS = 90
+    
+    @classmethod
+    def choices(cls) -> list[int]:
+        return [c.value for c in cls]
 
 
 # ==========================
@@ -83,11 +131,21 @@ class User(db.Model):
 
     user_id = db.Column(UUID(as_uuid=True), primary_key=True)
     username = db.Column(db.Text, nullable=False, unique=True)
-    email = db.Column(db.Text)
+    email = db.Column(db.Text, nullable=False, unique=True)  # Email is now required and unique
     password_hash = db.Column(db.Text, nullable=False)
+    
+    # Optional profile fields
+    location = db.Column(db.Text, nullable=True)
+    job_description = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(DateTime(timezone=True))
-    updated_at = db.Column(DateTime(timezone=True))                
+    created_at = db.Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = db.Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Indexes for performance
+    __table_args__ = (
+        Index('ix_user_email', 'email'),
+        Index('ix_user_username', 'username'),
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
@@ -103,13 +161,19 @@ class Company(db.Model):
     __tablename__ = "company"
 
     company_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    name = db.Column(db.Text)  # in Supabase nullable = allowed
+    name = db.Column(db.Text, nullable=False)  # Company name is now required
     description = db.Column(db.Text, nullable=True)  # Company description
     category = db.Column(db.Text, nullable=True)  # Company category/industry
     website = db.Column(db.Text, nullable=True)  # Company website URL
-    created_at = db.Column(DateTime(timezone=True))
+    created_at = db.Column(DateTime(timezone=True), server_default=func.now())
     # Code users can submit to request joining the company
     join_code = db.Column(db.Text, nullable=True, unique=True)
+    
+    # Index for faster lookups
+    __table_args__ = (
+        Index('ix_company_name', 'name'),
+        Index('ix_company_join_code', 'join_code'),
+    )
 
     # Relaties:
     # - members: lijst van CompanyMember records
@@ -118,11 +182,13 @@ class Company(db.Model):
         "CompanyMember",
         back_populates="company",
         lazy="dynamic",
+        cascade="all, delete-orphan",  # Delete members when company is deleted
     )
     services = db.relationship(
         "Service",
         back_populates="company",
         lazy="dynamic",
+        cascade="all, delete-orphan",  # Delete services when company is deleted
     )
 
     def __repr__(self) -> str:
@@ -137,12 +203,19 @@ class CompanyJoinRequest(db.Model):
 
     request_id = db.Column(UUID(as_uuid=True), primary_key=True)
     company_id = db.Column(
-        UUID(as_uuid=True), db.ForeignKey("company.company_id"), nullable=False
+        UUID(as_uuid=True), db.ForeignKey("company.company_id", ondelete="CASCADE"), nullable=False
     )
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("user.user_id"), nullable=False)
-    created_at = db.Column(DateTime(timezone=True))
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("user.user_id", ondelete="CASCADE"), nullable=False)
+    created_at = db.Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Indexes and unique constraint
+    __table_args__ = (
+        Index('ix_company_join_request_company', 'company_id'),
+        Index('ix_company_join_request_user', 'user_id'),
+        db.UniqueConstraint('company_id', 'user_id', name='uq_company_join_request_company_user'),
+    )
 
-    company = db.relationship("Company", backref=db.backref("join_requests", lazy="dynamic"))
+    company = db.relationship("Company", backref=db.backref("join_requests", lazy="dynamic", cascade="all, delete-orphan"))
     user = db.relationship("User", backref=db.backref("join_requests", lazy="dynamic"))
 
     def __repr__(self) -> str:
@@ -161,17 +234,24 @@ class CompanyMember(db.Model):
     member_id = db.Column(UUID(as_uuid=True), primary_key=True)
     company_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
+        db.ForeignKey("company.company_id", ondelete="CASCADE"),
         nullable=False,
     )
     user_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("user.user_id"),
+        db.ForeignKey("user.user_id", ondelete="CASCADE"),
         nullable=False,
     )
     member_role = db.Column(db.Text)  # bv. 'founder', 'employee'
-    is_admin = db.Column(db.Boolean, nullable=False, default=False)  # <-- voeg deze toe
-    created_at = db.Column(DateTime(timezone=True))
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Indexes and unique constraint - one user per company
+    __table_args__ = (
+        Index('ix_company_member_company', 'company_id'),
+        Index('ix_company_member_user', 'user_id'),
+        db.UniqueConstraint('company_id', 'user_id', name='uq_company_member_company_user'),
+    )
 
     # Relaties
     company = db.relationship("Company", back_populates="members")
@@ -199,7 +279,7 @@ class Service(db.Model):
     service_id = db.Column(UUID(as_uuid=True), primary_key=True)
     company_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
+        db.ForeignKey("company.company_id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -215,8 +295,17 @@ class Service(db.Model):
     is_offered = db.Column(db.Boolean, nullable=False, default=True)  # True = offering service
     is_active = db.Column(db.Boolean, nullable=False, default=True)  # Can be deactivated
 
-    created_at = db.Column(DateTime(timezone=True))
-    updated_at = db.Column(DateTime(timezone=True))
+    created_at = db.Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = db.Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Indexes for performance
+    __table_args__ = (
+        Index('ix_service_company', 'company_id'),
+        Index('ix_service_is_active', 'is_active'),
+        Index('ix_service_categories', 'categories'),
+        # Check constraint for positive duration
+        CheckConstraint('duration_hours > 0', name='ck_service_duration_positive'),
+    )
 
     company = db.relationship("Company", back_populates="services")
 
@@ -236,10 +325,16 @@ class ServiceViewEvent(db.Model):
     view_id = db.Column(UUID(as_uuid=True), primary_key=True)
     service_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
+        db.ForeignKey("service.service_id", ondelete="CASCADE"),
         nullable=False,
     )
-    viewed_at = db.Column(DateTime(timezone=True), nullable=False)
+    viewed_at = db.Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    
+    # Index for analytics queries
+    __table_args__ = (
+        Index('ix_service_view_event_service', 'service_id'),
+        Index('ix_service_view_event_viewed_at', 'viewed_at'),
+    )
 
     def __repr__(self) -> str:
         return f"<ServiceViewEvent service={self.service_id} at={self.viewed_at}>"
@@ -259,19 +354,31 @@ class TradeRequest(db.Model):
     request_id = db.Column(UUID(as_uuid=True), primary_key=True)
     requesting_company_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
+        db.ForeignKey("company.company_id", ondelete="CASCADE"),
         nullable=False
     )
     requested_service_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
+        db.ForeignKey("service.service_id", ondelete="CASCADE"),
         nullable=False
     )
     validity_days = db.Column(db.Integer, nullable=False, default=14)  # 7, 14, 30, 60, 90
-    status = db.Column(db.Text, nullable=False, default='active')  # active, archived (expired/no match)
-    created_at = db.Column(DateTime(timezone=True), nullable=False)
+    status = db.Column(db.Text, nullable=False, default='active')  # active, archived
+    created_at = db.Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     expires_at = db.Column(DateTime(timezone=True), nullable=False)
-    archived_at = db.Column(DateTime(timezone=True), nullable=True)  # When the request was archived
+    archived_at = db.Column(DateTime(timezone=True), nullable=True)
+
+    # Indexes and constraints
+    __table_args__ = (
+        Index('ix_trade_request_requesting_company', 'requesting_company_id'),
+        Index('ix_trade_request_requested_service', 'requested_service_id'),
+        Index('ix_trade_request_status', 'status'),
+        Index('ix_trade_request_expires_at', 'expires_at'),
+        # Validity must be one of the allowed values
+        CheckConstraint('validity_days IN (7, 14, 30, 60, 90)', name='ck_trade_request_validity_days'),
+        # Status must be valid
+        CheckConstraint("status IN ('active', 'archived')", name='ck_trade_request_status'),
+    )
 
     # Relationships
     requesting_company = db.relationship("Company", foreign_keys=[requesting_company_id], backref="trade_requests_sent")
@@ -294,27 +401,38 @@ class DealProposal(db.Model):
     proposal_id = db.Column(UUID(as_uuid=True), primary_key=True)
     from_company_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
+        db.ForeignKey("company.company_id", ondelete="CASCADE"),
         nullable=False
     )
     to_company_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
+        db.ForeignKey("company.company_id", ondelete="CASCADE"),
         nullable=False
     )
     from_service_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
+        db.ForeignKey("service.service_id", ondelete="CASCADE"),
         nullable=False
     )
     to_service_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
+        db.ForeignKey("service.service_id", ondelete="CASCADE"),
         nullable=False
     )
     message = db.Column(db.Text)  # Optional message from proposer
     status = db.Column(db.Text, nullable=False, default='pending')  # pending, accepted, rejected
-    created_at = db.Column(DateTime(timezone=True), nullable=False)
+    created_at = db.Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+    # Indexes and constraints
+    __table_args__ = (
+        Index('ix_deal_proposal_from_company', 'from_company_id'),
+        Index('ix_deal_proposal_to_company', 'to_company_id'),
+        Index('ix_deal_proposal_status', 'status'),
+        # Status must be valid
+        CheckConstraint("status IN ('pending', 'accepted', 'rejected')", name='ck_deal_proposal_status'),
+        # Cannot propose to yourself
+        CheckConstraint('from_company_id != to_company_id', name='ck_deal_proposal_different_companies'),
+    )
 
     # Relationships
     from_company = db.relationship("Company", foreign_keys=[from_company_id], backref="sent_proposals")
@@ -339,17 +457,26 @@ class ActiveDeal(db.Model):
     active_deal_id = db.Column(UUID(as_uuid=True), primary_key=True)
     proposal_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("deal_proposal.proposal_id"),
-        nullable=False
+        db.ForeignKey("deal_proposal.proposal_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True  # One active deal per proposal
     )
     from_company_completed = db.Column(db.Boolean, nullable=False, default=False)
     to_company_completed = db.Column(db.Boolean, nullable=False, default=False)
     status = db.Column(db.Text, nullable=False, default='in_progress')  # in_progress, completed
-    created_at = db.Column(DateTime(timezone=True), nullable=False)
+    created_at = db.Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     completed_at = db.Column(DateTime(timezone=True))
 
+    # Indexes and constraints
+    __table_args__ = (
+        Index('ix_active_deal_proposal', 'proposal_id'),
+        Index('ix_active_deal_status', 'status'),
+        # Status must be valid
+        CheckConstraint("status IN ('in_progress', 'completed')", name='ck_active_deal_status'),
+    )
+
     # Relationships
-    proposal = db.relationship("DealProposal", backref="active_deal")
+    proposal = db.relationship("DealProposal", backref=db.backref("active_deal", uselist=False))
 
     def __repr__(self) -> str:
         return f"<ActiveDeal {self.active_deal_id} ({self.status})>"
@@ -373,27 +500,39 @@ class Review(db.Model):
     # Changed to reference active_deal instead of barterdeal
     deal_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("active_deal.active_deal_id"),
+        db.ForeignKey("active_deal.active_deal_id", ondelete="CASCADE"),
         nullable=False,
     )
     reviewer_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("user.user_id"),
+        db.ForeignKey("user.user_id", ondelete="CASCADE"),
         nullable=False,
     )
 
-    rating = db.Column(db.SmallInteger, nullable=False)  # int2
+    rating = db.Column(db.SmallInteger, nullable=False)  # 1-5 stars
     comment = db.Column(db.Text)
 
-    created_at = db.Column(DateTime(timezone=True))
+    created_at = db.Column(DateTime(timezone=True), server_default=func.now())
 
     reviewed_company_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
+        db.ForeignKey("company.company_id", ondelete="SET NULL"),
     )
     reviewed_service_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("service.service_id"),
+        db.ForeignKey("service.service_id", ondelete="SET NULL"),
+    )
+
+    # Indexes and constraints
+    __table_args__ = (
+        Index('ix_review_deal', 'deal_id'),
+        Index('ix_review_reviewer', 'reviewer_id'),
+        Index('ix_review_reviewed_company', 'reviewed_company_id'),
+        Index('ix_review_reviewed_service', 'reviewed_service_id'),
+        # Rating must be 1-5
+        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_review_rating_range'),
+        # NOTE: Unique constraint (deal_id, reviewer_id) removed due to existing duplicate data
+        # Enforce uniqueness in application code instead
     )
 
     active_deal = db.relationship(
@@ -429,19 +568,32 @@ class TradeflowView(db.Model):
     view_id = db.Column(UUID(as_uuid=True), primary_key=True)
     company_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("company.company_id"),
+        db.ForeignKey("company.company_id", ondelete="CASCADE"),
         nullable=False
     )
     user_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey("user.user_id"),
+        db.ForeignKey("user.user_id", ondelete="CASCADE"),
         nullable=False
     )
-    section = db.Column(db.Text, nullable=False)  # 'incoming', 'you_requested', 'archived', 'matches', 'awaiting_signature', 'awaiting_other_party', 'ongoing', 'completed'
-    last_viewed_at = db.Column(DateTime(timezone=True), nullable=False)
+    section = db.Column(db.Text, nullable=False)  # 'incoming', 'you_requested', 'archived', 'matches', etc.
+    last_viewed_at = db.Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+    # Indexes and unique constraint
+    __table_args__ = (
+        Index('ix_tradeflow_view_company', 'company_id'),
+        Index('ix_tradeflow_view_user', 'user_id'),
+        # One view record per (company, user, section) combination
+        db.UniqueConstraint('company_id', 'user_id', 'section', name='uq_tradeflow_view_company_user_section'),
+        # Valid sections only
+        CheckConstraint(
+            "section IN ('incoming', 'you_requested', 'archived', 'matches', 'awaiting_signature', 'awaiting_other_party', 'ongoing', 'completed')",
+            name='ck_tradeflow_view_section'
+        ),
+    )
 
     # Relationships
-    company = db.relationship("Company", backref=db.backref("tradeflow_views", lazy="dynamic"))
+    company = db.relationship("Company", backref=db.backref("tradeflow_views", lazy="dynamic", cascade="all, delete-orphan"))
     user = db.relationship("User", backref=db.backref("tradeflow_views", lazy="dynamic"))
 
     def __repr__(self) -> str:

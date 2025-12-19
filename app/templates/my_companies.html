@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_company_card.html' import company_card %}
 {% block title %}My Companies | Barter.com{% endblock %}
 {% block nav_companies_active %}class="active"{% endblock %}
 
@@ -47,30 +48,7 @@
                 {% if companies %}
                     <div class="companies-list">
                         {% for company in companies %}
-                        <div class="company-item {% if company.is_admin %}company-item--admin{% endif %}">
-                            <div class="company-info">
-                                <h2 class="company-title">{{ company.name }}</h2>
-                                <p class="company-desc">{{ company.description or 'Description of company ' ~ company.name }}</p>
-                                <div class="company-meta">
-                                    <span class="company-badge {% if company.is_admin %}company-badge--admin{% endif %}">
-                                        {% if company.is_admin %}Admin{% else %}Member{% endif %}
-                                    </span>
-                                </div>
-                                <p class="company-stats">
-                                    {{ company.member_count }} members • {{ company.service_count }} services
-                                </p>
-                            </div>
-                            <div class="company-actions">
-                                <a href="{{ url_for('main.workspace_overview', company_id=company.company_id) }}" 
-                                   class="company-open-btn">
-                                    Open workspace
-                                </a>
-                                <a href="{{ url_for('main.tradeflow_incoming_requests', company_id=company.company_id) }}" 
-                                   class="company-open-btn company-open-btn--secondary">
-                                    Tradeflow
-                                </a>
-                            </div>
-                        </div>
+                            {{ company_card(company) }}
                         {% endfor %}
                     </div>
                 {% else %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_service_card.html' import service_card %}
 {% block title %}Marketplace | Barter.com{% endblock %}
 {% block nav_marketplace_active %}class="active"{% endblock %}
 
@@ -65,18 +66,6 @@
                 <a href="{{ url_for('main.marketplace', category='') }}" class="sidebar-link {% if not category_filter %}active{% endif %}">
                     <span>All</span>
                 </a>
-                <a href="{{ url_for('main.marketplace', category='Marketing') }}" class="sidebar-link {% if category_filter == 'Marketing' %}active{% endif %}">
-                    <span>Marketing</span>
-                </a>
-                <a href="{{ url_for('main.marketplace', category='Development') }}" class="sidebar-link {% if category_filter == 'Development' %}active{% endif %}">
-                    <span>Development</span>
-                </a>
-                <a href="{{ url_for('main.marketplace', category='Writing') }}" class="sidebar-link {% if category_filter == 'Writing' %}active{% endif %}">
-                    <span>Writing</span>
-                </a>
-                <a href="{{ url_for('main.marketplace', category='Design') }}" class="sidebar-link {% if category_filter == 'Design' %}active{% endif %}">
-                    <span>Design</span>
-                </a>
                 <a href="{{ url_for('main.marketplace', category='Finance') }}" class="sidebar-link {% if category_filter == 'Finance' %}active{% endif %}">
                     <span>Finance</span>
                 </a>
@@ -86,8 +75,17 @@
                 <a href="{{ url_for('main.marketplace', category='IT') }}" class="sidebar-link {% if category_filter == 'IT' %}active{% endif %}">
                     <span>IT</span>
                 </a>
+                <a href="{{ url_for('main.marketplace', category='Marketing') }}" class="sidebar-link {% if category_filter == 'Marketing' %}active{% endif %}">
+                    <span>Marketing</span>
+                </a>
                 <a href="{{ url_for('main.marketplace', category='Legal') }}" class="sidebar-link {% if category_filter == 'Legal' %}active{% endif %}">
                     <span>Legal</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Design') }}" class="sidebar-link {% if category_filter == 'Design' %}active{% endif %}">
+                    <span>Design</span>
+                </a>
+                <a href="{{ url_for('main.marketplace', category='Development') }}" class="sidebar-link {% if category_filter == 'Development' %}active{% endif %}">
+                    <span>Development</span>
                 </a>
                 <a href="{{ url_for('main.marketplace', category='Consulting') }}" class="sidebar-link {% if category_filter == 'Consulting' %}active{% endif %}">
                     <span>Consulting</span>
@@ -134,29 +132,8 @@
 
             <div class="cards-grid cards-grid--3col">
                 {% for service in services %}
-                <div class="card" onclick="window.location.href='{% if is_logged_in and user_companies %}{{ url_for('main.marketplace_service_view', service_id=service.service_id) }}{% else %}{{ url_for('main.marketplace_service_detail_view', service_id=service.service_id) }}{% endif %}'">
-                    <div class="card-company">{{ service.company.name }}</div>
-                    <div class="card-title">{{ service.title }}</div>
-                    <div class="card-desc">{{ service.description[:120] }}{% if service.description|length > 120 %}...{% endif %}</div>
-                    
-                    {% if service.categories %}
-                    <div class="card-categories">
-                        {% for cat in service.categories.split(',') %}
-                        <span class="card-category-tag">{{ cat.strip() }}</span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    
-                    <div class="card-meta">
-                        <span>{{ service.duration_hours }} hours</span>
-                        {% set rating_key = service.service_id|string %}
-                        {% if rating_key in service_ratings %}
-                        <span class="rating-star">★ {{ "%.1f"|format(service_ratings[rating_key].avg) }} ({{ service_ratings[rating_key].count }})</span>
-                        {% endif %}
-                    </div>
-                    
-                    <button class="card-button">View Service</button>
-                </div>
+                    {% set click_url = url_for('main.marketplace_service_view', service_id=service.service_id) if is_logged_in and user_companies else url_for('main.marketplace_service_detail_view', service_id=service.service_id) %}
+                    {{ service_card(service, service_ratings, click_url) }}
                 {% else %}
                 <div class="empty">
                     <div class="empty-icon">🔍</div>

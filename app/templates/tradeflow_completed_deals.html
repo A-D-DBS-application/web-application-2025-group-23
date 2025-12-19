@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_tradeflow_card.html' import deal_card, empty_state %}
 {% block title %}Completed Deals – Barter.com{% endblock %}
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 {% set active_page = 'completed' %}
@@ -15,33 +16,11 @@
       {% if completed_deals %}
       <div class="cards-grid">
         {% for deal in completed_deals %}
-        <div class="card" onclick="location.href='{{ url_for('main.tradeflow_completed_deal_detail', company_id=company.company_id, deal_id=deal.active_deal_id) }}'">
-          <div class="card-status">✓ Completed</div>
-          <div class="card-pair">
-            <div class="card-side">
-              <div class="card-side-label">{{ deal.proposal.from_company.name }}</div>
-              <div class="card-side-title">{{ deal.proposal.from_service.title }}</div>
-            </div>
-            <div class="arrows">⇄</div>
-            <div class="card-side">
-              <div class="card-side-label">{{ deal.proposal.to_company.name }}</div>
-              <div class="card-side-title">{{ deal.proposal.to_service.title }}</div>
-            </div>
-          </div>
-          {% if deal.review %}
-          <div class="star-rating">
-            {% for i in range(deal.review.rating) %}<span class="star">★</span>{% endfor %}{% for i in range(5 - deal.review.rating) %}<span class="star inactive">★</span>{% endfor %}
-          </div>
-          {% endif %}
-          <button class="card-button">View Details</button>
-        </div>
+          {{ deal_card(deal, url_for('main.tradeflow_completed_deal_detail', company_id=company.company_id, deal_id=deal.active_deal_id), status='completed', show_review=true) }}
         {% endfor %}
       </div>
       {% else %}
-      <div class="empty">
-        <div class="empty-icon">🏆</div>
-        <div class="empty-text">No completed deals yet</div>
-      </div>
+        {{ empty_state('🏆', 'No completed deals yet') }}
       {% endif %}
     </main>
   </div>

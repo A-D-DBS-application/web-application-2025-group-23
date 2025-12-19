@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_tradeflow_card.html' import offer_card, empty_state %}
 {% block title %}Awaiting Their Signature – Barter.com{% endblock %}
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 {% set active_page = 'awaiting_other_party' %}
@@ -15,37 +16,11 @@
       {% if awaiting_other_party %}
       <div class="cards-grid">
         {% for offer in awaiting_other_party %}
-        <a class="card" href="{{ url_for('main.tradeflow_awaiting_other_party_detail', company_id=company.company_id, proposal_id=offer.proposal_id) }}">
-          <div class="card-header">
-            <div class="card-header-label">⏳ Waiting for {{ offer.to_company.name }}</div>
-          </div>
-          <div class="card-pair">
-            <div class="card-side">
-              <div class="card-side-label">{{ offer.from_company.name }}</div>
-              <div class="card-side-title">{{ offer.from_service.title }}</div>
-            </div>
-            <div class="arrows">→</div>
-            <div class="card-side">
-              <div class="card-side-label">{{ offer.to_company.name }}</div>
-              <div class="card-side-title">{{ offer.to_service.title }}</div>
-            </div>
-          </div>
-          <div class="card-meta">Created {{ offer.created_at.strftime('%d-%m-%Y') }}</div>
-          {% if offer.money_amount and offer.money_amount|int > 0 and offer.money_type %}
-          {% if offer.money_type == 'receive' %}
-            <div class="money-pill">💸 You ask: €{{ offer.money_amount }}</div>
-          {% else %}
-            <div class="money-pill">💰 You offer: €{{ offer.money_amount }}</div>
-          {% endif %}
-          {% endif %}
-        </a>
+          {{ offer_card(offer, url_for('main.tradeflow_awaiting_other_party_detail', company_id=company.company_id, proposal_id=offer.proposal_id), '⏳ Waiting for ' ~ offer.to_company.name, is_your_offer=true) }}
         {% endfor %}
       </div>
       {% else %}
-      <div class="empty">
-        <div class="empty-icon">🎯</div>
-        <div class="empty-text">No pending offers. You're all set!</div>
-      </div>
+        {{ empty_state('🎯', "No pending offers. You're all set!") }}
       {% endif %}
     </main>
   </div>

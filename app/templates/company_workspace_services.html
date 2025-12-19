@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_service_card.html' import service_card_workspace %}
 {% block title %}Services – {{ company.name }} – Barter.com{% endblock %}
 {% block body_class %} class="app-page"{% endblock %}
 {% block nav_companies_active %}class="active"{% endblock %}
@@ -77,30 +78,13 @@
           <section class="services-grid">
             {% if services %}
               {% for service in services %}
-              <article class="service-card">
-                <h3 class="service-card__title">{{ service.title }}</h3>
-                <div class="service-card__company">{{ company.name }}</div>
-                <div class="service-card__description">
-                  {{ service.description[:100] }}{% if service.description|length > 100 %}...{% endif %}
-                </div>
-
-                {% if service.categories %}
-                <div class="service-card__tags">
-                  {% for category in service.categories.split(',') %}
-                  <span class="tag">{{ category }}</span>
-                  {% endfor %}
-                </div>
-                {% endif %}
-
-                <div class="service-card__footer">
-                  <a href="{{ url_for('main.workspace_service_view', company_id=company.company_id, service_id=service.service_id) }}" 
-                     class="btn btn-secondary">View</a>
-                  <a href="{{ url_for('main.edit_service', service_id=service.service_id) }}" 
-                     class="btn btn-primary">Edit</a>
-                  <button onclick="confirmDeleteService('{{ service.service_id }}', '{{ service.title }}')" 
-                          class="btn btn-danger">Delete</button>
-                </div>
-              </article>
+                {{ service_card_workspace(
+                    service, 
+                    company, 
+                    url_for('main.workspace_service_view', company_id=company.company_id, service_id=service.service_id),
+                    url_for('main.edit_service', service_id=service.service_id),
+                    "confirmDeleteService('" ~ service.service_id ~ "', '" ~ service.title ~ "')"
+                ) }}
               {% endfor %}
             {% else %}
               <div class="empty-state">

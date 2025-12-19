@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_review_card.html' import review_card, reviews_list %}
 {% block title %}{{ service.title }} - Marketplace | Barter.com{% endblock %}
 {% block nav_marketplace_active %}class="active"{% endblock %}
 
@@ -149,29 +150,7 @@
 
             <div class="form-field form-field--full">
                 <label>Reviews</label>
-                {% if reviews and reviews|length > 0 %}
-                    <div class="reviews-stack">
-                        {% for review in reviews %}
-                        <div class="review-card--inline">
-                            <div class="review-card__header--flex">
-                                <span class="reviewer-name--bold">{{ review.reviewer.username if review.reviewer else 'Anonymous' }}</span>
-                                <div class="review-meta-flex">
-                                    <div class="review-stars--orange">
-                                        {% for i in range(review.rating) %}★{% endfor %}
-                                        {% for i in range(5 - review.rating) %}☆{% endfor %}
-                                    </div>
-                                    <span class="review-date--muted">{{ review.created_at.strftime('%B %d, %Y') if review.created_at else '' }}</span>
-                                </div>
-                            </div>
-                            <p class="review-comment">{{ review.comment }}</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty-state-box">
-                        No reviews yet for this service
-                    </div>
-                {% endif %}
+                {{ reviews_list(reviews, style='inline', empty_message='No reviews yet for this service') }}
             </div>
 
             {% if selected_company %}

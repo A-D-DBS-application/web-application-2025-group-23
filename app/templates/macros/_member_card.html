@@ -1,0 +1,105 @@
+{# ==========================================================================
+   MEMBER CARD MACRO
+   ==========================================================================
+   
+   A reusable member card component for displaying team members consistently
+   across workspace pages.
+   
+   Available macros:
+     - member_card: For regular members with admin actions
+     - member_card_pending: For pending join requests
+     - member_avatar: For compact avatar display
+   
+   ========================================================================== #}
+
+
+{# --------------------------------------------------------------------------
+   MEMBER CARD
+   Used on: company_workspace_members.html
+   Features: Avatar, role badge, admin actions
+   -------------------------------------------------------------------------- #}
+{% macro member_card(member, company, current_user_id, is_admin=false) %}
+<li class="member-card {% if member.user_id == current_user_id %}member-card--you{% endif %}">
+    <div class="member-card__left">
+        <div class="avatar avatar--medium {% if member.is_admin %}avatar--admin{% endif %}">
+            <i class="bi bi-person-fill"></i>
+        </div>
+        <div>
+            <div class="member-card__name">
+                {% if member.user_id == current_user_id %}
+                    You
+                {% else %}
+                    {{ member.user_obj.username if member.user_obj else 'Unknown' }}
+                {% endif %}
+            </div>
+            <div class="member-card__role {% if member.is_admin %}member-card__role--admin{% endif %}">
+                {{ 'Admin' if member.is_admin else 'Member' }}
+            </div>
+        </div>
+    </div>
+    
+    {# Admin actions for other members #}
+    {% if is_admin and member.user_id != current_user_id and not member.is_admin %}
+    <div class="member-actions">
+        <form method="post" action="{{ url_for('main.transfer_admin', company_id=company.company_id, member_id=member.member_id) }}" class="form-inline">
+            <button type="submit" class="member-card__action" 
+                    onclick="return confirm('Promote this member to admin? You will become a regular member.');">
+                <i class="bi bi-arrow-up-circle"></i> Promote to Admin
+            </button>
+        </form>
+        <form method="post" action="{{ url_for('main.remove_member', company_id=company.company_id, member_id=member.member_id) }}" class="form-inline">
+            <button type="submit" class="member-card__action member-card__action--danger"
+                    onclick="return confirm('Remove this member from the company?');">
+                <i class="bi bi-x-circle"></i> Remove
+            </button>
+        </form>
+    </div>
+    {% endif %}
+    
+    {# Leave button for non-admin members #}
+    {% if member.user_id == current_user_id and not is_admin %}
+    <form method="post" action="{{ url_for('main.leave_company', company_id=company.company_id) }}" class="form-inline">
+        <button type="submit" class="member-card__action member-card__action--danger"
+                onclick="return confirm('Are you sure you want to leave this company?');">
+            <i class="bi bi-box-arrow-right"></i> Leave company
+        </button>
+    </form>
+    {% endif %}
+</li>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   PENDING MEMBER CARD
+   Used on: company_workspace_members.html (pending requests section)
+   Features: Accept button for admin
+   -------------------------------------------------------------------------- #}
+{% macro member_card_pending(req, company) %}
+<li class="member-card member-card--pending">
+    <div class="member-card__left">
+        <div class="avatar avatar--medium">
+            <i class="bi bi-person-plus"></i>
+        </div>
+        <div>
+            <div class="member-card__name">{{ req.user_obj.username if req.user_obj else 'Unknown' }}</div>
+            <div class="member-card__role member-card__role--pending">Pending</div>
+        </div>
+    </div>
+    <form method="post" action="{{ url_for('main.accept_join_request', company_id=company.company_id, request_id=req.request_id) }}">
+        <button type="submit" class="member-card__action member-card__action--success">
+            <i class="bi bi-check-circle"></i> Accept
+        </button>
+    </form>
+</li>
+{% endmacro %}
+
+
+{# --------------------------------------------------------------------------
+   SIMPLE MEMBER BADGE
+   Used for: compact member displays, avatars in lists
+   -------------------------------------------------------------------------- #}
+{% macro member_avatar(username, is_admin=false, size='medium') %}
+<div class="avatar avatar--{{ size }} {% if is_admin %}avatar--admin{% endif %}" title="{{ username }}">
+    <i class="bi bi-person-fill"></i>
+</div>
+{% endmacro %}

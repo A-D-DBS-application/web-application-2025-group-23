@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/_review_card.html' import review_card %}
 {% block title %}{{ service.title }} | Barter{% endblock %}
 {% block nav_marketplace_active %}class="active"{% endblock %}
 
@@ -187,10 +188,7 @@
                 <div class="detail-section mt-24">
                     <h3 class="section-title--top">Company Reviews</h3>
                     {% for review in reviews[:5] %}
-                        <div class="review-card">
-                            <div class="rating">★ {{ review.rating }} / 5</div>
-                            <p class="review-card__text--padded text-muted">{{ review.comment }}</p>
-                        </div>
+                        {{ review_card(review, style='simple') }}
                     {% endfor %}
                     {% if reviews|length > 5 %}
                         <p class="text-muted mt-12">Showing 5 of {{ reviews|length }} reviews</p>
