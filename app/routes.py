@@ -64,26 +64,6 @@ def start():
     return index()
 
 
-@main.route("/support")
-def support():
-    """Support page."""
-    return render_template("support.html")
-
-
-@main.route("/about-us")
-def about_us():
-    """About Us page."""
-    return render_template("about_us.html")
-
-
-@main.route("/company-choice")
-def company_choice():
-    """Page to choose between creating or joining a company."""
-    if "user_id" not in session:
-        return redirect(url_for("main.login"))
-    return render_template("company_choice.html")
-
-
 @main.route("/select-company-tradeflow")
 def select_company_for_tradeflow():
     """Redirect directly to tradeflow with auto-selected company."""
@@ -680,21 +660,6 @@ def workspace_service_view(company_id, service_id):
         username=User.query.get(uid).username if User.query.get(uid) else '',
         user_companies=companies,
     )
-
-
-@main.route('/company/<uuid:company_id>/service', methods=['GET'])
-def company_services(company_id):
-    """List services for company view (public/private)."""
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    uid = uuid.UUID(session['user_id'])
-    company = Company.query.get_or_404(company_id)
-    membership = CompanyMember.query.filter_by(company_id=company_id, user_id=uid).first()
-    if not membership:
-        flash('You are not a member of this company', 'error')
-        return redirect(url_for('main.my_companies'))
-    services = Service.query.filter_by(company_id=company_id).all()
-    return render_template('company_services.html', company=company, services=services)
 
 
 # ==================== SERVICE ROUTES ====================
