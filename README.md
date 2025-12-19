@@ -55,13 +55,11 @@ flaskdb_upgrade]
 - finale user Interface: https://www.figma.com/design/qhGCSW6y5SfgpUuQqfOpyZ/Barter.com---group-23---User-Interface?node-id=5-59&t=VP867ypVz8lcFcYZ-1
 
 # Link to audio/video recording of feedback sessions with external partner + Meeting Summaries 
-link naar de ppt: https://ugentbe-my.sharepoint.com/:p:/g/personal/eli_dhondt_ugent_be/IQD5urFEoTvHTINx1kAAlx08AQ_FkS0CnWrqRtIWrVHbCv8?e=iJDAXX
-link naar de video: https://1drv.ms/v/c/23833f39271c9204/IQAHDsdbf1WIQK-UdtBkVdEYAXhDPpWtvlwYvVlr76GvN5c?e=fhLTwg
-
 
 
 # Link to Explanation Algorithm [figma+docu]
 - https://hide-final-63674429.figma.site 
 
 # Link to presentation Oral Defense 
-
+- presentatie: https://ugentbe-my.sharepoint.com/:p:/g/personal/eli_dhondt_ugent_be/IQD5urFEoTvHTINx1kAAlx08AQ_FkS0CnWrqRtIWrVHbCv8?e=iJDAXX
+- demo video: https://1drv.ms/v/c/23833f39271c9204/IQAHDsdbf1WIQK-UdtBkVdEYAXhDPpWtvlwYvVlr76GvN5c?e=fhLTwg
