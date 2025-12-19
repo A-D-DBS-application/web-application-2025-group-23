@@ -226,7 +226,8 @@
 .tradeflow-container .page-desc { font-size: 15px; color: #5f6368; line-height: 1.6; }
 
 /* Cards grid */
-.tradeflow-container .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.tradeflow-container .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.tradeflow-container .cards-grid--two-col { grid-template-columns: repeat(2, 1fr); }
 .tradeflow-container a.card { text-decoration: none; color: inherit; display: flex; }
 .tradeflow-container .card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 20px; transition: all 0.2s; cursor: pointer; display: flex; flex-direction: column; height: 100%; }
 .tradeflow-container .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #1A73E8; }
@@ -262,14 +263,15 @@
 
 /* Detail pages */
 .tradeflow-container .detail-card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 28px; max-width: 700px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tradeflow-container .detail-card--full-width { max-width: none; }
 .tradeflow-container .detail-title { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
 .tradeflow-container .detail-section { margin-bottom: 20px; }
 .tradeflow-container .detail-label { font-size: 12px; font-weight: 600; color: #5f6368; text-transform: uppercase; margin-bottom: 6px; }
 .tradeflow-container .detail-value { font-size: 15px; color: #1a1a1a; }
 
 /* Back link - styled as blue button */
-.tradeflow-container .back-link { display: inline-block; background: #1A73E8; color: white; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 6px; margin-bottom: 20px; transition: background 0.2s; }
-.tradeflow-container .back-link:hover { background: #1A73E8; color: white; }
+.tradeflow-container .back-link { display: inline-block; color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 600; padding: 0; margin-bottom: 20px; transition: color 0.2s; background: transparent; }
+.tradeflow-container .back-link:hover { color: #5f6368; background: transparent; }
 
 /* Status badges */
 .tradeflow-container .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; background: #fce8e6; color: #d33425; }
@@ -435,8 +437,8 @@
 .tradeflow-container .decline-btn:hover { background: #fef2f2; }
 
 /* Action button (for select return detail) */
-.tradeflow-container .action-btn { display: block; background: #1A73E8; color: white; padding: 14px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; text-align: center; transition: background 0.2s; }
-.tradeflow-container .action-btn:hover { background: #1A73E8; }
+.tradeflow-container .action-btn { display: block; background: #1A73E8; color: white; padding: 14px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; text-align: center; transition: all 0.2s; }
+.tradeflow-container .action-btn:hover { background: #1557b0; }
 
 /* Card category tags */
 .tradeflow-container .card-categories { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }

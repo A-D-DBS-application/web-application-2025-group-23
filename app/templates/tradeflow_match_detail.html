@@ -17,20 +17,20 @@
         <!-- Service Cards -->
         {% if company.company_id == proposal.from_company.company_id %}
           {# Current user is from_company - they made the proposal #}
-          {# They REQUEST from_service and OFFER to_service #}
-          {# BUT: from_service belongs to from_company, to_service belongs to to_company #}
-          {% set my_service = proposal.to_service %}
-          {% set my_company = proposal.to_company %}
-          {% set their_service = proposal.from_service %}
-          {% set their_company = proposal.from_company %}
-        {% else %}
-          {# Current user is to_company - they received the proposal #}
           {# They REQUEST to_service and OFFER from_service #}
-          {# BUT: from_service belongs to from_company, to_service belongs to to_company #}
           {% set my_service = proposal.from_service %}
           {% set my_company = proposal.from_company %}
           {% set their_service = proposal.to_service %}
           {% set their_company = proposal.to_company %}
+          {% set is_from_company = true %}
+        {% else %}
+          {# Current user is to_company - they received the proposal #}
+          {# They REQUEST from_service and OFFER to_service #}
+          {% set my_service = proposal.to_service %}
+          {% set my_company = proposal.to_company %}
+          {% set their_service = proposal.from_service %}
+          {% set their_company = proposal.from_company %}
+          {% set is_from_company = false %}
         {% endif %}
         
         <div class="pair-grid">
@@ -75,7 +75,19 @@
         <div style="border-top: 1px solid #e8eaed; padding-top: 24px; margin-top: 24px;">
           <h2 style="font-size: 20px; font-weight: 600; color: #1A73E8; margin-bottom: 16px;">Deal Balance</h2>
           
-          {% set ratio = fairness_data.fairness_ratio %}
+          {# Calculate ratio from current user's perspective #}
+          {% if is_from_company %}
+            {# For from_company: ratio stays as is (return/requested) #}
+            {% set ratio = fairness_data.fairness_ratio %}
+            {% set my_svi = fairness_data.return.svi %}
+            {% set their_svi = fairness_data.requested.svi %}
+          {% else %}
+            {# For to_company: invert the ratio (requested/return) #}
+            {% set ratio = 1 / fairness_data.fairness_ratio if fairness_data.fairness_ratio != 0 else 0 %}
+            {% set my_svi = fairness_data.requested.svi %}
+            {% set their_svi = fairness_data.return.svi %}
+          {% endif %}
+          
           {% set is_balanced = ratio >= 0.9 and ratio <= 1.1 %}
           {% set is_favorable = ratio < 0.9 %}
           {% set is_unfavorable = ratio > 1.1 %}
@@ -106,9 +118,9 @@
                   {% if is_balanced %}
                   Both sides are offering similar value.
                   {% elif is_favorable %}
-                  You are receiving much more value than you give.
+                  You are receiving more value than you give.
                   {% else %}
-                  You are giving much more value than you receive.
+                  You are giving more value than you receive.
                   {% endif %}
                 </div>
               </div>
@@ -122,7 +134,7 @@
                   <div style="font-size: 16px; font-weight: 600; color: #202124;">{{ their_service.title }}</div>
                   <div style="display: flex; justify-content: center; gap: 4px; margin-top: 8px;">
                     {% for i in range(5) %}
-                    <span style="width: 12px; height: 12px; border-radius: 50%; background: {% if i < (fairness_data.requested.svi * 5)|round|int %}#34a853{% else %}#dadce0{% endif %};"></span>
+                    <span style="width: 12px; height: 12px; border-radius: 50%; background: {% if i < (their_svi * 5)|round|int %}#34a853{% else %}#dadce0{% endif %};"></span>
                     {% endfor %}
                   </div>
                 </div>
@@ -134,7 +146,7 @@
                   <div style="font-size: 16px; font-weight: 600; color: #202124;">{{ my_service.title }}</div>
                   <div style="display: flex; justify-content: center; gap: 4px; margin-top: 8px;">
                     {% for i in range(5) %}
-                    <span style="width: 12px; height: 12px; border-radius: 50%; background: {% if i < (fairness_data.return.svi * 5)|round|int %}#34a853{% else %}#dadce0{% endif %};"></span>
+                    <span style="width: 12px; height: 12px; border-radius: 50%; background: {% if i < (my_svi * 5)|round|int %}#34a853{% else %}#dadce0{% endif %};"></span>
                     {% endfor %}
                   </div>
                 </div>
@@ -183,11 +195,11 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
                   <div>
                     <div style="font-weight: 600; font-size: 13px; color: #202124; margin-bottom: 4px;">You request</div>
-                    <div style="font-size: 13px; color: #5f6368;">Service Value: {{ fairness_data.requested.svi|round(2) }}</div>
+                    <div style="font-size: 13px; color: #5f6368;">Service Value: {{ their_svi|round(2) }}</div>
                   </div>
                   <div>
                     <div style="font-weight: 600; font-size: 13px; color: #202124; margin-bottom: 4px;">You offer</div>
-                    <div style="font-size: 13px; color: #5f6368;">Service Value: {{ fairness_data.return.svi|round(2) }}</div>
+                    <div style="font-size: 13px; color: #5f6368;">Service Value: {{ my_svi|round(2) }}</div>
                   </div>
                 </div>
                 <p style="font-size: 12px; color: #9aa0a6; font-style: italic; margin: 0;">Calculated from effort, demand, reviews and trust</p>
