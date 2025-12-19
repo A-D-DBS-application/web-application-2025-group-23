@@ -39,6 +39,7 @@
    DEAL CARD
    Used on: tradeflow_ongoing_deals.html, tradeflow_completed_deals.html
    Features: Two-sided display with arrows, status badge
+   Note: from_service belongs to to_company, to_service belongs to from_company
    -------------------------------------------------------------------------- #}
 {% macro deal_card(deal, click_url, status='ongoing', show_review=false) %}
 <div class="card" {% if click_url %}onclick="location.href='{{ click_url }}'"{% endif %}>
@@ -51,12 +52,12 @@
     <div class="card-pair">
         <div class="card-side">
             <div class="card-side-label">{{ deal.proposal.from_company.name }}</div>
-            <div class="card-side-title">{{ deal.proposal.from_service.title }}</div>
+            <div class="card-side-title">{{ deal.proposal.to_service.title }}</div>
         </div>
         <div class="arrows">⇄</div>
         <div class="card-side">
             <div class="card-side-label">{{ deal.proposal.to_company.name }}</div>
-            <div class="card-side-title">{{ deal.proposal.to_service.title }}</div>
+            <div class="card-side-title">{{ deal.proposal.from_service.title }}</div>
         </div>
     </div>
     
@@ -76,6 +77,7 @@
    MATCH CARD
    Used on: tradeflow_match_made.html
    Features: Two-sided display, pending status handling
+   Note: from_service belongs to to_company, to_service belongs to from_company
    -------------------------------------------------------------------------- #}
 {% macro match_card(match_info, company_id) %}
 {% set match = match_info.proposal %}
@@ -123,6 +125,7 @@
    OFFER CARD
    Used on: tradeflow_awaiting_signature.html, tradeflow_awaiting_other_party.html
    Features: Two-sided display, money pill, status header
+   Note: from_service belongs to to_company, to_service belongs to from_company
    -------------------------------------------------------------------------- #}
 {% macro offer_card(offer, click_url, header_label, is_your_offer=false) %}
 <a class="card" href="{{ click_url }}">
@@ -131,26 +134,28 @@
     </div>
     <div class="card-pair">
         {% if is_your_offer %}
-            {# For offers YOU sent: LEFT = what you request (to_service from to_company), RIGHT = what you offer (from_service from from_company) #}
+            {# For offers YOU sent (you are from_company): #}
+            {# You request from_service (belongs to to_company), you offer to_service (belongs to you) #}
             <div class="card-side">
                 <div class="card-side-label">{{ offer.to_company.name }}</div>
-                <div class="card-side-title">{{ offer.to_service.title }}</div>
+                <div class="card-side-title">{{ offer.from_service.title }}</div>
             </div>
             <div class="arrows">→</div>
             <div class="card-side">
                 <div class="card-side-label">{{ offer.from_company.name }}</div>
-                <div class="card-side-title">{{ offer.from_service.title }}</div>
+                <div class="card-side-title">{{ offer.to_service.title }}</div>
             </div>
         {% else %}
-            {# For offers you RECEIVED: show normal order #}
+            {# For offers you RECEIVED (you are to_company): #}
+            {# They (from_company) request from_service (yours), they offer to_service (theirs) #}
             <div class="card-side">
                 <div class="card-side-label">{{ offer.from_company.name }}</div>
-                <div class="card-side-title">{{ offer.from_service.title }}</div>
+                <div class="card-side-title">{{ offer.to_service.title }}</div>
             </div>
             <div class="arrows">→</div>
             <div class="card-side">
                 <div class="card-side-label">{{ offer.to_company.name }}</div>
-                <div class="card-side-title">{{ offer.to_service.title }}</div>
+                <div class="card-side-title">{{ offer.from_service.title }}</div>
             </div>
         {% endif %}
     </div>
