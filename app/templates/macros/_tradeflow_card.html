@@ -84,12 +84,12 @@
     <div class="card-pair">
         <div class="card-side">
             <div class="card-side-label">{{ match.from_company.name }}</div>
-            <div class="card-side-title">{{ match.from_service.title }}</div>
+            <div class="card-side-title">{{ match.to_service.title }}</div>
         </div>
         <div class="arrows">⇄</div>
         <div class="card-side">
             <div class="card-side-label">{{ match.to_company.name }}</div>
-            <div class="card-side-title">{{ match.to_service.title }}</div>
+            <div class="card-side-title">{{ match.from_service.title }}</div>
         </div>
     </div>
     {% if match_info.has_pending %}
@@ -130,15 +130,29 @@
         <div class="card-header-label">{{ header_label }}</div>
     </div>
     <div class="card-pair">
-        <div class="card-side">
-            <div class="card-side-label">{{ offer.from_company.name }}</div>
-            <div class="card-side-title">{{ offer.from_service.title }}</div>
-        </div>
-        <div class="arrows">→</div>
-        <div class="card-side">
-            <div class="card-side-label">{{ offer.to_company.name }}</div>
-            <div class="card-side-title">{{ offer.to_service.title }}</div>
-        </div>
+        {% if is_your_offer %}
+            {# For offers YOU sent: LEFT = what you request (to_service from to_company), RIGHT = what you offer (from_service from from_company) #}
+            <div class="card-side">
+                <div class="card-side-label">{{ offer.to_company.name }}</div>
+                <div class="card-side-title">{{ offer.to_service.title }}</div>
+            </div>
+            <div class="arrows">→</div>
+            <div class="card-side">
+                <div class="card-side-label">{{ offer.from_company.name }}</div>
+                <div class="card-side-title">{{ offer.from_service.title }}</div>
+            </div>
+        {% else %}
+            {# For offers you RECEIVED: show normal order #}
+            <div class="card-side">
+                <div class="card-side-label">{{ offer.from_company.name }}</div>
+                <div class="card-side-title">{{ offer.from_service.title }}</div>
+            </div>
+            <div class="arrows">→</div>
+            <div class="card-side">
+                <div class="card-side-label">{{ offer.to_company.name }}</div>
+                <div class="card-side-title">{{ offer.to_service.title }}</div>
+            </div>
+        {% endif %}
     </div>
     <div class="card-meta">Created {{ offer.created_at.strftime('%d-%m-%Y') }}</div>
     {% if offer.money_amount and offer.money_amount|int > 0 and offer.money_type %}

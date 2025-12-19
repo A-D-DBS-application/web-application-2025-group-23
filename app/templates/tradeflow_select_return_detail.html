@@ -9,7 +9,7 @@
 
     <main class="main">
       <a href="{{ url_for('main.tradeflow_select_return', company_id=company.company_id, request_id=request_id) }}" class="back-link">← Back</a>
-      <div class="detail-card">
+      <div class="detail-card detail-card--full-width">
         <div class="service-title">{{ service.title }}</div>
         <div class="service-company">by {{ service.company.name }}</div>
         <div class="service-desc">{{ service.description }}</div>
@@ -27,8 +27,9 @@
         <div class="action-form-section">
           <form method="POST" action="{{ url_for('main.tradeflow_select_return', company_id=company.company_id, request_id=request_id) }}">
             <input type="hidden" name="selected_service_id" value="{{ service.service_id }}">
-            <button type="submit" class="action-btn action-btn--full">Create Match with this Service</button>
+            <button type="submit" class="action-btn action-btn--full">Select this service for the trade</button>
           </form>
+          <p class="note">Once selected, this service will be proposed as your return offer. Both companies will now move to the "Match made" stage to begin contract negotiations.</p>
         </div>
       </div>
     </main>
