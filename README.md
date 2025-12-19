@@ -51,7 +51,8 @@ flaskdb_upgrade]
 - https://github.com/A-D-DBS-application/web-application-2025-group-23/blob/b3642c580e0d294ec81d414be1436f7c8dd8caa6/barter.com%20-%20group23%20-%20final%20flow.pdf
 
 # Link to User Interface prototype:
-- https://www.figma.com/design/qhGCSW6y5SfgpUuQqfOpyZ/Barter.com---group-23---User-Interface?node-id=5-59&t=VP867ypVz8lcFcYZ-1
+- evolution User Interface: https://github.com/A-D-DBS-application/web-application-2025-group-23/blob/fbca59ce540c5433a8d3319f096c98673db778b7/userinterface.md 
+- finale user Interface: https://www.figma.com/design/qhGCSW6y5SfgpUuQqfOpyZ/Barter.com---group-23---User-Interface?node-id=5-59&t=VP867ypVz8lcFcYZ-1
 
 # Link to audio/video recording of feedback sessions with external partner + Meeting Summaries [+presentatiesGebruiktTijdensCall?]:
 
