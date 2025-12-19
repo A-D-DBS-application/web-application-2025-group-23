@@ -46,6 +46,13 @@ flaskdb_upgrade]
 # Link to Final User Stories: 
 - https://github.com/A-D-DBS-application/web-application-2025-group-23/blob/e2584391a1ed51dff4c00ca68ce5ef0112319973/barter.com%20-%20group%2023%20-%20final%20UserStories.pdf
 
+#Link to audio/video recording of feedback sessions with partner
+- https://we.tl/t-5i7Z7hMsta
+#The three meeting summaries can be found in:
+- `first_meeting.md`
+-`second_meeting.md`
+-`third_meeting.md`
+
 # Link to Flowchart
 - https://github.com/A-D-DBS-application/web-application-2025-group-23/blob/58237a0e731c3fbc74b7454ecd82a8a325944b84/barter.com%20-%20group%2023%20-%20application%20flow.pdf 
 - https://amused-clip-14241862.figma.site
