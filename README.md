@@ -56,4 +56,4 @@ flaskdb_upgrade]
 # Link to audio/video recording of feedback sessions with external partner + Meeting Summaries [+presentatiesGebruiktTijdensCall?]:
 
 # Link to Explanation Algorithm [figma+docu]
-
+- https://hide-final-63674429.figma.site 
