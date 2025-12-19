@@ -62,4 +62,4 @@ flaskdb_upgrade]
 
 # Link to presentation Oral Defense 
 - presentatie: https://ugentbe-my.sharepoint.com/:p:/g/personal/eli_dhondt_ugent_be/IQD5urFEoTvHTINx1kAAlx08AQ_FkS0CnWrqRtIWrVHbCv8?e=iJDAXX
-- demo video: https://1drv.ms/v/c/23833f39271c9204/IQAHDsdbf1WIQK-UdtBkVdEYAXhDPpWtvlwYvVlr76GvN5c?e=fhLTwg
+- demo video: https://ugentbe-my.sharepoint.com/:v:/g/personal/eline_tielliu_ugent_be/IQBG9ho4S8e4SpEzaQNsoUiUAWFuUbp8ISN57iI0dadwwA8?e=ArAtbL&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifSwicGxheWJhY2tPcHRpb25zIjp7InN0YXJ0VGltZUluU2Vjb25kcyI6MjEuNTh9fQ%3D%3D 
