@@ -3,17 +3,22 @@
 {% block nav_tradeflow_active %}class="active"{% endblock %}
 {% set active_page = 'awaiting_other_party' %}
 
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='tradeflow.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="tradeflow-container">
     {% include '_tradeflow_sidebar.html' %}
 
-    <main class="main">
-      <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" style="color: #202124; text-decoration: none; display: inline-block; margin-bottom: 20px; font-size: 14px;">← Back to Awaiting Them</a>
+    <main class="tradeflow-main">
+      <a href="{{ url_for('main.tradeflow_awaiting_other_party', company_id=company.company_id) }}" class="back-link">← Back to Awaiting Them</a>
       
-      <h1 style="font-size: 28px; font-weight: 600; color: #202124; margin-bottom: 8px;">Offer Details</h1>
-      <p style="color: #5f6368; font-size: 15px; margin-bottom: 24px;">This proposal is waiting for {{ proposal.to_company.name }} to respond</p>
+      <h1 class="detail-title">Offer Details</h1>
+      <p class="detail-subtitle">This proposal is waiting for {{ proposal.to_company.name }} to respond</p>
       
-      <div class="detail-card" style="max-width: none; width: 100%;">
+      <div class="detail-card">
         <!-- Service Cards -->
         {# In awaiting_other_party, user is always from_company (they sent the offer) #}
         {# from_service belongs to to_company, to_service belongs to from_company #}
@@ -26,52 +31,50 @@
         {% set offered_svi = fairness_data.requested.svi if fairness_data else 0 %}
         
         <div class="pair-grid">
-          <div class="pair-side" style="border: 2px solid #1A73E8; background: #f0f7ff;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-              <span style="background: #1A73E8; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase;">You Request</span>
+          <div class="pair-side pair-side--request">
+            <div class="pair-badge-wrapper">
+              <span class="pair-badge-label pair-badge-label--request">You Request</span>
             </div>
             <div class="pair-label">{{ requested_service.company.name }} offers</div>
-            <div class="pair-service" style="color: #1A73E8;">{{ requested_service.title }}</div>
+            <div class="pair-service pair-service--request">{{ requested_service.title }}</div>
             <div class="pair-desc">{{ requested_service.description }}</div>
           </div>
-          <div class="pair-side" style="border: 2px solid #9aa0a6; background: #f5f5f5;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-              <span style="background: #5f6368; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase;">You Offer</span>
+          <div class="pair-side pair-side--offer">
+            <div class="pair-badge-wrapper">
+              <span class="pair-badge-label pair-badge-label--offer">You Offer</span>
             </div>
             <div class="pair-label">{{ offered_service.company.name }} offers</div>
-            <div class="pair-service" style="color: #5f6368;">{{ offered_service.title }}</div>
+            <div class="pair-service pair-service--offer">{{ offered_service.title }}</div>
             <div class="pair-desc">{{ offered_service.description }}</div>
           </div>
         </div>
         
         <!-- Details Section -->
-        <div style="border-top: 1px solid #e8eaed; padding-top: 24px; margin-top: 24px;">
-          <h2 style="font-size: 20px; font-weight: 600; color: #1A73E8; margin-bottom: 16px;">Details</h2>
+        <div class="section-divider">
+          <h2 class="section-header">Details</h2>
           
-          <div style="background: white; border: 1px solid #e8eaed; border-radius: 10px; padding: 24px;">
-            <div class="info-grid">
-              <div class="info-item">
-                <div class="info-label">Status</div>
-                <div class="info-value">{{ proposal.status }}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">Created</div>
-                <div class="info-value">{{ proposal.created_at.strftime('%d-%m-%Y') }}</div>
-              </div>
-              {% if proposal.message %}
-              <div class="info-item">
-                <div class="info-label">Message</div>
-                <div class="info-value">{{ proposal.message }}</div>
-              </div>
-              {% endif %}
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Status</div>
+              <div class="info-value">{{ proposal.status }}</div>
             </div>
+            <div class="info-item">
+              <div class="info-label">Created</div>
+              <div class="info-value">{{ proposal.created_at.strftime('%d-%m-%Y') }}</div>
+            </div>
+            {% if proposal.message %}
+            <div class="info-item">
+              <div class="info-label">Message</div>
+              <div class="info-value">{{ proposal.message }}</div>
+            </div>
+            {% endif %}
           </div>
         </div>
 
         <!-- Deal Balance Section -->
         {% if fairness_data %}
-        <div style="border-top: 1px solid #e8eaed; padding-top: 24px; margin-top: 24px;">
-          <h2 style="font-size: 20px; font-weight: 600; color: #1A73E8; margin-bottom: 16px;">Deal Balance</h2>
+        <div class="section-divider">
+          <h2 class="section-header">Deal Balance</h2>
           
           {# compute_fairness is called with (to_service, from_service) for awaiting_other_party #}
           {# So: fairness_data.requested = to_service SVI, fairness_data.return = from_service SVI #}
@@ -84,20 +87,20 @@
           {% set is_favorable = ratio < 0.9 %}
           {% set is_unfavorable = ratio > 1.1 %}
           
-          <div class="deal-balance-card" style="border: 1px solid {% if is_balanced %}#34a853{% elif is_favorable %}#f9ab00{% else %}#f9ab00{% endif %}; border-radius: 12px; padding: 24px; background: {% if is_balanced %}#e6f4ea{% elif is_favorable %}#fef7e0{% else %}#fef7e0{% endif %};">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-              <div style="flex: 1;">
-                <h3 style="font-size: 20px; font-weight: 700; color: #202124; margin: 0;">Balance Status</h3>
+          <div class="deal-balance-card {% if is_balanced %}deal-balance-card--balanced{% elif is_favorable %}deal-balance-card--favorable{% else %}deal-balance-card--unbalanced{% endif %}">
+            <div class="balance-status-header">
+              <div>
+                <h3 class="balance-status-title">Balance Status</h3>
               </div>
-              <div style="text-align: right;">
-                <div style="font-size: 13px; color: #5f6368; margin-bottom: 4px;">Fairness score:</div>
-                <div style="font-size: 32px; font-weight: 700; color: {% if is_balanced %}#34a853{% elif is_favorable %}#f9ab00{% else %}#f9ab00{% endif %};">{{ ratio|round(2) }}</div>
+              <div class="balance-score-wrapper">
+                <div class="balance-score-label">Fairness score:</div>
+                <div class="balance-ratio {% if is_balanced %}balance-ratio--balanced{% elif is_favorable %}balance-ratio--favorable{% else %}balance-ratio--unbalanced{% endif %}">{{ ratio|round(2) }}</div>
               </div>
             </div>
             
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+            <div class="balance-verdict-wrapper">
               <div>
-                <div style="font-size: 18px; font-weight: 600; color: {% if is_balanced %}#34a853{% elif is_favorable %}#f9ab00{% else %}#f9ab00{% endif %};">
+                <div class="balance-verdict {% if is_balanced %}balance-verdict--balanced{% elif is_favorable %}balance-verdict--favorable{% else %}balance-verdict--unbalanced{% endif %}">
                   {% if is_balanced %}
                   Balanced deal
                   {% elif is_favorable %}
@@ -106,7 +109,7 @@
                   Unbalanced (in their favor)
                   {% endif %}
                 </div>
-                <div style="font-size: 14px; color: #5f6368; margin-top: 4px;">
+                <div class="balance-description">
                   {% if is_balanced %}
                   Both sides are offering similar value.
                   {% elif is_favorable %}
@@ -118,36 +121,36 @@
               </div>
             </div>
             
-            <div style="border-top: 1px solid rgba(0,0,0,0.1); padding-top: 20px;">
-              <h4 style="font-size: 16px; font-weight: 600; color: #202124; margin-bottom: 16px; text-align: center;">Value comparison</h4>
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
-                <div style="flex: 1; text-align: center;">
-                  <div style="font-size: 14px; font-weight: 600; color: #5f6368; margin-bottom: 8px;">You request:</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #202124;">{{ requested_service.title }}</div>
-                  <div style="display: flex; justify-content: center; gap: 4px; margin-top: 8px;">
+            <div class="balance-comparison-section">
+              <h4 class="value-comparison-title">Value comparison</h4>
+              <div class="value-comparison-grid">
+                <div class="value-comparison-side">
+                  <div class="value-comparison-label">You request:</div>
+                  <div class="value-comparison-service">{{ requested_service.title }}</div>
+                  <div class="svi-dots">
                     {% for i in range(5) %}
-                    <span style="width: 12px; height: 12px; border-radius: 50%; background: {% if i < (requested_svi * 5)|round|int %}#34a853{% else %}#dadce0{% endif %};"></span>
+                    <span class="svi-dot {% if i < (requested_svi * 5)|round|int %}svi-dot--filled{% else %}svi-dot--empty{% endif %}"></span>
                     {% endfor %}
                   </div>
                 </div>
                 
-                <div style="font-size: 28px; color: #1A73E8; font-weight: 700;">⇄</div>
+                <div class="value-comparison-arrow">⇄</div>
                 
-                <div style="flex: 1; text-align: center;">
-                  <div style="font-size: 14px; font-weight: 600; color: #5f6368; margin-bottom: 8px;">You offer:</div>
-                  <div style="font-size: 16px; font-weight: 600; color: #202124;">{{ offered_service.title }}</div>
-                  <div style="display: flex; justify-content: center; gap: 4px; margin-top: 8px;">
+                <div class="value-comparison-side">
+                  <div class="value-comparison-label">You offer:</div>
+                  <div class="value-comparison-service">{{ offered_service.title }}</div>
+                  <div class="svi-dots">
                     {% for i in range(5) %}
-                    <span style="width: 12px; height: 12px; border-radius: 50%; background: {% if i < (offered_svi * 5)|round|int %}#34a853{% else %}#dadce0{% endif %};"></span>
+                    <span class="svi-dot {% if i < (offered_svi * 5)|round|int %}svi-dot--filled{% else %}svi-dot--empty{% endif %}"></span>
                     {% endfor %}
                   </div>
                 </div>
               </div>
             </div>
             
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.1);">
-              <h4 style="font-size: 15px; font-weight: 600; color: #202124; margin-bottom: 12px;">What does this mean?</h4>
-              <ul style="margin: 0; padding-left: 20px; color: #5f6368; font-size: 14px; line-height: 1.8;">
+            <div class="balance-info-section">
+              <h4 class="balance-info-title">What does this mean?</h4>
+              <ul class="balance-info-list">
                 {% if is_balanced %}
                 <li>Both parties receives similar value</li>
                 <li>This deal is likely to be accepted</li>
@@ -164,9 +167,9 @@
             </div>
             
             {% if not is_balanced %}
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.1);">
-              <h4 style="font-size: 15px; font-weight: 600; color: #202124; margin-bottom: 12px;">Suggested actions:</h4>
-              <ul style="margin: 0; padding-left: 20px; color: #5f6368; font-size: 14px; line-height: 1.8;">
+            <div class="balance-info-section">
+              <h4 class="balance-info-title">Suggested actions:</h4>
+              <ul class="balance-info-list">
                 {% if is_favorable %}
                 <li>Offer something extra</li>
                 <li>Ask for less in return</li>
@@ -180,21 +183,21 @@
             </div>
             {% endif %}
             
-            <details style="margin-top: 20px;">
-              <summary style="cursor: pointer; color: #1A73E8; font-weight: 600; font-size: 14px;">How is this calculated? ▼</summary>
-              <div style="margin-top: 16px; padding: 16px; background: white; border-radius: 8px;">
-                <p style="font-size: 13px; color: #5f6368; margin-bottom: 12px;">The score is calculated by comparing the Service Value Index (SVI) of the offered service with that of the requested service.</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
+            <details class="balance-details">
+              <summary class="balance-details-summary">How is this calculated? ▼</summary>
+              <div class="balance-details-content">
+                <p class="balance-details-text">The score is calculated by comparing the Service Value Index (SVI) of the offered service with that of the requested service.</p>
+                <div class="balance-details-grid">
                   <div>
-                    <div style="font-weight: 600; font-size: 13px; color: #202124; margin-bottom: 4px;">You request</div>
-                    <div style="font-size: 13px; color: #5f6368;">Service Value: {{ requested_svi|round(2) }}</div>
+                    <div class="balance-details-label">You request</div>
+                    <div class="balance-details-value">Service Value: {{ requested_svi|round(2) }}</div>
                   </div>
                   <div>
-                    <div style="font-weight: 600; font-size: 13px; color: #202124; margin-bottom: 4px;">You offer</div>
-                    <div style="font-size: 13px; color: #5f6368;">Service Value: {{ offered_svi|round(2) }}</div>
+                    <div class="balance-details-label">You offer</div>
+                    <div class="balance-details-value">Service Value: {{ offered_svi|round(2) }}</div>
                   </div>
                 </div>
-                <p style="font-size: 12px; color: #9aa0a6; font-style: italic; margin: 0;">Calculated from effort, demand, reviews and trust</p>
+                <p class="balance-details-footnote">Calculated from effort, demand, reviews and trust</p>
               </div>
             </details>
           </div>
@@ -205,36 +208,36 @@
         {% set money_type = proposal.money_type if proposal.money_type is defined else None %}
         {% set money_amount = proposal.money_amount if proposal.money_amount is defined else None %}
         {% if money_amount and money_amount|int > 0 and money_type %}
-        <div style="border-top: 1px solid #e8eaed; padding-top: 24px; margin-top: 24px;">
-          <h2 style="font-size: 20px; font-weight: 600; color: #1A73E8; margin-bottom: 16px;">Money Compensation</h2>
+        <div class="section-divider">
+          <h2 class="section-header">Money Compensation</h2>
           
-          <div style="background: white; border: 1px solid #e8eaed; border-radius: 10px; padding: 24px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <div class="form-card">
+            <div class="form-card-header">
               <div>
-                <h3 style="font-size: 16px; font-weight: 600; color: #202124; margin: 0;">Additional Payment</h3>
-                <p style="font-size: 13px; color: #5f6368; margin: 4px 0 0 0;">Extra money to balance this trade</p>
+                <h3 class="form-card-title">Additional Payment</h3>
+                <p class="form-card-subtitle">Extra money to balance this trade</p>
               </div>
             </div>
             
-            <div style="background: {% if money_type == 'receive' %}#e6f4ea{% else %}#fef7e0{% endif %}; padding: 16px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 14px; color: #5f6368; margin-bottom: 8px;">
+            <div class="money-preview {% if money_type == 'receive' %}money-preview--receive{% else %}money-preview--give{% endif %}">
+              <div class="money-preview-label">
                 {% if money_type == 'receive' %}
                 You will receive
                 {% else %}
                 You will give
                 {% endif %}
               </div>
-              <div style="font-size: 32px; font-weight: 700; color: {% if money_type == 'receive' %}#1e8e3e{% else %}#f9ab00{% endif %};">€{{ money_amount }}</div>
-              <div style="font-size: 13px; color: #5f6368; margin-top: 8px;">as part of this deal</div>
+              <div class="money-preview-amount">€{{ money_amount }}</div>
+              <div class="money-preview-suffix">as part of this deal</div>
             </div>
           </div>
         </div>
         {% endif %}
 
         <!-- Status Note -->
-        <div style="margin-top: 24px; padding: 12px 16px; background: #f8f9fa; border-left: 3px solid #1A73E8; border-radius: 4px;">
-          <p style="margin: 0; font-size: 14px; color: #5f6368; line-height: 1.5;">
-            <strong style="color: #202124;">Waiting for response:</strong> This offer has been sent and is awaiting {{ proposal.to_company.name }}'s decision. You cannot make changes at this time.
+        <div class="notice">
+          <p>
+            <strong>Waiting for response:</strong> This offer has been sent and is awaiting {{ proposal.to_company.name }}'s decision. You cannot make changes at this time.
           </p>
         </div>
       </div>
