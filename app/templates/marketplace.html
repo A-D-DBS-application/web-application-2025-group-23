@@ -6,6 +6,27 @@
 {% block content %}
     <link rel="stylesheet" href="{{ url_for('static', filename='tradeflow.css') }}">
     
+    <style>
+        /* Marketplace-specific grid styling */
+        .marketplace-grid.cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        
+        @media (max-width: 1200px) {
+            .marketplace-grid.cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .marketplace-grid.cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    
     <div class="tradeflow-container">
         <!-- Left Sidebar with Tradeflow styling -->
         <aside class="sidebar tradeflow-sidebar">
@@ -130,7 +151,7 @@
                 </form>
             </div>
 
-            <div class="cards-grid cards-grid--3col">
+            <div class="cards-grid marketplace-grid">
                 {% for service in services %}
                     {% set click_url = url_for('main.marketplace_service_view', service_id=service.service_id) if is_logged_in and user_companies else url_for('main.marketplace_service_detail_view', service_id=service.service_id) %}
                     {{ service_card(service, service_ratings, click_url) }}
