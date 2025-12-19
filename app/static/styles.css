@@ -3057,9 +3057,21 @@ button:disabled {
     display: flex;
     gap: 12px;
     align-items: center;
+    width: 100%;
+}
+.search-form-row .search-input-flex,
+.search-form-row .form-input {
+    flex: 4;
+    min-width: 0;
+    border-radius: 24px;
+    padding: 12px 20px;
+}
+.search-form-row .btn-primary {
+    flex: 1;
+    white-space: nowrap;
 }
 .search-input-flex {
-    flex: 1;
+    flex: 4;
     min-width: 0;
     border-radius: 24px;
     padding: 12px 20px;

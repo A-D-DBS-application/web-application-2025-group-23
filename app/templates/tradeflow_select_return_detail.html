@@ -20,7 +20,7 @@
           </div>
           <div class="meta-item">
             <div class="meta-label">Categories</div>
-            <div class="meta-value" style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <div class="meta-value meta-value--tags">
               {% if service.categories %}
                 {% for cat in service.categories.split(',') %}
                   <span class="category-tag">{{ cat.strip() }}</span>

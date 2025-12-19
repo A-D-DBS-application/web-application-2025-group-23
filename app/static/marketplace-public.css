@@ -65,16 +65,23 @@
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
+    width: 100%;
 }
 
 .search-bar {
-    flex: 1;
+    flex: 4;
     padding: 0.75rem 1rem;
     border: 1px solid #dadce0;
     border-radius: 24px;
     font-size: 1rem;
     background: white;
     transition: all 0.3s;
+    min-width: 0;
+}
+
+.filters .btn-primary {
+    flex: 1;
+    white-space: nowrap;
 }
 
 .category-filter {

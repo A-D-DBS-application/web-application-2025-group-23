@@ -213,13 +213,15 @@
 }
 
 /* Main content */
-.tradeflow-container .main {
+.tradeflow-container .main,
+.tradeflow-container .tradeflow-main {
     flex: 1;
     background: #ffffff;
     border-radius: 16px;
     padding: 32px 40px 40px;
     box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
     overflow-y: auto;
+    min-width: 0;
 }
 .tradeflow-container .page-header { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: flex-start; }
 .tradeflow-container .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
@@ -262,8 +264,8 @@
 .tradeflow-container .empty-text { color: #5f6368; font-size: 16px; }
 
 /* Detail pages */
-.tradeflow-container .detail-card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 28px; max-width: 700px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.tradeflow-container .detail-card--full-width { max-width: none; }
+.tradeflow-container .detail-card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 28px; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tradeflow-container .detail-card--full-width { max-width: none; width: 100%; }
 .tradeflow-container .detail-title { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
 .tradeflow-container .detail-section { margin-bottom: 20px; }
 .tradeflow-container .detail-label { font-size: 12px; font-weight: 600; color: #5f6368; text-transform: uppercase; margin-bottom: 6px; }
@@ -406,7 +408,7 @@
 .tradeflow-container .form-textarea:focus { outline: none; border-color: #1A73E8; }
 
 /* Form card (for write review etc) */
-.tradeflow-container .form-card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 28px; max-width: 700px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tradeflow-container .form-card { background: white; border-radius: 8px; border: 1px solid #e8eaed; padding: 28px; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 .tradeflow-container .deal-summary { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
 .tradeflow-container .summary-title { font-size: 11px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 12px; }
 
@@ -466,5 +468,889 @@
     .tradeflow-container .tradeflow-sidebar {
         width: 100%;
         margin-bottom: 16px;
+    }
+}
+
+/* ============================================
+   DETAIL PAGE SPECIFIC STYLES
+   ============================================ */
+
+/* Page header styles for detail pages */
+.tradeflow-container .detail-page-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #202124;
+    margin-bottom: 8px;
+}
+
+.tradeflow-container .detail-page-subtitle {
+    color: #5f6368;
+    font-size: 15px;
+    margin-bottom: 24px;
+}
+
+/* Pair side variants */
+.tradeflow-container .pair-side--request {
+    border: 2px solid #1A73E8;
+    background: #f0f7ff;
+}
+
+.tradeflow-container .pair-side--offer {
+    border: 2px solid #9aa0a6;
+    background: #f5f5f5;
+}
+
+/* Service badge in pair cards */
+.tradeflow-container .pair-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tradeflow-container .pair-badge-label {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.tradeflow-container .pair-badge-label--request {
+    background: #1A73E8;
+    color: white;
+}
+
+.tradeflow-container .pair-badge-label--offer {
+    background: #5f6368;
+    color: white;
+}
+
+/* Pair service title colors */
+.tradeflow-container .pair-service--request {
+    color: #1A73E8;
+}
+
+.tradeflow-container .pair-service--offer {
+    color: #5f6368;
+}
+
+/* Section divider */
+.tradeflow-container .section-divider {
+    border-top: 1px solid #e8eaed;
+    padding-top: 24px;
+    margin-top: 24px;
+}
+
+/* Section header */
+.tradeflow-container .section-header {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1A73E8;
+    margin-bottom: 16px;
+}
+
+/* Info box with border */
+.tradeflow-container .info-box-bordered {
+    background: white;
+    border: 1px solid #e8eaed;
+    border-radius: 10px;
+    padding: 24px;
+}
+
+/* ============================================
+   DEAL BALANCE CARD STYLES
+   ============================================ */
+
+.tradeflow-container .deal-balance-card {
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.tradeflow-container .deal-balance-card--balanced {
+    border: 1px solid #34a853;
+    background: #e6f4ea;
+}
+
+.tradeflow-container .deal-balance-card--favorable {
+    border: 1px solid #f9ab00;
+    background: #fef7e0;
+}
+
+.tradeflow-container .deal-balance-card--unbalanced {
+    border: 1px solid #f9ab00;
+    background: #fef7e0;
+}
+
+/* Balance header */
+.tradeflow-container .balance-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.tradeflow-container .balance-header-content {
+    flex: 1;
+}
+
+.tradeflow-container .balance-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #202124;
+    margin: 0;
+}
+
+.tradeflow-container .balance-score-wrapper {
+    text-align: right;
+}
+
+.tradeflow-container .balance-score-label {
+    font-size: 13px;
+    color: #5f6368;
+    margin-bottom: 4px;
+}
+
+.tradeflow-container .balance-score {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.tradeflow-container .balance-score--balanced {
+    color: #34a853;
+}
+
+.tradeflow-container .balance-score--unbalanced {
+    color: #f9ab00;
+}
+
+/* Balance ratio (used in awaiting_other_party) */
+.tradeflow-container .balance-ratio {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.tradeflow-container .balance-ratio--balanced {
+    color: #34a853;
+}
+
+.tradeflow-container .balance-ratio--favorable {
+    color: #f9ab00;
+}
+
+.tradeflow-container .balance-ratio--unbalanced {
+    color: #f9ab00;
+}
+
+/* Balance verdict */
+.tradeflow-container .balance-verdict {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.tradeflow-container .balance-verdict--balanced {
+    color: #34a853;
+}
+
+.tradeflow-container .balance-verdict--favorable {
+    color: #f9ab00;
+}
+
+.tradeflow-container .balance-verdict--unbalanced {
+    color: #f9ab00;
+}
+
+.tradeflow-container .balance-description {
+    font-size: 14px;
+    color: #5f6368;
+    margin-top: 4px;
+}
+
+/* Balance status */
+.tradeflow-container .balance-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.tradeflow-container .balance-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.tradeflow-container .balance-status-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #202124;
+    margin: 0;
+}
+
+.tradeflow-container .balance-status-text {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.tradeflow-container .balance-status-text--balanced {
+    color: #34a853;
+}
+
+.tradeflow-container .balance-status-text--unbalanced {
+    color: #f9ab00;
+}
+
+.tradeflow-container .balance-status-desc {
+    font-size: 14px;
+    color: #5f6368;
+    margin-top: 4px;
+}
+
+/* Value comparison section */
+.tradeflow-container .value-comparison {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 20px;
+}
+
+.tradeflow-container .value-comparison-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #202124;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.tradeflow-container .value-comparison-grid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.tradeflow-container .value-comparison-item {
+    flex: 1;
+    text-align: center;
+}
+
+.tradeflow-container .value-comparison-side {
+    flex: 1;
+    text-align: center;
+}
+
+.tradeflow-container .value-comparison-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #5f6368;
+    margin-bottom: 8px;
+}
+
+.tradeflow-container .value-comparison-service {
+    font-size: 16px;
+    font-weight: 600;
+    color: #202124;
+}
+
+.tradeflow-container .value-comparison-arrow {
+    font-size: 28px;
+    color: #1A73E8;
+    font-weight: 700;
+}
+
+/* SVI dots */
+.tradeflow-container .svi-dots {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.tradeflow-container .svi-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.tradeflow-container .svi-dot--filled {
+    background: #34a853;
+}
+
+.tradeflow-container .svi-dot--empty {
+    background: #dadce0;
+}
+
+/* Balance info section */
+.tradeflow-container .balance-info-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.tradeflow-container .balance-info-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #202124;
+    margin-bottom: 12px;
+}
+
+.tradeflow-container .balance-info-list {
+    margin: 0;
+    padding-left: 20px;
+    color: #5f6368;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* Balance details collapsible */
+.tradeflow-container .balance-details {
+    margin-top: 20px;
+}
+
+.tradeflow-container .balance-details summary {
+    cursor: pointer;
+    color: #1A73E8;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.tradeflow-container .balance-details-content {
+    margin-top: 16px;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+}
+
+.tradeflow-container .balance-details-text {
+    font-size: 13px;
+    color: #5f6368;
+    margin-bottom: 12px;
+}
+
+.tradeflow-container .balance-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.tradeflow-container .balance-details-item-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: #202124;
+    margin-bottom: 4px;
+}
+
+.tradeflow-container .balance-details-item-value {
+    font-size: 13px;
+    color: #5f6368;
+}
+
+.tradeflow-container .balance-details-note {
+    font-size: 12px;
+    color: #9aa0a6;
+    font-style: italic;
+    margin: 0;
+}
+
+/* ============================================
+   MONEY COMPENSATION STYLES
+   ============================================ */
+
+.tradeflow-container .money-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.tradeflow-container .money-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #202124;
+    margin: 0;
+}
+
+.tradeflow-container .money-section-subtitle {
+    font-size: 13px;
+    color: #5f6368;
+    margin: 4px 0 0 0;
+}
+
+.tradeflow-container .money-display {
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.tradeflow-container .money-display--receive {
+    background: #e6f4ea;
+}
+
+.tradeflow-container .money-display--give {
+    background: #fef7e0;
+}
+
+.tradeflow-container .money-display-label {
+    font-size: 14px;
+    color: #5f6368;
+    margin-bottom: 8px;
+}
+
+.tradeflow-container .money-display-amount {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.tradeflow-container .money-display-amount--receive {
+    color: #1e8e3e;
+}
+
+.tradeflow-container .money-display-amount--give {
+    color: #f9ab00;
+}
+
+.tradeflow-container .money-display-note {
+    font-size: 13px;
+    color: #5f6368;
+    margin-top: 8px;
+}
+
+/* ============================================
+   NOTICE/ALERT STYLES
+   ============================================ */
+
+.tradeflow-container .notice {
+    margin-top: 24px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-left: 3px solid #1A73E8;
+    border-radius: 4px;
+}
+
+.tradeflow-container .notice p {
+    margin: 0;
+    font-size: 14px;
+    color: #5f6368;
+    line-height: 1.5;
+}
+
+.tradeflow-container .notice strong {
+    color: #202124;
+}
+
+/* ============================================
+   FORM STYLES FOR DETAIL PAGES
+   ============================================ */
+
+.tradeflow-container .form-card {
+    background: white;
+    border: 1px solid #e8eaed;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tradeflow-container .form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.tradeflow-container .form-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #202124;
+    margin: 0;
+}
+
+.tradeflow-container .form-card-subtitle {
+    font-size: 13px;
+    color: #5f6368;
+    margin: 4px 0 0 0;
+}
+
+/* Toggle buttons for money type */
+.tradeflow-container .toggle-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.tradeflow-container .toggle-btn {
+    padding: 12px 20px;
+    border: 2px solid #e8eaed;
+    border-radius: 8px;
+    background: white;
+    color: #5f6368;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tradeflow-container .toggle-btn:hover {
+    border-color: #1A73E8;
+}
+
+.tradeflow-container .toggle-btn.active {
+    background: #1A73E8;
+    border-color: #1A73E8;
+    color: white;
+}
+
+/* Money input group */
+.tradeflow-container .money-input-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.tradeflow-container .money-input-wrapper {
+    flex: 1;
+}
+
+.tradeflow-container .money-input-label {
+    font-size: 13px;
+    color: #5f6368;
+    margin-bottom: 8px;
+    display: block;
+    font-weight: 600;
+}
+
+.tradeflow-container .money-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tradeflow-container .money-input-currency {
+    font-size: 24px;
+    font-weight: 600;
+    color: #5f6368;
+}
+
+.tradeflow-container .money-input-field {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e8eaed;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    background: white;
+}
+
+.tradeflow-container .money-input-field:focus {
+    outline: none;
+    border-color: #1A73E8;
+}
+
+/* Money preview */
+.tradeflow-container .money-preview {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f0f7ff;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+    color: #1A73E8;
+    font-weight: 500;
+}
+
+.tradeflow-container .money-preview--receive {
+    background: #e6f4ea;
+    color: #1e8e3e;
+}
+
+.tradeflow-container .money-preview--give {
+    background: #fef7e0;
+    color: #f9ab00;
+}
+
+/* Message textarea */
+.tradeflow-container .message-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px 16px;
+    border: 1px solid #e8eaed;
+    border-radius: 8px;
+    font-size: 15px;
+    resize: vertical;
+    font-family: inherit;
+    background: #f8f9fa;
+}
+
+.tradeflow-container .message-textarea:focus {
+    outline: none;
+    border-color: #1A73E8;
+    background: white;
+}
+
+/* Action buttons for forms */
+.tradeflow-container .form-actions {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.tradeflow-container .btn-primary {
+    flex: 1;
+    padding: 16px 24px;
+    background: #1A73E8;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.2);
+}
+
+.tradeflow-container .btn-primary:hover {
+    background: #1557b0;
+}
+
+.tradeflow-container .btn-secondary {
+    flex: 1;
+    padding: 16px 24px;
+    background: white;
+    color: #5f6368;
+    border: 2px solid #e8eaed;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.tradeflow-container .btn-secondary:hover {
+    border-color: #1A73E8;
+    color: #1A73E8;
+}
+
+/* Cancel button (red) */
+.tradeflow-container .btn-cancel {
+    background: white;
+    color: #dc3545;
+    padding: 10px 20px;
+    border: 1px solid #dc3545;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tradeflow-container .btn-cancel:hover {
+    background: #fef2f2;
+}
+
+/* Counter offer button */
+.tradeflow-container .btn-counter {
+    background: white;
+    color: #1A73E8;
+    padding: 12px 24px;
+    border: 2px solid #1A73E8;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.tradeflow-container .btn-counter:hover {
+    background: #f0f7ff;
+}
+
+/* Message box */
+.tradeflow-container .message-box {
+    background: #fef7e0;
+    border-left: 4px solid #f9ab00;
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+}
+
+.tradeflow-container .message-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #5f6368;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.tradeflow-container .message-text {
+    font-size: 14px;
+    color: #1a1a1a;
+    line-height: 1.6;
+}
+
+/* Form cancel wrapper */
+.tradeflow-container .form-cancel {
+    margin-top: 16px;
+}
+
+/* Balance score wrapper (for awaiting_other_party) */
+.tradeflow-container .balance-score-wrapper {
+    text-align: right;
+}
+
+.tradeflow-container .balance-score-label {
+    font-size: 13px;
+    color: #5f6368;
+    margin-bottom: 4px;
+}
+
+.tradeflow-container .balance-verdict-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.tradeflow-container .balance-comparison-section {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 20px;
+}
+
+/* Money preview extras */
+.tradeflow-container .money-preview-label {
+    font-size: 14px;
+    color: #5f6368;
+    margin-bottom: 8px;
+}
+
+.tradeflow-container .money-preview-amount {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.tradeflow-container .money-preview--receive .money-preview-amount {
+    color: #1e8e3e;
+}
+
+.tradeflow-container .money-preview--give .money-preview-amount {
+    color: #f9ab00;
+}
+
+.tradeflow-container .money-preview-suffix {
+    font-size: 13px;
+    color: #5f6368;
+    margin-top: 8px;
+}
+
+/* Margin utilities */
+.tradeflow-container .mt-16 {
+    margin-top: 16px;
+}
+
+.tradeflow-container .mt-24 {
+    margin-top: 24px;
+}
+
+.tradeflow-container .mb-0 {
+    margin-bottom: 0;
+}
+
+/* Meta value for tags display */
+.tradeflow-container .meta-value--tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Category tags wrapper */
+.tradeflow-container .category-tags-wrapper {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablet and smaller */
+@media (max-width: 1024px) {
+    .tradeflow-container .tradeflow-main,
+    .tradeflow-container .main {
+        padding: 24px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .tradeflow-container {
+        flex-direction: column;
+    }
+    
+    .tradeflow-container .tradeflow-sidebar {
+        width: 100%;
+        max-height: none;
+        border-right: none;
+        border-bottom: 1px solid #e8eaed;
+    }
+    
+    .tradeflow-container .tradeflow-main,
+    .tradeflow-container .main {
+        padding: 16px;
+    }
+    
+    .tradeflow-container .detail-card {
+        padding: 16px;
+    }
+    
+    .tradeflow-container .pair-grid {
+        flex-direction: column;
+    }
+    
+    .tradeflow-container .value-comparison-grid {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .tradeflow-container .value-comparison-arrow {
+        transform: rotate(90deg);
+    }
+    
+    .tradeflow-container .info-grid {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .tradeflow-container .form-actions {
+        flex-direction: column;
+    }
+    
+    .tradeflow-container .toggle-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .tradeflow-container .balance-status-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .tradeflow-container .balance-details-grid {
+        grid-template-columns: 1fr;
     }
 }

@@ -654,7 +654,8 @@ def tradeflow_awaiting_signature_detail(company_id, proposal_id):
     except Exception:
         pass
 
-    fairness_data = compute_fairness(proposal.from_service, proposal.to_service)
+    # Compute fairness from the current viewer's perspective (they receive to_service, give from_service)
+    fairness_data = compute_fairness(proposal.to_service, proposal.from_service)
 
     return render_template('tradeflow_awaiting_signature_detail.html', company=company, proposal=proposal, fairness_data=fairness_data)
 
