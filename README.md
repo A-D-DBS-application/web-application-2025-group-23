@@ -54,9 +54,6 @@ flaskdb_upgrade]
 - evolution User Interface: https://github.com/A-D-DBS-application/web-application-2025-group-23/blob/3d7672489b93d7837fc27e47220963a94395b4b3/EvolutionUserInterface.md 
 - finale user Interface: https://www.figma.com/design/qhGCSW6y5SfgpUuQqfOpyZ/Barter.com---group-23---User-Interface?node-id=5-59&t=VP867ypVz8lcFcYZ-1
 
-# Link to audio/video recording of feedback sessions with external partner + Meeting Summaries 
-
-
 # Link to Explanation Algorithm [figma+docu]
 - https://hide-final-63674429.figma.site 
 
