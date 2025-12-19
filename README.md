@@ -1,14 +1,6 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/DxqGQVx4)
 
 
-## Database Design
-
-The Entity-Relationship Diagram (ERD) represents the conceptual data model of the application and is provided in `erd.md`.
-
-The physical database schema is implemented in PostgreSQL and defined using Data Definition Language (DDL). The complete DDL used in Supabase can be found in `schema.sql`.
-
-
-## Delivered Documents Case 
 
 # Information on how to install/use the application barter.com 
 [Use the project virtualenv when running Flask / Alembic commands. Activate the venv:
@@ -39,12 +31,17 @@ flaskdb_upgrade]
 
 
 
+## Delivered Documents Case 
 
 #Link to Kanban Board: 
 - https://flyer-tray-35034484.figma.site 
 
 # Link to Application Structure:
 - https://punch-guide-99957516.figma.site 
+
+# Database Design
+- The Entity-Relationship Diagram (ERD) represents the conceptual data model of the application and is provided in `erd.md`.
+- The physical database schema is implemented in PostgreSQL and defined using Data Definition Language (DDL). The complete DDL used in Supabase can be found in `schema.sql`.
 
 # Link to Final User Stories: 
 - https://github.com/A-D-DBS-application/web-application-2025-group-23/blob/e2584391a1ed51dff4c00ca68ce5ef0112319973/barter.com%20-%20group%2023%20-%20final%20UserStories.pdf
