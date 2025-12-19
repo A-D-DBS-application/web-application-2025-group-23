@@ -1,12 +1,21 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/DxqGQVx4)
 
 
-## Working with the database (migrations)
+## Database Design
 
-Use the project virtualenv when running Flask / Alembic commands. Activate the venv:
+The Entity-Relationship Diagram (ERD) represents the conceptual data model of the application and is provided in `erd.md`.
+
+The physical database schema is implemented in PostgreSQL and defined using Data Definition Language (DDL). The complete DDL used in Supabase can be found in `schema.sql`.
+
+
+## Delivered Documents Case 
+
+Information on how to install/use the application barter.com 
+[Use the project virtualenv when running Flask / Alembic commands. Activate the venv:
 
 ```bash
 source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 When you source the venv, the activate script sets a couple of useful environment variables and helper functions automatically:
@@ -26,20 +35,7 @@ To create and apply a migration after changing `app/models.py`:
 flaskdb_migrate "describe your change - your name"
 
 # apply migration
-flaskdb_upgrade
-```
-
-## Database Design
-
-The Entity-Relationship Diagram (ERD) represents the conceptual data model of the application and is provided in `erd.md`.
-
-The physical database schema is implemented in PostgreSQL and defined using Data Definition Language (DDL). The complete DDL used in Supabase can be found in `schema.sql`.
-
-
-## Delivered Documents Case 
-
-Information on how to install/use the application barter.com 
-[+......]
+flaskdb_upgrade]
 
 Link to Kanban Board: 
 https://flyer-tray-35034484.figma.site 
