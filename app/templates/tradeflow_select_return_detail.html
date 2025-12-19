@@ -19,8 +19,16 @@
             <div class="meta-value">{{ service.duration_hours }}h</div>
           </div>
           <div class="meta-item">
-            <div class="meta-label">Category</div>
-            <div class="meta-value"><span class="card-badge">{{ service.category or 'General' }}</span></div>
+            <div class="meta-label">Categories</div>
+            <div class="meta-value" style="display: flex; flex-wrap: wrap; gap: 6px;">
+              {% if service.categories %}
+                {% for cat in service.categories.split(',') %}
+                  <span class="category-tag">{{ cat.strip() }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="category-tag">General</span>
+              {% endif %}
+            </div>
           </div>
         </div>
         
