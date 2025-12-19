@@ -58,3 +58,6 @@ flaskdb_upgrade]
 
 # Link to Explanation Algorithm [figma+docu]
 - https://hide-final-63674429.figma.site 
+
+# Link to presentation Oral Defense 
+
