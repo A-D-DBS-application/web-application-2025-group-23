@@ -294,12 +294,15 @@
 
 /* Action buttons */
 .tradeflow-container .action-buttons { display: flex; gap: 12px; margin-top: 24px; }
-.tradeflow-container .btn-primary { background: #1A73E8; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; }
-.tradeflow-container .btn-primary:hover { background: #1A73E8; }
-.tradeflow-container .btn-secondary { background: white; color: #5f6368; padding: 12px 24px; border: 1px solid #e8eaed; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; }
-.tradeflow-container .btn-secondary:hover { border-color: #1A73E8; color: #1A73E8; }
-.tradeflow-container .btn-danger { background: #dc3545; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; }
-.tradeflow-container .btn-danger:hover { background: #c82333; }
+.tradeflow-container .action-buttons form { width: 100%; }
+.tradeflow-container .action-buttons button { width: 100%; }
+
+/* Pair grid (for detail pages showing two services side by side) */
+.tradeflow-container .pair-grid { display: flex; gap: 20px; margin-bottom: 24px; }
+.tradeflow-container .pair-side { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 20px; border: 1px solid #e8eaed; text-align: left; }
+.tradeflow-container .pair-label { font-size: 12px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 8px; text-align: left; }
+.tradeflow-container .pair-service { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; text-align: left; }
+.tradeflow-container .pair-desc { font-size: 14px; color: #5f6368; line-height: 1.5; text-align: left; }
 
 /* Detail page specific styles */
 .tradeflow-container .service-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a; }
@@ -345,10 +348,10 @@
 
 /* Pair grid (for detail pages showing two services side by side) */
 .tradeflow-container .pair-grid { display: flex; gap: 20px; margin-bottom: 24px; }
-.tradeflow-container .pair-side { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 20px; border: 1px solid #e8eaed; }
-.tradeflow-container .pair-label { font-size: 12px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 8px; }
-.tradeflow-container .pair-service { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
-.tradeflow-container .pair-desc { font-size: 14px; color: #5f6368; line-height: 1.5; }
+.tradeflow-container .pair-side { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 20px; border: 1px solid #e8eaed; text-align: left; }
+.tradeflow-container .pair-label { font-size: 12px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; margin-bottom: 8px; text-align: left; }
+.tradeflow-container .pair-service { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; text-align: left; }
+.tradeflow-container .pair-desc { font-size: 14px; color: #5f6368; line-height: 1.5; text-align: left; }
 
 /* Info grid (for details like Created date, Status, etc) */
 .tradeflow-container .info-grid { display: flex; gap: 32px; margin-bottom: 16px; }

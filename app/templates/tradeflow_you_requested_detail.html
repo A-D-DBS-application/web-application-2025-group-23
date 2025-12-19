@@ -9,7 +9,7 @@
 
     <main class="main">
       <a href="{{ url_for('main.tradeflow_you_requested', company_id=company.company_id) }}" class="back-link">← Back</a>
-      <div class="detail-card">
+      <div class="detail-card detail-card--full-width">
         <div class="service-title">{{ trade_request.requested_service.title }}</div>
         <div class="service-company">by {{ trade_request.requested_service.company.name }}</div>
         <div class="service-desc">{{ trade_request.requested_service.description }}</div>
