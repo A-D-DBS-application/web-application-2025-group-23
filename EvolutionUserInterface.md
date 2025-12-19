@@ -7,7 +7,7 @@
 <img width="1210" height="405" alt="image" src="https://github.com/user-attachments/assets/eb3d059c-f5a8-465a-aea4-3222d63f9bd4" />
 <img width="957" height="837" alt="image" src="https://github.com/user-attachments/assets/1ca6ee22-650c-4717-9a1b-315d34d722dd" />
 
-#We swiched to a prettier layout + started basing it of the mobile version instead of the other way around
+We switched to a cleaner layout and started basing the design on the mobile version rather than the other way around.
 <img width="1270" height="978" alt="image" src="https://github.com/user-attachments/assets/ec53c047-cca4-437e-b3de-bf8d4e51ab27" />
 <img width="381" height="775" alt="image" src="https://github.com/user-attachments/assets/7bb327db-715c-49e2-9ac3-f6a770543047" />
 <img width="573" height="428" alt="image" src="https://github.com/user-attachments/assets/db0cb64f-9c32-456a-9cab-915ee1d2312e" />
