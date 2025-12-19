@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Offer Detail – Barter.com{% endblock %}
+{% block nav_tradeflow_active %}class="active"{% endblock %}
+{% set active_page = 'awaiting_signature' %}
 
 {% block extra_css %}
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,10 +13,12 @@
   {% include '_tradeflow_sidebar.html' %}
 
   <main class="tradeflow-main">
-<a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="back-link">← Back to Waiting for You</a>
-      <div class="detail-card">
-        <h1 class="detail-title">Offer Details</h1>
-        <p class="detail-subtitle">Review this offer and decide to accept or decline</p>
+    <a href="{{ url_for('main.tradeflow_awaiting_signature', company_id=company.company_id) }}" class="back-link">← Back to Waiting for You</a>
+    
+    <h1 class="detail-title">Offer Details</h1>
+    <p class="detail-subtitle">Review this offer and decide to accept or decline</p>
+    
+    <div class="detail-card">
         
         {# User is to_company since they're being offered something #}
         {# from_service belongs to to_company, to_service belongs to from_company #}
@@ -41,6 +45,28 @@
           </div>
         </div>
         
+        <!-- Details Section -->
+        <div class="section-divider">
+          <h2 class="section-header">Details</h2>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Status</div>
+              <div class="info-value">{{ proposal.status }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Created</div>
+              <div class="info-value">{{ proposal.created_at.strftime('%d-%m-%Y') }}</div>
+            </div>
+            {% if proposal.message %}
+            <div class="info-item">
+              <div class="info-label">Message</div>
+              <div class="info-value">{{ proposal.message }}</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
         <!-- Deal Balance Section -->
         {% if fairness_data %}
         <div class="section-divider">
@@ -199,47 +225,51 @@
           </div>
         </div>
         {% endif %}
-        
+
+        <!-- Money Compensation Section -->
+        {% set money_type = proposal.money_type if proposal.money_type is defined else None %}
+        {% set money_amount = proposal.money_amount if proposal.money_amount is defined else None %}
+        {# For awaiting_signature, we are the receiving party, so money types are inverted #}
+        {# If sender marked 'give', we 'receive'. If sender marked 'receive', we 'give' #}
+        {% set viewer_money_type = 'receive' if money_type == 'give' else ('give' if money_type == 'receive' else None) %}
+        {% if money_amount and money_amount|int > 0 and viewer_money_type %}
         <div class="section-divider">
-          <h2 class="section-header">Offer Terms</h2>
+          <h2 class="section-header">Money Compensation</h2>
           
-          <div class="info-grid">
-            <div class="info-item">
-              <div class="info-label">Status</div>
-              <div class="info-value">Pending your signature</div>
+          <div class="form-card">
+            <div class="form-card-header">
+              <div>
+                <h3 class="form-card-title">Additional Payment</h3>
+                <p class="form-card-subtitle">Extra money to balance this trade</p>
+              </div>
             </div>
-            <div class="info-item">
-              <div class="info-label">Created</div>
-              <div class="info-value">{{ proposal.created_at.strftime('%d-%m-%Y') }}</div>
+            
+            <div class="money-preview {% if viewer_money_type == 'receive' %}money-preview--receive{% else %}money-preview--give{% endif %}">
+              <div class="money-preview-label">
+                {% if viewer_money_type == 'receive' %}
+                You will receive
+                {% else %}
+                You will give
+                {% endif %}
+              </div>
+              <div class="money-preview-amount">€{{ money_amount }}</div>
+              <div class="money-preview-suffix">as part of this deal</div>
             </div>
-            {% if proposal.money_type and proposal.money_amount %}
-            <div class="info-item">
-              {% if proposal.money_type == 'receive' %}
-              <div class="info-label">You Pay</div>
-              <div class="info-value">€{{ proposal.money_amount }}</div>
-              {% else %}
-              <div class="info-label">You Get</div>
-              <div class="info-value">€{{ proposal.money_amount }}</div>
-              {% endif %}
-            </div>
-            {% endif %}
-            {% if proposal.message %}
-            <div class="info-item info-item--full">
-              <div class="info-label">Message from {{ proposal.from_company.name }}</div>
-              <div class="info-value">{{ proposal.message }}</div>
-            </div>
-            {% endif %}
           </div>
         </div>
-        
-        <div class="section-divider">
-          <h2 class="section-header">Your Response</h2>
-          <div class="action-buttons-group">
-            <form method="POST" style="display: inline;">
-              <button type="submit" name="action" value="accept" class="btn btn-success">✓ Accept Offer</button>
+        {% endif %}
+
+        <!-- Action Footer -->
+        <div class="detail-action-footer">
+          <div class="action-footer-left">
+            <form method="POST" action="{{ url_for('main.tradeflow_cancel_deal', company_id=company.company_id, proposal_id=proposal.proposal_id) }}" style="margin: 0;">
+              <button type="submit" class="btn-cancel" onclick="return confirm('Are you sure you want to cancel this deal? This will remove it completely from matches.');">Cancel Deal</button>
             </form>
-            <form method="POST" style="display: inline;">
-              <button type="submit" name="action" value="decline" class="btn btn-danger" onclick="return confirm('Are you sure you want to decline this offer?');">✕ Decline Offer</button>
+          </div>
+          <div class="action-footer-right">
+            <a href="{{ url_for('main.tradeflow_match_detail', company_id=company.company_id, proposal_id=proposal.proposal_id) }}" class="btn-counter">Make Counter Offer</a>
+            <form method="POST" style="margin: 0;">
+              <button type="submit" name="action" value="accept" class="btn-accept">Accept Offer</button>
             </form>
           </div>
         </div>
